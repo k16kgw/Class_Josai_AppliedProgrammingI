@@ -1,0 +1,43 @@
+# See docs at: https://mystmd.org/guide/frontmatter
+version: 1
+project:
+  id: a2b3c4d5-e6f7-4a8b-9c0d-1e2f3a4b5c6d
+  title: 応用プログラミングI
+  description: 城西大学理学部情報数理学科対象科目
+  authors:
+    - name: Keiichiro Kagawa
+    - email: kkagawa@josai.ac.jp
+    # - affiliation: 3号棟3階3306
+  github: https://github.com/k16kgw/Class_Josai_AppliedProgrammingI
+  # To autogenerate a Table of Contents, run "jupyter book init --write-toc"
+  bibliography:
+    - references.bib
+  exports:
+    - format: pdf
+      template: plain_latex_book
+      output: exports/book.pdf
+  numbering:
+    # title: true
+    headings: true
+  toc:
+    - file: intro.md
+    - file: contents/1_introduction.md
+    # - file: contents/2_variables.md
+    # - file: contents/3_control.md
+    # - file: contents/4_functions.md
+    # - file: contents/5_list.md
+    # - file: contents/6_dict.md
+    # - file: contents/7_file.md
+    # - file: contents/8_numpy.md
+    # - file: contents/9_matplotlib.md
+    # - file: contents/10_pandas.md
+    # - file: contents/11_scipy.md
+    # - file: contents/12_algorithm.md
+    # - file: contents/13_final.md
+
+site:
+  options:
+    # logo: logo.png
+    folders: true
+  template: book-theme
+  # template: article-theme
