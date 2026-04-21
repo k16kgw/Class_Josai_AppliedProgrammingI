@@ -41,5 +41,6 @@ site:
   options:
     # logo: logo.png
     folders: true
-    css:
-      - assets/custom.css
+    # css:
+    #   - assets/custom.css
+    style: ./assets/custom.css
