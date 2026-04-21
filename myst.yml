@@ -22,7 +22,7 @@ project:
   toc:
     - file: intro.md
     - file: contents/1_introduction.md
-    # - file: contents/2_git_basic.md
+    - file: contents/2_git_basic.md
     # - file: contents/3_control.md
     # - file: contents/4_functions.md
     # - file: contents/5_list.md
