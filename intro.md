@@ -48,7 +48,7 @@ DP1○，DP2○，DP3◎
 ## 講義スケジュール
 
 <!-- **■1回目** -->
-**[■1回目](/contents/1_introduction)**
+**[■1回目](/contents/introduction)**
 
 【テーマ】ガイダンス、Python実行環境の確認とGitの導入
 
@@ -57,7 +57,7 @@ DP1○，DP2○，DP3◎
 【準備学習】Pythonの使い方を復習
 
 <!-- **■2回目** -->
-**[■2回目](/contents/2_git_basic)**
+**[■2回目](/contents/git-basic)**
 
 【テーマ】Gitの基本的な使い方
 
