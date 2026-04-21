@@ -22,7 +22,7 @@ project:
   toc:
     - file: intro.md
     - file: contents/1_introduction.md
-    - file: contents/2_git_basic.md
+    # - file: contents/2_git_basic.md
     # - file: contents/3_control.md
     # - file: contents/4_functions.md
     # - file: contents/5_list.md
@@ -39,8 +39,8 @@ site:
   template: book-theme
   # template: article-theme
   options:
-    # logo: logo.png
     folders: true
+    # style: ./assets/custom.css
+    # logo: logo.png
     # css:
     #   - assets/custom.css
-    style: ./assets/custom.css
