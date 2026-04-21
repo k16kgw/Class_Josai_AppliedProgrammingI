@@ -36,8 +36,10 @@ project:
     # - file: contents/13_final.md
 
 site:
+  template: book-theme
+  # template: article-theme
   options:
     # logo: logo.png
     folders: true
-  template: book-theme
-  # template: article-theme
+    css:
+      - assets/custom.css

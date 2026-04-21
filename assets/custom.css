@@ -1,0 +1,17 @@
+/* 左サイドバー（目次）を消す */
+.sidebar,
+.left-sidebar,
+nav.sidebar,
+.bd-sidebar,
+#sidebar {
+  display: none !important;
+}
+
+/* メイン領域を左余白なしで広げる（効く範囲だけ） */
+main,
+.bd-main,
+.content,
+#main-content {
+  margin-left: 0 !important;
+  width: 100% !important;
+}
