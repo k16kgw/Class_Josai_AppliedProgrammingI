@@ -23,17 +23,17 @@ project:
     - file: intro.md
     - file: contents/1_introduction.md
     - file: contents/2_git_basic.md
-    # - file: contents/3_control.md
-    # - file: contents/4_functions.md
-    # - file: contents/5_list.md
-    # - file: contents/6_dict.md
-    # - file: contents/7_file.md
-    # - file: contents/8_numpy.md
-    # - file: contents/9_matplotlib.md
-    # - file: contents/10_pandas.md
-    # - file: contents/11_scipy.md
-    # - file: contents/12_algorithm.md
-    # - file: contents/13_final.md
+    - file: contents/3_git_branch.md
+    # - file: contents/4_opendata.md
+    # - file: contents/5_api.md
+    # - file: contents/6_preprocessing1.md
+    # - file: contents/7_preprocessing2.md
+    # - file: contents/8_visualization.md
+    # - file: contents/9_statistics.md
+    # - file: contents/10_regression.md
+    # - file: contents/11_classification.md
+    # - file: contents/12_excercise.md
+    # - file: contents/13_review.md
 
 site:
   template: book-theme
