@@ -24,7 +24,7 @@ project:
     - file: contents/1_introduction.md
     - file: contents/2_git_basic.md
     - file: contents/3_git_branch.md
-    # - file: contents/4_opendata.md
+    - file: contents/4_opendata.md
     # - file: contents/5_api.md
     # - file: contents/6_preprocessing1.md
     # - file: contents/7_preprocessing2.md
