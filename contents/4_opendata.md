@@ -515,7 +515,7 @@ for row in rows[:5]:
 3. `Date`，`ALL`，`Tokyo`，`Saitama` などの列があるか
 4. 先頭行の日付はどのような形式か
 
-`src/inspect_covid_data.py`を実行した出力結果をコピーまたはスクリーンショットに取り，WebClass「第4回課題」問2へ提出せよ．
+`src/inspect_covid_data.py`を実行した出力結果をスクリーンショットに取り，WebClass「第4回課題」問2へ提出せよ．
 ````
 <!-- 
 print("行数:", len(rows))
