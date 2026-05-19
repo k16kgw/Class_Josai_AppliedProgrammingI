@@ -151,12 +151,6 @@ URLの一部や `?` 以降のクエリパラメタによって取得条件を指
 https://www.jma.go.jp/bosai/forecast/data/forecast/130000.json
 ```
 
-この形式では，
-$$
-\text{URL} = \text{endpoint} + \text{area code}
-$$
-と考えられる．
-
 なお，地域コードの一覧は次のJSONから確認できる．
 
 ```text
