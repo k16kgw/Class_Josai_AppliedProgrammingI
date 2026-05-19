@@ -400,8 +400,9 @@ APIからデータを取得したら，まず中身を眺める．
 中身の確認には jupyter note book が有効である．
 
 ````{note} 演習2
-1. VSCodeまたはAnacondaでjupyter note bookを開き，次を実施せよ．
+VSCodeまたはAnacondaでjupyter note bookを開き，次を実施せよ．
 
+1. 次を実行してデータを取得する．
 ```python
 import json
 
