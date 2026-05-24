@@ -2,410 +2,303 @@
 
 ### 前回の復習
 
-- API は，プログラムからデータ提供サービスを利用するための窓口である．
-- API への問い合わせは，エンドポイントとクエリパラメータによって構成される．
-- 多くの API は JSON 形式でデータを返す．
-- 取得した JSON は `data/raw` に保存し，分析しやすく加工した CSV は `data/processed` に保存する．
-- API 利用時には，利用規約，アクセス頻度，エラー処理，APIキーの管理に注意する．
+- API：プログラムからデータ提供サービスを利用するための窓口
+- エンドポイント：APIへ問い合わせるURL
+- レスポンス：APIから返ってくる結果
+- 多くの API は JSON 形式でデータを返す
+- JSON はリストと辞書が入れ子になった階層構造をもつ
+- 取得した JSON は `data/raw` に保存し，加工したCSVは `data/processed` に保存する
+- 第5回では，気象庁の天気予報JSON（東京都）を取得し，中身を確認した
 
-前回までに，オープンデータや API からデータを取得し，JSON や CSV として保存する方法を学んだ．
-しかし，取得したデータは，そのまま分析に使えるとは限らない．
-値が欠けていたり，数値が文字列として保存されていたり，同じ行が重複していたり，極端な値が含まれていたりすることがある．
+取得したデータは，そのまま分析に使えるとは限らない．
+例えば，次のような問題が含まれることがある．
 
-このようなデータを分析しやすい形に整える作業を**前処理**という．
-本日は，前処理のうち，欠損値，型変換，外れ値，重複，列名整理などの基本を扱う．
+- 必要な値が深い階層の中にある
+- 数値のように見える値が文字列として保存されている
+- 日本語の文字列に全角空白や余分な空白が含まれている
+- 日時の文字列から日付や時刻を取り出したい
+- 1つのJSONの中に複数の表が入っている
+
+**前処理**：取得したデータを分析しやすい形に整える作業
+
+今回は，第5回で取得した `data/raw/jma_tokyo_forecast.json` を使い，前処理の基本を学ぶ．
 
 ### 到達目標
 
-本日は，データの前処理Iとして，取得したデータを分析可能な形に整えるための基礎を学ぶ．
+取得したデータを分析可能な形に整えるための基礎を学ぶ．
 
-- 前処理がなぜ必要かを説明できる．
-- CSVを読み込み，行数，列名，値の概要を確認できる．
-- 欠損値を検出し，削除または補完の考え方を説明できる．
-- 文字列として読み込まれた数値を適切な型に変換できる．
-- 重複行や外れ値の候補を確認できる．
-- 前処理前のデータと前処理後のデータを分けて保存できる．
+- 前処理がなぜ必要かを説明できる
+- JSONの階層構造から必要な項目を取り出せる
+- 気象庁の日本語JSONデータから表形式CSVを作成できる
+- CSVを読み込み，行数，列名，値の例を確認できる
+- 欠損値や空欄を確認できる
+- 文字列として読み込まれた数値を整数に変換できる
+- 日本語文字列の全角空白を整理できる
+- 前処理前のデータと前処理後のデータを分けて保存できる
 
 ### 準備
 
-````{note} 演習0
-本講義で使用するフォルダ `/User/<ユーザ名>/applied_programming_i/` 内に，本日使用するフォルダ `6` を作成し，次の `README.md` ファイルを作成した上で Git の初期化を行うこと．
+<span style="color:red">今回は第5回で作成したフォルダ `5` 内で作業を続ける．</span>
+
+第5回で取得した次のファイルを使う．
+
+```text
+5/data/raw/jma_tokyo_forecast.json
+```
+
+この講義ノート内のパスは，学生の作業フォルダ `5` を基準にしている．
+授業資料側では，対応するサンプルデータは次の場所にある．
+
+```text
+contents/analysis/5/data/raw/jma_tokyo_forecast.json
+```
+
+````{dropdown} 演習0：作業フォルダとデータを確認する
+
+1. 第5回で作成した `/User/<ユーザ名>/applied_programming_i/5` を開く．
+2. 次のディレクトリ構成になっているか確認する．
+
+```text
+5/
+├── data/
+│   ├── raw/
+│   │   └── jma_tokyo_forecast.json
+│   └── processed/
+├── src/
+└── README.md
+```
+
+3. `README.md` に次の内容を追記する．
 
 ```markdown
-# 応用プログラミングI 第6回
+## 第6回 前処理記録
 
-- 氏名：<氏名>
-- 学籍番号：<学籍番号>
-
-## 今日の目標
-
-欠損値，型変換，重複，外れ値を確認し，データを分析しやすい形に整える．
+- 元データ：data/raw/jma_tokyo_forecast.json
+- 出典：気象庁ホームページ
+- URL：https://www.jma.go.jp/bosai/forecast/data/forecast/130000.json
+- 前処理内容：JSONから天気予報の表を作成し，型変換と文字列整理を行う
+- 中間データ：data/raw/jma_tokyo_weather_raw_table.csv
+- 前処理後データ：data/processed/jma_tokyo_weather_clean.csv
 ```
+
+4. `jma_tokyo_forecast.json` がない場合は，第5回で作成した `src/fetch_jma_weather.py` を再実行する．
 ````
-
-**手順**
-
-1. ターミナルを起動
-   1. フォルダ移動（`$ cd /User/<ユーザ名>/applied_programming_i/`）
-   2. フォルダ `6` を作成（`$ mkdir 6`）
-2. VSCodeを起動
-   1. フォルダ `/User/<ユーザ名>/applied_programming_i/6` を開く
-   2. `README.md` ファイルを作成する
-3. Gitの初期化を行う
-   1. 左のGitタブを開き「リポジトリを初期化する」を選択する
-4. 最初のコミットを行い初期状態を記録する
-   1. 全てのファイルをステージング領域に上げる
-   2. コミットする（メッセージを忘れずにつけること）
 
 ---
 
-## 前処理とは何か
+## 前処理
 
-データ分析では，取得したデータをそのまま使えるとは限らない．
-実際のデータには，次のような問題が含まれることがある．
-
-- 欠損値がある
-- 数値が文字列として保存されている
-- 日付の形式が統一されていない
-- 同じ行が重複している
-- 表記揺れがある
-- 極端に大きい値や小さい値がある
-- 列名が分かりにくい
-- 分析に不要な列が含まれている
-
-このような問題を確認し，分析しやすい形に整える作業が前処理である．
-
-### 前処理の位置づけ
-
-データ分析の流れは，次のように考えられる．
+データ分析の流れは次のようになる．
 
 ```text
 データ取得 → 前処理 → 集計・可視化 → 分析 → 報告
 ```
 
 前処理は，分析の前に行う準備である．
-前処理をせずに分析すると，欠損値や型の誤りによって計算が失敗したり，誤った結果を得たりすることがある．
+前処理をせずに分析すると，型の誤り，空欄，表記揺れなどによって計算が失敗したり，誤った結果を得たりすることがある．
 
-たとえば，気温の列が文字列として読み込まれていると，平均値を計算できない．
-また，欠損値を無視して平均を計算すると，データの意味を誤って解釈する可能性がある．
+### 前処理でよく行うこと
 
-### 前処理は記録する
-
-前処理は，単なる作業ではなく，分析結果に影響を与える判断である．
-どの行を削除したか，どの値を補完したか，どの列を作成したかを記録しなければ，後から分析を再現できない．
-
-したがって，前処理は手作業ではなく，できるだけプログラムとして残すことが望ましい．
-
-$$
-D_{\mathrm{processed}} = T(D_{\mathrm{raw}})
-$$
-
-ここで，$D_{\mathrm{raw}}$ は生データ，$T$ は前処理，$D_{\mathrm{processed}}$ は前処理後のデータである．
+- 必要な列だけを取り出す
+- JSONを表形式CSVに変換する
+- 欠損値や空欄を確認する
+- 文字列を数値へ変換する
+- 日時文字列から日付や時刻を取り出す
+- 日本語文字列の全角空白を整理する
+- 処理した内容をREADMEやスクリプトに残す
 
 ---
 
-## データ確認の基本
+## 本日扱うデータ
 
-前処理の最初に行うことは，データの状態を確認することである．
-いきなり値を変更するのではなく，まず次の点を見る．
+第5回で取得した気象庁の天気予報JSON（東京都）を使う．
 
-- 行数
-- 列名
-- 各列の値の例
-- 欠損値の有無
-- 数値列の最小値・最大値
-- 重複行の有無
+- 気象庁ホームページ：https://www.jma.go.jp/
+- 天気予報JSON（東京都）：https://www.jma.go.jp/bosai/forecast/data/forecast/130000.json
+- 地域コード一覧：https://www.jma.go.jp/bosai/common/const/area.json
+- 利用規約：https://www.jma.go.jp/jma/kishou/info/coment.html
 
-### CSVの読み込み
+```{tip} 注意
+気象庁ホームページで公開されている情報は，権利表記の記載がない限り「公共データ利用規約（第1.0版）」に準拠した利用条件の下で利用できる．
+利用する際は出典を記録すること．
+```
 
-Python の標準ライブラリ `csv` を用いると，CSVファイルを読み込める．
+```{warning}
+気象庁の天気予報JSONは，気象庁サイトで公開されている日本語データである．
+ただし，長期的な仕様固定が保証された正式なAPIドキュメント付きサービスとして利用するものではないため，URLやJSON構造が変更される可能性に注意する．
+```
+
+### JSONの主な構造
+
+`jma_tokyo_forecast.json` は，一番外側がリストになっている．
+本講義で使うサンプルでは，次のような構造になっている．
+
+```text
+data
+├── data[0]：短期予報
+│   ├── timeSeries[0]：天気，風，波
+│   ├── timeSeries[1]：降水確率
+│   └── timeSeries[2]：気温
+└── data[1]：週間予報
+    ├── timeSeries[0]：週間の天気，降水確率，信頼度
+    └── timeSeries[1]：週間の最低気温・最高気温
+```
+
+第6回では，まず `data[0]["timeSeries"][0]` に入っている**天気，風，波**を取り出し，前処理の基本を扱う．
+降水確率や気温は別の時系列として入っているため，第7回で結合や別表としての扱いを学ぶ．
+
+```{note}
+気温データの地域名は「東京地方」ではなく「東京」「大島」「八丈島」「父島」のような地点名で入っている．
+天気データの地域名とは完全には一致しないため，第6回では無理に同じ表へ結合しない．
+```
+
+---
+
+## JSONの構造を確認する
+
+前処理の前に，データの形を確認する．
+いきなりCSVへ変換するのではなく，どこに何が入っているかを少しずつ調べることが重要である．
+
+````{note} 演習1：JSONの構造を確認する
+`src/inspect_jma_structure.py` を次の内容で作成し，`jma_tokyo_forecast.json` の構造を確認せよ．
+
+```python
+import json
+
+input_path = "data/raw/jma_tokyo_forecast.json"
+
+with open(input_path, encoding="utf-8") as f:
+    data = json.load(f)
+
+print("一番外側の型:", type(data))
+print("一番外側の要素数:", len(data))
+
+forecast = data[0]
+print("短期予報のキー:", forecast.keys())
+print("発表機関:", forecast["publishingOffice"])
+print("発表時刻:", forecast["reportDatetime"])
+
+for i, series in enumerate(forecast["timeSeries"]):
+    print("timeSeries番号:", i)
+    print("  時刻数:", len(series["timeDefines"]))
+    print("  地域:", [area["area"]["name"] for area in series["areas"]])
+    print("  最初の地域のキー:", series["areas"][0].keys())
+```
+
+実行後，次を確認せよ．
+
+1. `data[0]["timeSeries"]` には何個の要素があるか
+2. `timeSeries[0]`，`timeSeries[1]`，`timeSeries[2]` の地域名は同じか
+3. `timeSeries[0]` の最初の地域には，どのようなキーがあるか
+````
+
+---
+
+## JSONから表形式データを作る
+
+JSONは階層構造をもつため，そのままでは表として扱いにくい．
+そこで，必要な値を取り出してCSVに変換する．
+
+今回は，短期予報の `timeSeries[0]` から次の列を持つCSVを作成する．
+
+- `発表機関`
+- `発表時刻`
+- `地域名`
+- `地域コード`
+- `予報時刻`
+- `天気コード`
+- `天気`
+- `風`
+- `波`
+
+````{note} 演習2：JSONを未整形CSVへ変換する
+`src/make_raw_weather_table.py` を次の内容で作成し，`data/raw/jma_tokyo_weather_raw_table.csv` を作成せよ．
 
 ```python
 import csv
+import json
 
-with open("data/raw/students_raw.csv", encoding="utf-8") as f:
-    reader = csv.DictReader(f)
-    rows = list(reader)
+input_path = "data/raw/jma_tokyo_forecast.json"
+output_path = "data/raw/jma_tokyo_weather_raw_table.csv"
 
-print("行数:", len(rows))
-print("列名:", reader.fieldnames)
-print("最初の行:", rows[0])
+with open(input_path, encoding="utf-8") as f:
+    data = json.load(f)
+
+forecast = data[0]
+office = forecast["publishingOffice"]
+report_datetime = forecast["reportDatetime"]
+
+weather_series = forecast["timeSeries"][0]
+time_defines = weather_series["timeDefines"]
+
+rows_out = []
+
+for area in weather_series["areas"]:
+    area_name = area["area"]["name"]
+    area_code = area["area"]["code"]
+
+    for i, time in enumerate(time_defines):
+        rows_out.append({
+            "発表機関": office,
+            "発表時刻": report_datetime,
+            "地域名": area_name,
+            "地域コード": area_code,
+            "予報時刻": time,
+            "天気コード": area["weatherCodes"][i],
+            "天気": area["weathers"][i],
+            "風": area["winds"][i],
+            "波": area["waves"][i]
+        })
+
+fieldnames = [
+    "発表機関", "発表時刻", "地域名", "地域コード", "予報時刻",
+    "天気コード", "天気", "風", "波"
+]
+
+with open(output_path, "w", encoding="utf-8", newline="") as f:
+    writer = csv.DictWriter(f, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(rows_out)
+
+print("saved:", output_path)
+print("rows:", len(rows_out))
 ```
 
-### 文字列として読み込まれる
-
-CSVの値は，基本的に文字列として読み込まれる．
-たとえば，CSV上で `80` と書かれていても，Pythonでは `"80"` という文字列として扱われる．
-
-数値計算を行うには，`int` や `float` を使って型変換する必要がある．
-
-```python
-score = int("80")
-temperature = float("18.5")
-```
-
----
-
-## 欠損値
-
-欠損値とは，本来あるべき値が存在しない状態である．
-CSVでは，空欄，`NA`，`N/A`，`null`，`-` などで表されることがある．
-
-### 欠損値の例
-
-```csv
-id,name,score,attendance
-1,Aoki,80,14
-2,Ito,,13
-3,Ueda,75,
-4,Endo,NA,12
-```
-
-この例では，`score` や `attendance` に欠損値がある．
-
-### 欠損値を検出する
-
-次のように，空文字や `NA` を欠損として判定できる．
-
-```python
-missing_values = {"", "NA", "N/A", "null", "-"}
-
-for row in rows:
-    for key, value in row.items():
-        if value in missing_values:
-            print("欠損:", row["id"], key)
-```
-
-### 欠損値への対応
-
-欠損値への対応には，主に次の方法がある．
-
-- 欠損を含む行を削除する
-- 欠損を含む列を使わない
-- 平均値や中央値などで補完する
-- 「不明」というカテゴリとして扱う
-- 欠損であること自体を情報として扱う
-
-どの方法がよいかは，データの意味と分析目的によって異なる．
-機械的に削除すればよいわけではない．
-
----
-
-## 型変換
-
-型変換とは，文字列として読み込まれた値を，整数，浮動小数点数，日付など，分析に適した型へ変換することである．
-
-### 整数への変換
-
-```python
-score = int(row["score"])
-```
-
-### 小数への変換
-
-```python
-temperature = float(row["temperature"])
-```
-
-### 変換できない値
-
-欠損値や不正な値があると，`int` や `float` による変換は失敗する．
-
-```python
-int("")
-```
-
-このような場合には，変換前に欠損値かどうかを確認する必要がある．
-
-```python
-value = row["score"]
-
-if value == "":
-    score = None
-else:
-    score = int(value)
-```
-
-ここで `None` は，Pythonで「値がない」ことを表す特別な値である．
-
----
-
-## 重複
-
-重複とは，同じ内容の行が複数回現れることである．
-データ取得や結合の過程で，同じ観測が重複して入ることがある．
-
-### 重複の例
-
-```csv
-id,name,score
-1,Aoki,80
-2,Ito,90
-2,Ito,90
-3,Ueda,75
-```
-
-この例では，`id=2` の行が重複している．
-
-### 重複を検出する
-
-```python
-seen = set()
-
-for row in rows:
-    row_id = row["id"]
-    if row_id in seen:
-        print("重複:", row_id)
-    else:
-        seen.add(row_id)
-```
-
-重複を削除するかどうかは，データの意味によって判断する．
-同じ人が複数回観測されたデータであれば，重複ではなく別の観測である可能性もある．
-
----
-
-## 外れ値
-
-外れ値とは，他の値と比べて極端に大きい，または小さい値である．
-外れ値は，入力ミスの場合もあれば，本当に珍しい現象を表している場合もある．
-
-### 外れ値の例
-
-```csv
-id,name,score
-1,Aoki,80
-2,Ito,90
-3,Ueda,75
-4,Endo,1000
-```
-
-この例では，`score=1000` は通常のテスト点数としては不自然である．
-
-### 範囲で確認する
-
-テスト点数が0点以上100点以下であると分かっている場合，次のように外れ値候補を確認できる．
-
-```python
-score = int(row["score"])
-
-if score < 0 or score > 100:
-    print("外れ値候補:", row["id"], score)
-```
-
-外れ値を見つけた場合，すぐに削除するのではなく，まず原因を考える．
-
-- 入力ミスか
-- 単位が違うのか
-- 欠損値を特殊な値で表しているのか
-- 本当に極端な観測なのか
-
----
-
-## 列名と表記の整理
-
-列名が分かりにくいと，後の分析でミスが起こりやすい．
-たとえば，`Score`，`score `，`得点` が混在していると，プログラムから扱いにくい．
-
-### 列名の方針
-
-授業では，次のような列名を推奨する．
-
-- 英数字を使う
-- 小文字を使う
-- 空白を使わない
-- 単語の区切りには `_` を使う
-- 意味が分かる名前にする
-
-例：
-
-```text
-student_id
-name
-score
-attendance
-temperature_2m
-```
-
-列名は，分析結果の読みやすさにも影響する．
-
----
-
-## 基本操作
-
-### ディレクトリ構成を作る
-
-```bash
-mkdir -p data/raw
-mkdir -p data/processed
-mkdir -p src
-```
-
-### 練習用CSVを作る
-
-`data/raw/students_raw.csv` を作成する．
-
-```csv
-id,name,score,attendance
-1,Aoki,80,14
-2,Ito,90,15
-3,Ueda,,13
-4,Endo,1000,12
-5,Kato,75,
-5,Kato,75,
-6,Sato,NA,10
-7,Tanaka,68,11
-```
-
-### READMEに記録する
-
-```markdown
-## 前処理記録
-
-- 元データ：data/raw/students_raw.csv
-- 前処理後データ：data/processed/students_clean.csv
-- 確認した項目：欠損値，型変換，重複，外れ値
-- 実行スクリプト：src/clean_students.py
-```
-
-````{note} 演習1
-次のディレクトリ構成を作成せよ．
-
-```text
-6/
-├── data/
-│   ├── raw/
-│   └── processed/
-├── src/
-└── README.md
-```
-
-作成後，`data/raw/students_raw.csv` に上の練習用CSVを入力し，README に前処理記録の項目を作成せよ．
+実行後，`data/raw/jma_tokyo_weather_raw_table.csv` が作成されていることを確認せよ．
 ````
 
-```{warning} 課題1
-次の手続きを行うこと．
+### なぜ `data/raw` に保存するのか
 
-1. `data/raw`，`data/processed`，`src` の3つのディレクトリを作成する
-2. `data/raw/students_raw.csv` を作成する
-3. `README.md` に「前処理記録」の項目を作成する
-4. すべての変更をコミットする
-5. `git log --oneline` を実行する
+このCSVは，JSONから必要な値を取り出しただけの**未整形データ**である．
+まだ文字列の整理や型変換をしていないため，`data/raw` に保存する．
 
-`README.md` の内容と，`git log --oneline` の出力をスクリーンショットに撮り，WebClass「第6回課題」問1から提出せよ．
+```text
+data/raw/jma_tokyo_forecast.json
+  ↓ src/make_raw_weather_table.py
+data/raw/jma_tokyo_weather_raw_table.csv
 ```
 
 ---
 
 ## データの概要を確認する
 
-````{note} 演習2
-`src/inspect_students.py` を次の内容で作成し，練習用CSVの概要を確認せよ．
+前処理の最初に行うことは，データの状態を確認することである．
+まず次の点を見る．
+
+- 行数
+- 列名
+- 各列の値の例
+- 空欄の有無
+- 数値として扱いたい列の値
+- 日本語文字列の表記
+
+````{note} 演習3：CSVの概要を確認する
+`src/inspect_weather_table.py` を次の内容で作成し，未整形CSVの概要を確認せよ．
 
 ```python
 import csv
 
-input_path = "data/raw/students_raw.csv"
+input_path = "data/raw/jma_tokyo_weather_raw_table.csv"
 
 with open(input_path, encoding="utf-8") as f:
     reader = csv.DictReader(f)
@@ -414,8 +307,8 @@ with open(input_path, encoding="utf-8") as f:
 
 print("行数:", len(rows))
 print("列名:", fieldnames)
-print("最初の3行:")
 
+print("先頭3行:")
 for row in rows[:3]:
     print(row)
 ```
@@ -424,52 +317,137 @@ for row in rows[:3]:
 
 1. 行数はいくつか
 2. 列名は何か
-3. 値は文字列として表示されているか
+3. `天気コード` は文字列として表示されているか
+4. `天気`，`風`，`波` の中に全角空白が含まれているか
 ````
 
 ---
 
-## 欠損値と外れ値を確認する
+## 欠損値を確認する
 
-````{note} 演習3
-`src/check_students.py` を次の内容で作成し，欠損値，重複，外れ値候補を確認せよ．
+欠損値とは，本来あるべき値が存在しない状態である．
+CSVでは，空欄，`NA`，`null`，`-` などで表されることがある．
+
+今回作成した天気表では，欠損が見つからない可能性もある．
+欠損がないことを確認するのも，前処理では重要な作業である．
+
+````{note} 演習4：欠損値を確認する
+`src/check_missing_weather.py` を次の内容で作成し，欠損値を確認せよ．
 
 ```python
 import csv
 
-input_path = "data/raw/students_raw.csv"
+input_path = "data/raw/jma_tokyo_weather_raw_table.csv"
 missing_values = {"", "NA", "N/A", "null", "-"}
 
 with open(input_path, encoding="utf-8") as f:
     reader = csv.DictReader(f)
     rows = list(reader)
 
-seen_ids = set()
+missing_count = 0
 
-for row in rows:
-    student_id = row["id"]
-
-    if student_id in seen_ids:
-        print("重複ID:", student_id)
-    else:
-        seen_ids.add(student_id)
-
+for row_number, row in enumerate(rows, start=1):
     for key, value in row.items():
         if value in missing_values:
-            print("欠損:", student_id, key)
+            missing_count += 1
+            print("欠損:", row_number, row["地域名"], row["予報時刻"], key)
 
-    score_text = row["score"]
-    if score_text not in missing_values:
-        score = int(score_text)
-        if score < 0 or score > 100:
-            print("外れ値候補:", student_id, score)
+print("欠損値の個数:", missing_count)
 ```
 
 実行後，次を確認せよ．
 
-1. どの行に欠損値があるか
-2. どのIDが重複しているか
-3. 外れ値候補はどれか
+1. 欠損値は何個あるか
+2. 欠損値がない場合，その結果をREADMEにどう記録するか
+3. 欠損値があるデータでは，削除と保持のどちらが適切か
+````
+
+```{note}
+第7回で扱う週間予報には，降水確率や信頼度の一部が空欄として入っている．
+第6回では，まず欠損確認の方法を身につける．
+```
+
+---
+
+## 型変換と範囲確認
+
+CSVの値は基本的に文字列として読み込まれる．
+`天気コード` は数字のように見えるが，CSVから読むと文字列である．
+
+```python
+weather_code_text = row["天気コード"]
+weather_code = int(weather_code_text)
+```
+
+数値として扱う前には，次の確認を行う．
+
+- 空欄ではないか
+- 整数に変換できるか
+- 値の範囲が不自然ではないか
+
+````{note} 演習5：型変換と範囲確認
+`src/check_weather_code.py` を次の内容で作成し，`天気コード` を整数として確認せよ．
+
+```python
+import csv
+
+input_path = "data/raw/jma_tokyo_weather_raw_table.csv"
+
+with open(input_path, encoding="utf-8") as f:
+    reader = csv.DictReader(f)
+    rows = list(reader)
+
+for row in rows:
+    code_text = row["天気コード"]
+    code = int(code_text)
+
+    if code < 100 or code > 450:
+        print("天気コードの範囲外:", row["地域名"], row["予報時刻"], code)
+
+print("確認が完了しました")
+```
+
+実行後，次を確認せよ．
+
+1. `天気コード` は整数に変換できるか
+2. 範囲外として表示された値はあるか
+3. 数値変換前と数値変換後では，何が違うか
+````
+
+---
+
+## 日本語文字列の整理
+
+日本語の公開データでは，文字列の中に全角空白が含まれることがある．
+たとえば，天気の値は次のようになっている場合がある．
+
+```text
+晴れ　時々　くもり
+```
+
+このままでも人間は読めるが，プログラムで分類や集計を行うときには，空白の違いが問題になることがある．
+そこで，文字列の前後の空白を削除し，全角空白を半角空白に置き換える．
+
+```python
+text = text.strip().replace("　", " ")
+```
+
+````{note} 演習6：文字列整理の動作を確認する
+Pythonで次を実行し，全角空白と半角空白の違いを確認せよ．
+
+```python
+text1 = "晴れ　時々　くもり"
+text2 = "晴れ 時々 くもり"
+
+print(text1 == text2)
+print(text1.replace("　", " ") == text2)
+```
+
+実行後，次を確認せよ．
+
+1. 1つ目の `print` は何を表示するか
+2. 2つ目の `print` は何を表示するか
+3. 全角空白を放置すると，集計時にどのような問題が起こるか
 ````
 
 ---
@@ -478,98 +456,78 @@ for row in rows:
 
 ここでは，次の方針で前処理を行う．
 
-- `score` が欠損している行は削除する
-- `attendance` が欠損している場合は `0` とする
-- `score` が0未満または100より大きい行は削除する
-- `id` が重複している行は，最初の1件だけ残す
-- `score` と `attendance` は整数に変換する
+- 日本語文字列の前後の空白を削除する
+- 全角空白を半角空白に変換する
+- `天気コード` を整数に変換する
+- `予報時刻` から `予報日` と `予報時` を作成する
+- 前処理後のCSVは `data/processed` に保存する
 
-この方針は，あくまで授業用の例である．
-実際の分析では，欠損値や外れ値をどう扱うかを，データの意味に基づいて判断する必要がある．
-
-````{note} 演習4
-`src/clean_students.py` を次の内容で作成し，`data/processed/students_clean.csv` を作成せよ．
+````{warning} 課題1：前処理済みデータを作成する
+`src/clean_weather_table.py` を次の内容で作成し，`data/processed/jma_tokyo_weather_clean.csv` を作成せよ．
+なお，コード内の `〇〇` には適切な値を入れること．
 
 ```python
 import csv
 
-input_path = "data/raw/students_raw.csv"
-output_path = "data/processed/students_clean.csv"
-missing_values = {"", "NA", "N/A", "null", "-"}
+input_path = "data/raw/jma_tokyo_weather_raw_table.csv"
+output_path = "data/processed/jma_tokyo_weather_clean.csv"
+
+def clean_text(value):
+    return value.strip().replace("　", " ")
 
 rows_out = []
-seen_ids = set()
 
 with open(input_path, encoding="utf-8") as f:
     reader = csv.DictReader(f)
 
     for row in reader:
-        student_id = row["id"]
-
-        if student_id in seen_ids:
-            continue
-        seen_ids.add(student_id)
-
-        score_text = row["score"]
-        attendance_text = row["attendance"]
-
-        if score_text in missing_values:
-            continue
-
-        score = int(score_text)
-
-        if score < 0 or score > 100:
-            continue
-
-        if attendance_text in missing_values:
-            attendance = 0
-        else:
-            attendance = int(attendance_text)
+        forecast_time = clean_text(row["予報時刻"])
 
         rows_out.append({
-            "id": int(student_id),
-            "name": row["name"],
-            "score": score,
-            "attendance": attendance
+            "発表機関": clean_text(row["発表機関"]),
+            "発表時刻": clean_text(row["発表時刻"]),
+            "地域名": clean_text(row["地域名"]),
+            "地域コード": clean_text(row["地域コード"]),
+            "予報時刻": forecast_time,
+            "予報日": forecast_time[:10],
+            "予報時": forecast_time[11:16],
+            "天気コード": int(clean_text(row["天気コード"])),
+            "天気": clean_text(row["天気"]),
+            "風": clean_text(row["風"]),
+            "波": clean_text(row["波"])
         })
 
+fieldnames = [
+    "発表機関", "発表時刻", "地域名", "地域コード",
+    "予報時刻", "予報日", "予報時",
+    "天気コード", "天気", "風", "波"
+]
+
 with open(output_path, "w", encoding="utf-8", newline="") as f:
-    writer = csv.DictWriter(
-        f,
-        fieldnames=["id", "name", "score", "attendance"]
-    )
+    writer = csv.DictWriter(f, fieldnames=fieldnames)
     writer.writeheader()
     writer.writerows(rows_out)
 
 print("saved:", output_path)
-print("出力行数:", len(rows_out))
+print("出力行数:", 〇〇)
 ```
 
-実行後，`data/processed/students_clean.csv` の内容を確認せよ．
+次の内容をWebClass「第6回課題」問1から提出せよ．
+
+1. `src/clean_weather_table.py`
+2. `data/processed/jma_tokyo_weather_clean.csv`
+3. README.mdに追記した前処理方針
 ````
-
-```{warning} 課題2
-次の手続きを行うこと．
-
-1. `src/inspect_students.py` を実行し，データの概要を確認する
-2. `src/check_students.py` を実行し，欠損値，重複，外れ値候補を確認する
-3. `src/clean_students.py` を実行し，`data/processed/students_clean.csv` を作成する
-4. `README.md` に次の内容を追記する
-   - 検出した欠損値
-   - 検出した重複
-   - 検出した外れ値候補
-   - 前処理で採用した方針
-5. 変更をコミットする
-
-`README.md` と `data/processed/students_clean.csv` を，WebClass「第6回課題」問2から提出せよ．
-```
+<!--
+print("出力行数:", len(rows_out))
+-->
 
 ---
 
 ## 前処理の判断
 
 前処理では，正解が1つに決まらないことが多い．
-たとえば，欠損値を削除するか補完するかは，分析目的によって変わる．
+たとえば，欠損値を削除するか，空欄のまま保持するかは分析目的によって変わる．
 
 ### 削除が適切な場合
 
@@ -578,20 +536,16 @@ print("出力行数:", len(rows_out))
 - 重要な列が欠損している
 - 補完するとかえって誤解を生む
 
-### 補完が適切な場合
+### 保持が適切な場合
 
-- 欠損が多く，削除するとデータが大きく減る
-- 欠損の理由が分かっている
-- 平均値や中央値で補うことに意味がある
-- 欠損を別カテゴリとして扱える
+- 欠損の理由がデータの構造から説明できる
+- 欠損そのものに意味がある
+- 別の処理であとから結合や補完を行う
+- 他の列の情報を残したい
 
-### 外れ値の扱い
-
-外れ値は，単純に削除すべきものではない．
-外れ値が重要な現象を表している場合もある．
-
-たとえば，気温データで極端に高い値があった場合，センサーの故障かもしれないが，本当に猛暑日だった可能性もある．
-外れ値を扱うときは，データの出典，単位，観測方法を確認する必要がある．
+今回の気象庁データでは，天気，降水確率，気温がそれぞれ別の時系列として提供されている．
+したがって，すべてを最初から1つの表に入れようとすると，時刻や地域名が合わず，空欄が多くなったり誤った結合をしたりする可能性がある．
+前処理では，値だけでなく，データの構造を理解することが重要である．
 
 ---
 
@@ -610,30 +564,32 @@ Gitで管理するとよいものは次の通りである．
 
 一方，サイズの大きいデータやライセンス上再配布できないデータは，Gitで管理しない方がよい場合がある．
 
-重要なのは，次の関係を後から説明できることである．
+今回の処理の流れは，次のように表せる．
 
 ```text
-data/raw/students_raw.csv
-  ↓ src/clean_students.py
-data/processed/students_clean.csv
+data/raw/jma_tokyo_forecast.json
+  ↓ src/make_raw_weather_table.py
+data/raw/jma_tokyo_weather_raw_table.csv
+  ↓ src/clean_weather_table.py
+data/processed/jma_tokyo_weather_clean.csv
 ```
 
 ---
 
 ## まとめ
 
-- 前処理とは，取得したデータを分析しやすい形に整える作業である．
-- 前処理の前には，行数，列名，値の例，欠損値，重複，外れ値候補を確認する．
-- CSVの値は基本的に文字列として読み込まれるため，数値計算には型変換が必要である．
-- 欠損値には，削除，補完，不明カテゴリとして扱うなど複数の対応がある．
-- 外れ値はすぐに削除せず，データの意味を確認する必要がある．
-- 生データは `data/raw` に残し，前処理後のデータは `data/processed` に保存する．
-- 前処理の方針は，READMEやスクリプトとして記録する．
+- 前処理とは，取得したデータを分析しやすい形に整える作業である
+- JSONは階層構造をもつため，必要な値を取り出してCSV化することがある
+- 前処理の前には，行数，列名，値の例，欠損値，数値として扱う列，日本語文字列を確認する
+- CSVの値は基本的に文字列として読み込まれるため，数値計算には型変換が必要である
+- 日本語文字列では，全角空白や余分な空白を整理することがある
+- 生データは `data/raw` に残し，前処理後のデータは `data/processed` に保存する
+- 前処理の方針は，READMEやスクリプトとして記録する
 
 次回はデータの前処理IIを扱う．
 
-- 複数の表を結合する方法，日付やカテゴリの扱い，集計用データセットの作成を学ぶ．
-- 今回扱った欠損値，型変換，外れ値確認を土台として，より分析目的に近いデータセットを作成する．
+- 第5回で取得した同じJSONを使い，降水確率の表，気温の表，週間予報の表を作成する
+- 複数の表を結合する方法，日付やカテゴリの扱い，集計用データセットの作成を学ぶ
 
 ### 課題の提出期限
 
@@ -643,66 +599,28 @@ data/processed/students_clean.csv
 
 ## 自主学習用の発展問題
 
-````{note} 発展課題1：欠損値の扱いを比較する
+````{note} 発展課題1：気温データを別表として取り出す
 
-`students_raw.csv` について，次の2つの方針で前処理した場合を比較せよ．
+`data[0]["timeSeries"][2]` から，次の列を持つCSVを作成せよ．
 
-1. `score` が欠損している行を削除する
-2. `score` が欠損している行を平均値で補完する
+```text
+発表機関,発表時刻,地点名,地点コード,予報時刻,気温
+```
 
 次の問いに答えよ．
 
-1. 出力される行数はどう変わるか．
-2. 平均点はどう変わるか．
-3. どちらの方針が適切だと思うか．その理由を説明せよ．
+1. 地点名にはどのような値が入っているか
+2. 天気データの `地域名` と気温データの `地点名` は一致しているか
+3. 気温データを天気データに結合するには，どのような対応表が必要か
 ````
 
-```{dropdown} 解答例
+````{note} 発展課題2：文字列整理の効果を確認する
 
-欠損を削除すると，欠損を含む行は分析対象から外れる．
-一方，平均値で補完すると行数は保たれるが，本来観測されていない値を人工的に作ることになる．
-
-どちらが適切かは，欠損の理由によって変わる．
-たとえば，単なる入力漏れであり，欠損が少ないなら削除してもよい場合がある．
-欠損が多い場合には，削除によってデータが偏る可能性があるため，補完を検討する．
-```
-
-````{note} 発展課題2：外れ値の原因を考える
-
-`score=1000` のような値が見つかった場合，次の問いに答えよ．
-
-1. どのような原因が考えられるか．
-2. すぐに削除することの問題点は何か．
-3. READMEには何を記録すべきか．
-````
-
-```{dropdown} 解答例
-
-1. 入力ミス，単位の違い，満点の設定の違い，欠損値を特殊な値で表した，などが考えられる．
-2. 本当に重要な観測である可能性を消してしまうことがある．また，削除基準が不明だと分析を再現できない．
-3. 外れ値候補として検出した値，確認した理由，削除または保持した判断，その判断理由を記録する．
-```
-
-````{note} 発展課題3：前処理を関数として考える
-
-本文では，前処理を
-$$
-D_{\mathrm{processed}} = T(D_{\mathrm{raw}})
-$$
-と表した．
+`jma_tokyo_weather_raw_table.csv` と `jma_tokyo_weather_clean.csv` を比較し，`天気`，`風`，`波` の空白がどのように変わったか確認せよ．
 
 次の問いに答えよ．
 
-1. $D_{\mathrm{raw}}$ は何を表すか．
-2. $T$ は何を表すか．
-3. $D_{\mathrm{processed}}$ は何を表すか．
-4. この考え方は，再現可能性にどのように役立つか．
+1. 全角空白は半角空白に変わっているか
+2. 文字列整理後の方が読みやすいか
+3. 集計や分類を行うとき，文字列整理はなぜ必要か
 ````
-
-```{dropdown} 解答例
-
-1. $D_{\mathrm{raw}}$ は取得直後の生データを表す．
-2. $T$ は欠損値処理，型変換，重複削除，外れ値処理などの前処理を表す．
-3. $D_{\mathrm{processed}}$ は前処理後の分析しやすいデータを表す．
-4. 前処理を関数として考えると，どの入力にどの処理を適用して，どの出力を得たかを明確にできる．そのため，後から同じ処理を再実行しやすくなる．
-```
