@@ -46,14 +46,7 @@
 5/data/raw/jma_tokyo_forecast.json
 ```
 
-この講義ノート内のパスは，学生の作業フォルダ `5` を基準にしている．
-授業資料側では，対応するサンプルデータは次の場所にある．
-
-```text
-contents/analysis/5/data/raw/jma_tokyo_forecast.json
-```
-
-````{dropdown} 演習0：作業フォルダとデータを確認する
+````{note} 演習0：作業フォルダとデータを確認する
 
 1. 第5回で作成した `/User/<ユーザ名>/applied_programming_i/5` を開く．
 2. 次のディレクトリ構成になっているか確認する．
@@ -81,7 +74,9 @@ contents/analysis/5/data/raw/jma_tokyo_forecast.json
 - 前処理後データ：data/processed/jma_tokyo_weather_clean.csv
 ```
 
-4. `jma_tokyo_forecast.json` がない場合は，第5回で作成した `src/fetch_jma_weather.py` を再実行する．
+4. `jma_tokyo_forecast.json` がない場合は，以下のZIPファイルをダウンロードして展開し，`jma_tokyo_forecast.json` を `data/raw/` 以下に配置すること．
+
+[jma_tokyo_forecast_json.zip](./analysis/5/data/raw/jma_tokyo_forecast_json.zip)
 ````
 
 ---
@@ -109,7 +104,7 @@ contents/analysis/5/data/raw/jma_tokyo_forecast.json
 
 ---
 
-## 本日扱うデータ
+## 使用するデータ
 
 第5回で取得した気象庁の天気予報JSON（東京都）を使う．
 
@@ -123,7 +118,7 @@ contents/analysis/5/data/raw/jma_tokyo_forecast.json
 利用する際は出典を記録すること．
 ```
 
-```{warning}
+```{tip} 注意
 気象庁の天気予報JSONは，気象庁サイトで公開されている日本語データである．
 ただし，長期的な仕様固定が保証された正式なAPIドキュメント付きサービスとして利用するものではないため，URLやJSON構造が変更される可能性に注意する．
 ```
@@ -144,19 +139,19 @@ data
     └── timeSeries[1]：週間の最低気温・最高気温
 ```
 
-第6回では，まず `data[0]["timeSeries"][0]` に入っている**天気，風，波**を取り出し，前処理の基本を扱う．
+今回は `data[0]["timeSeries"][0]` に入っている**天気，風，波**を取り出し，前処理の基本を扱う．
 降水確率や気温は別の時系列として入っているため，第7回で結合や別表としての扱いを学ぶ．
 
-```{note}
+```{tip} 注意
 気温データの地域名は「東京地方」ではなく「東京」「大島」「八丈島」「父島」のような地点名で入っている．
-天気データの地域名とは完全には一致しないため，第6回では無理に同じ表へ結合しない．
+天気データの地域名とは完全には一致しないため，今回は無理に同じ表へ結合しないこととする．
 ```
 
 ---
 
 ## JSONの構造を確認する
 
-前処理の前に，データの形を確認する．
+前処理の前に，**データの形を確認する**．
 いきなりCSVへ変換するのではなく，どこに何が入っているかを少しずつ調べることが重要である．
 
 ````{note} 演習1：JSONの構造を確認する
