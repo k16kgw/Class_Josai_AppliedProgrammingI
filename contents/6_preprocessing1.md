@@ -577,6 +577,11 @@ weather_code = int(weather_code_text)
 - 整数に変換できるか
 - 値の範囲が不自然ではないか
 
+※ 天気コードは
+
+Weather X「日本気象協会系 Weather API コード表 PDF」日本気象協会（2026年5月26日閲覧）URL: https://weather-jwa.jp/wp-content/themes/weather-x-wp/public/pdf/weather_api/JP_JP-4-1_WDA_weathercode.pdf
+<!-- https://weather-jwa.jp/wp-content/themes/weather-x-wp/public/pdf/weather_api/JP_GL-4-1_WDA_weathercode.pdf -->
+
 ````{note} 演習5：型変換と範囲確認
 `notebooks/preprocessing1.ipynb` に「型変換と範囲確認」という見出しを作り，次のセルを順番に実行して `天気コード` を整数として確認せよ．
 
@@ -611,7 +616,7 @@ for row in rows:
     code_text = row["天気コード"]
     code = int(code_text)
 
-    if code < 100 or code > 450:
+    if code < 100 or code > 427:
         print("天気コードの範囲外:", row["地域名"], row["予報時刻"], code)
 
 print("確認が完了しました")
