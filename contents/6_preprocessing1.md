@@ -577,7 +577,7 @@ weather_code = int(weather_code_text)
 - 整数に変換できるか
 - 値の範囲が不自然ではないか
 
-※ 天気コードは
+※ 天気コードは次を参照のこと
 
 Weather X「日本気象協会系 Weather API コード表 PDF」日本気象協会（2026年5月26日閲覧）URL: https://weather-jwa.jp/wp-content/themes/weather-x-wp/public/pdf/weather_api/JP_JP-4-1_WDA_weathercode.pdf
 <!-- https://weather-jwa.jp/wp-content/themes/weather-x-wp/public/pdf/weather_api/JP_GL-4-1_WDA_weathercode.pdf -->
