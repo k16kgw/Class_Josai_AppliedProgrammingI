@@ -7,7 +7,7 @@
 - データを使用するために必要な手続き
   - 文字列として読み込まれるCSVの値を利用するために**型変換**した
   - 日本語文字列にある全角空白や余分な空白を**半角空白**に統一した
-- 生データは `data/raw` に残し，前処理後のデータは `data/processed` に保存した
+- 生データは`data/raw`に残し，前処理後のデータは`data/processed`に保存した
 - データ観察はNotebookで行い，再実行する本処理はPythonファイルとして保存した
 
 第6回では，第5回で取得した気象庁の天気予報JSONから，`timeSeries[0]` の天気，風，波を取り出して表形式CSVを作成した．
@@ -15,7 +15,7 @@
 第7回では，同じJSONの中に入っている複数の表を扱い，結合・日付処理・カテゴリ作成を行い，分析用データセットを作成する．
 
 ```{tip} 注意
-第7回では新しいAPI取得は行わず，第5回で取得した `data/raw/jma_tokyo_forecast.json` を使う．
+第7回では新しいAPI取得は行わず，第5回で取得した`data/raw/jma_tokyo_forecast.json`を使う．
 ```
 
 ### 到達目標
@@ -32,7 +32,7 @@
 
 ### 準備
 
-<span style="color:red">第5回で作成したフォルダ `5` 内で作業を続ける．</span>
+<span style="color:red">第5回で作成したフォルダ`5`内で作業を続ける．</span>
 
 - 第5回で取得した次のファイルを使う．
     ```text
@@ -52,7 +52,7 @@
 
 ````{note} 演習0：作業フォルダとデータを確認する
 
-1. 第5回で作成した `/User/<ユーザ名>/applied_programming_i/5` を開く．
+1. 第5回で作成した`/User/<ユーザ名>/applied_programming_i/5`を開く．
 2. 次のディレクトリ構成になっているか確認する．
 
 ```text
@@ -69,8 +69,8 @@
 └── README.md
 ```
 
-3. `notebooks/preprocessing2.ipynb` を新規作成する．
-4. `README.md` に次の内容を追記する．
+3. `notebooks/preprocessing2.ipynb`を新規作成する．
+4. `README.md`に次の内容を追記する．
 
 ```markdown
 ## 第7回 前処理記録
@@ -183,7 +183,7 @@ Notebookは作業用ファイルであり，Gitでは管理しない．
 
 ### JSONの中の複数の表
 
-`jma_tokyo_forecast.json` には，複数の時系列が含まれている．
+`jma_tokyo_forecast.json`には，複数の時系列が含まれている．
 短期予報 `data[0]` の中には，次の3つの表に相当するデータが含まれる．
 
 | 位置 | 主な内容 | 地域の単位 |
@@ -208,7 +208,7 @@ Notebookは作業用ファイルであり，Gitでは管理しない．
 表を結合するときは，列名だけでなく，**値の意味が一致しているか**を確認することが重要である．
 
 ````{note} 演習1：時系列ごとの地域名を確認する
-`notebooks/preprocessing2.ipynb` に「時系列ごとの地域名を確認する」という見出しを作り，次のセルを順番に実行せよ．
+`notebooks/preprocessing2.ipynb`に「時系列ごとの地域名を確認する」という見出しを作り，次のセルを順番に実行せよ．
 
 **セル1：作業中のディレクトリを確認する**
 
@@ -271,7 +271,7 @@ for i, series in enumerate(forecast["timeSeries"]):
 
 ````{tip} 注意：変換したCSVの保存先
 ここではJSONから必要な値を取り出したCSVファイルを作成する．
-このCSVファイルは，まだ型変換をしていない**未整形データ**であるため，`data/raw` に保存すること．
+このCSVファイルは，まだ型変換をしていない**未整形データ**であるため，`data/raw`に保存すること．
 
 ```text
 data/raw/jma_tokyo_forecast.json
@@ -284,7 +284,7 @@ data/raw/jma_tokyo_pop_raw_table.csv
 ````
 
 ````{note} 演習2：降水確率表の行をNotebookで確認する
-`notebooks/preprocessing2.ipynb` に「降水確率表を確認する」という見出しを作り，次のセルを順番に実行せよ．
+`notebooks/preprocessing2.ipynb`に「降水確率表を確認する」という見出しを作り，次のセルを順番に実行せよ．
 ここではCSVファイルは作成せず，表にしたときの行をNotebook上で確認する．
 
 **セル1：必要なライブラリとパスを準備する**（`<HOGE>`には演習1を参考に適切なディレクトリを指定すること）
@@ -347,12 +347,12 @@ rows_out[:6]
 ````
 
 ````{warning} 課題1：降水確率の未整形CSVを作成する
-1. 演習2で確認した内容をもとに，`src/make_raw_pop_table.py` を作成し，
+1. 演習2で確認した内容をもとに，`src/make_raw_pop_table.py`を作成し，
 <span style="color:red">
 WebClass「第7回課題」問1から提出せよ．
 </span>
 
-次のコードの `<FUGAFUGA>` を適切に書き換え（複数行必要），`data/raw/jma_tokyo_pop_raw_table.csv` を作成し，Notebookで確認した `pop_series`，`area`，`time`，`i` の中身を見ながら埋めること．
+次のコードの `<FUGAFUGA>` を適切に書き換え（複数行必要），`data/raw/jma_tokyo_pop_raw_table.csv`を作成し，Notebookで確認した `pop_series`，`area`，`time`，`i` の中身を見ながら埋めること．
 
 ```python
 import csv
@@ -382,13 +382,13 @@ print("saved:", output_path)
 print("rows:", len(rows_out))
 ```
 
-作成したPythonファイルを `5` フォルダ内でターミナルから実行せよ．
+作成したPythonファイルを`5`フォルダ内でターミナルから実行せよ．
 
 ```bash
 python src/make_raw_pop_table.py
 ```
 
-実行後，`data/raw/jma_tokyo_pop_raw_table.csv` が作成されていることを確認せよ．
+実行後，`data/raw/jma_tokyo_pop_raw_table.csv`が作成されていることを確認せよ．
 ````
 
 ### 表を結合する
@@ -408,7 +408,7 @@ python src/make_raw_pop_table.py
 ```
 
 ````{note} 演習3：結合キーをNotebookで確認する
-`notebooks/preprocessing2.ipynb` に「天気表と降水確率表を結合する」という見出しを作り，次のセルを順番に実行せよ．
+`notebooks/preprocessing2.ipynb`に「天気表と降水確率表を結合する」という見出しを作り，次のセルを順番に実行せよ．
 
 **セル1：CSVを読み込む**（`<HOGE>`には演習1を参考に適切なディレクトリを指定すること）
 
@@ -509,12 +509,12 @@ print("降水確率が空欄の行数:", len(rows_out) - has_pop)
 ````
 
 ````{warning} 課題2：天気表と降水確率表を結合する
-1. 演習3で確認した内容をもとに，`src/join_weather_pop.py` を作成し，
+1. 演習3で確認した内容をもとに，`src/join_weather_pop.py`を作成し，
 <span style="color:red">
 WebClass「第7回課題」問2から提出せよ．
 </span>
 
-次のコードの `<HOGEHOGE>` と `<FUGAFUGA>` を適切に置き換え，`data/raw/jma_tokyo_weather_pop_raw_table.csv` を作成すること．
+次のコードの `<HOGEHOGE>` と `<FUGAFUGA>` を適切に置き換え，`data/raw/jma_tokyo_weather_pop_raw_table.csv`を作成すること．
 
 ```python
 import csv
@@ -553,13 +553,13 @@ print("saved:", output_path)
 print("rows:", len(rows_out))
 ```
 
-作成したPythonファイルを `5` フォルダ内でターミナルから実行せよ．
+作成したPythonファイルを`5`フォルダ内でターミナルから実行せよ．
 
 ```bash
 python src/join_weather_pop.py
 ```
 
-実行後，`data/raw/jma_tokyo_weather_pop_raw_table.csv` が作成されていることを確認せよ．
+実行後，`data/raw/jma_tokyo_weather_pop_raw_table.csv`が作成されていることを確認せよ．
 ````
 
 ### 結合後の空欄を確認する
@@ -569,7 +569,7 @@ python src/join_weather_pop.py
 今回の場合，天気と降水確率の予報時刻が完全には一致しないため，空欄が生じる．
 
 ````{note} 演習4：結合後の空欄を確認する
-`notebooks/preprocessing2.ipynb` に「結合後の空欄を確認する」という見出しを作り，次のセルを順番に実行せよ．
+`notebooks/preprocessing2.ipynb`に「結合後の空欄を確認する」という見出しを作り，次のセルを順番に実行せよ．
 
 **セル1：結合後のCSVを読み込む**（`<HOGE>`には演習1を参考に適切なディレクトリを指定すること）
 
@@ -631,7 +631,7 @@ print("全体の行数:", len(rows))
 ```{tip} カテゴリ化の写像としての理解
 カテゴリ化は写像として全単射でないことに注意する．
 全単射でないデータ操作は逆像を構成できない．
-つまりデータを直接書き換えてしまうと失われた情報の復元ができないため，元データは `data/raw` に残しつつ，操作したデータは `data/processed` に管理する必要がある．
+つまりデータを直接書き換えてしまうと失われた情報の復元ができないため，元データは`data/raw`に残しつつ，操作したデータは`data/processed`に管理する必要がある．
 ```
 
 ### 予報時刻から日付と時刻を取り出す
@@ -670,8 +670,8 @@ print(forecast_hour)
 11:00
 ```
 
-ここで，`forecast_time[:10]` は「先頭から10文字目の直前まで」を取り出すという意味である．
-また，`forecast_time[11:16]` は「11番目から16番目の直前まで」を取り出すという意味である．
+- `forecast_time[:10]`：先頭から10文字目の直前までを取り出す
+- `forecast_time[11:16]`：11番目から16番目の直前までを取り出す
 
 ```{tip} 注意
 Pythonの文字列の位置は0から数える．
@@ -681,7 +681,7 @@ Pythonの文字列の位置は0から数える．
 このように日付と時刻を別の列に分けておくと，日付ごとに集計したり，時刻ごとに比較したりしやすくなる．
 
 ````{note} 演習5：分析用データの行をNotebookで確認する
-`notebooks/preprocessing2.ipynb` に「分析用データを確認する」という見出しを作り，次のセルを順番に実行せよ．
+`notebooks/preprocessing2.ipynb`に「分析用データを確認する」という見出しを作り，次のセルを順番に実行せよ．
 ここでは前処理後の行をNotebook上で観察する．
 確認できた処理は，次の課題でPythonファイルにまとめる．
 
@@ -763,12 +763,12 @@ fieldnames
 ````
 
 ````{warning} 課題3：分析用データセットをPythonファイルで作成する
-1. 演習5で確認した内容をもとに，`src/build_analysis_table.py` を作成し，
+1. 演習5で確認した内容をもとに，`src/build_analysis_table.py`を作成し，
 <span style="color:red">
 WebClass「第7回課題」問3から提出せよ．
 </span>
 
-次のコードの `<HOGEHOGE1>`，`<HOGEHOGE2>`，`<HOGEHOGE3>`，`<FUGAFUGA>` を適切に置き換え，`data/processed/jma_tokyo_weather_pop_clean.csv` を作成すること．
+次のコードの `<HOGEHOGE1>`，`<HOGEHOGE2>`，`<HOGEHOGE3>`，`<FUGAFUGA>` を適切に置き換え，`data/processed/jma_tokyo_weather_pop_clean.csv`を作成すること．
 
 ```python
 import csv
@@ -806,53 +806,32 @@ print("saved:", output_path)
 print("出力行数:", len(rows_out))
 ```
 
-作成したPythonファイルを `5` フォルダ内でターミナルから実行せよ．
+作成したPythonファイルを`5`フォルダ内でターミナルから実行せよ．
 
 ```bash
 python src/build_analysis_table.py
 ```
 
-実行後，`data/processed/jma_tokyo_weather_pop_clean.csv` が作成されていることを確認せよ．
+実行後，`data/processed/jma_tokyo_weather_pop_clean.csv`が作成されていることを確認せよ．
 ````
 
 ---
 
 ## 前処理の判断
 
-今回の前処理では，複数の判断を行った．
-
-- 第5回で取得したJSONだけを使用した
-- 第6回で作成した天気表を利用した
 - 短期予報の `timeSeries[1]` を降水確率表として取り出した
 - `地域コード` と `予報時刻` をキーとして天気表と降水確率表を結合した
-- 対応する降水確率がない場合は空欄のまま保持した
-- 気温表は地域単位が異なるため，別表として扱った
-- ISO形式の時刻から日付と時刻を取り出した
+- 対応する降水確率がない場合は空欄`""`として保持した
 - 天気の詳細表現を大まかなカテゴリへ変換した
+- ISO形式の時刻から日付と時刻を取り出した
 
-これらはすべて，分析結果に影響を与える判断である．
-したがって，READMEやスクリプトに，どのような方針で処理したかを残す必要がある．
+これらの判断は分析結果に影響を与えるため，READMEやスクリプトにどのような方針で処理したかを残す必要がある．
 
 特にカテゴリ化は，情報を整理すると同時に情報を失う処理でもある．
 「晴れ　時々　雨」を雨に分類するか，晴に分類するかによって，その後の分析結果は変わる．
 分析目的に応じて分類ルールを説明できることが重要である．
 
----
-
-## Git管理と前処理
-
-第7回では，多くの中間ファイルが作成される．
-すべてをGitで管理する必要はないが，少なくとも次のものは残すとよい．
-
-- 前処理スクリプト（`src/*.py`）
-- README
-- 前処理後データや小さな処理結果
-- 小さなマスタデータや対応表を作成した場合はそのファイル
-
-一方，作業用Notebook，取得直後のJSON，サイズの大きいデータ，ライセンス上再配布できないデータは，Gitで管理しない方がよい場合がある．
-本講義では `.gitignore` に `*.ipynb` を記載し，Notebookはローカルでの観察用として扱う．
-
-今回の処理の流れは，次のように表せる．
+### 今回の処理の流れ
 
 ```text
 data/raw/jma_tokyo_forecast.json
@@ -880,19 +859,18 @@ data/processed/jma_tokyo_weather_pop_clean.csv
 
 ## まとめ
 
-- 前処理IIでは，複数表の作成，結合，日付処理，カテゴリ作成を扱った
-- 1つのJSONの中にも，複数の表に相当するデータが入っていることがある
-- 横方向の結合は，共通のキーを使って別の列を追加する処理である
+- **複数表の作成**・**結合**・**日付処理**・**カテゴリ作成**を扱った
+- 横方向の結合：共通のキーを使って別の列を追加する処理
 - 結合できるかどうかは，列名だけでなく，地域や時刻の意味が一致しているかで判断する
 - 結合によって発生する空欄は，必ずしもデータの誤りではない
 - ISO形式の日時文字列から，日付や時刻を取り出すことで分析しやすくなる
 - 日本語の天気表現をカテゴリ化すると扱いやすくなるが，分類ルールを説明する必要がある
-- データ観察はNotebookで行い，再実行する本処理はPythonファイルとして保存する
+- **データ観察はNotebook**で行い，**再実行する本処理はPythonファイル**として保存する
 
 次回は集計用データセット作成と可視化を扱う．
 
 - 週間予報データをもとに，地域別・地点別の集計用データセットを作成する
-- 表だけでは把握しにくい傾向を図として表現する方法を学ぶ
+- 表だけでは把握しにくい傾向を図として表現する
 
 ### 課題の提出期限
 
@@ -900,9 +878,14 @@ data/processed/jma_tokyo_weather_pop_clean.csv
 
 ---
 
-## おまけ：気温データを別表として扱う
+## 自主学習用の発展問題
 
-気温データは，`data[0]["timeSeries"][2]` に入っている．
+課題を全てこなし時間が余った場合に取り組んでください．
+WebClassの提出場所から提出したものについて加点対象とします．
+
+````{note} 課題4：気温データを別表として扱う
+
+気温データは，`data[0]["timeSeries"][2]`に入っている．
 ただし，天気表や降水確率表とは地域の単位が異なる．
 
 天気表の地域名：
@@ -921,8 +904,16 @@ data/processed/jma_tokyo_weather_pop_clean.csv
 そのため，気温を天気表へ結合したい場合は，別途「どの地点がどの予報地域を代表するか」を示す対応表が必要になる．
 対応表なしに名前だけで結合すると，分析結果の意味が曖昧になる．
 
-````{note} おまけ演習：気温表を別表として確認する
-`notebooks/preprocessing2.ipynb` に「気温表を別表として確認する」という見出しを作り，次のセルを順番に実行せよ．
+`src/make_raw_temperature_table.py`を作成し，
+<span style="color:red">
+WebClass「第7回課題」問4から提出せよ．
+</span>
+
+提出するのは作成したPythonファイルのみである．作成されるCSVファイルは提出しなくてよい．
+
+作成するPythonファイルでは，気温表を`data/raw/jma_tokyo_temperature_raw_table.csv`として出力すること．
+
+まず，`notebooks/preprocessing2.ipynb`に「気温表を別表として確認する」という見出しを作り，次のセルを順番に実行せよ．
 
 **セル1：気温データの階層を確認する**
 
@@ -935,7 +926,7 @@ print("地点コード:", [area["area"]["code"] for area in temp_series["areas"]
 print("最初の地点の気温:", temp_series["areas"][0]["temps"])
 ```
 
-**セル2：気温表の行を作成する**
+**セル2：気温表の行をNotebookで確認する**
 
 ```python
 temperature_rows = []
@@ -960,44 +951,76 @@ temperature_rows[:5]
 
 実行後，次を確認せよ．
 
-1. `地点名` にはどのような値が入っているか
-2. `地点コード` は天気表の `地域コード` と一致しているか
+1. `地点名`にはどのような値が入っているか
+2. `地点コード`は天気表の`地域コード`と一致しているか
 3. 気温表を天気表へ結合するには，どのような追加情報が必要か
+
+Notebookで確認できたら，`src/make_raw_temperature_table.py`を作成する．
+次のコードの`<FUGAFUGA>`を適切に置き換え，`data/raw/jma_tokyo_temperature_raw_table.csv`を作成すること．
+
+```python
+import csv
+import json
+
+input_path = "data/raw/jma_tokyo_forecast.json"
+output_path = "data/raw/jma_tokyo_temperature_raw_table.csv"
+
+with open(input_path, encoding="utf-8") as f:
+    data = json.load(f)
+
+forecast = data[0]
+temp_series = forecast["timeSeries"][2]
+
+rows_out = []
+
+<FUGAFUGA>
+
+fieldnames = ["発表機関", "発表時刻", "地点名", "地点コード", "予報時刻", "気温"]
+
+with open(output_path, "w", encoding="utf-8", newline="") as f:
+    writer = csv.DictWriter(f, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(rows_out)
+
+print("saved:", output_path)
+print("rows:", len(rows_out))
+```
+
+作成したPythonファイルを`5`フォルダ内でターミナルから実行せよ．
+
+```bash
+python src/make_raw_temperature_table.py
+```
+
+実行後，`data/raw/jma_tokyo_temperature_raw_table.csv`が作成されていることを確認せよ．
 ````
 
----
-
-## 自主学習用の発展問題
-
-課題を全てこなし時間が余った場合に取り組んでください．
-WebClassの提出場所から提出したものについて加点対象とします．
-
-````{note} 課題4：天気カテゴリのルールを変える
+````{note} 課題5：天気カテゴリのルールを変える
 
 現在のカテゴリ化では，`雨` を含む天気を最優先で「雨」に分類している．
 このルールを変更し，`晴` を含む場合は優先的に「晴」に分類するようにせよ．
 
-`src/build_analysis_table.py` を変更し，
+`src/build_analysis_table_2.py`を変更し，
 <span style="color:red">
-WebClass「第7回課題」問4から提出せよ．
+WebClass「第7回課題」問5から提出せよ．
 </span>
 
 提出するのは変更したPythonファイルのみである．作成されるCSVファイルは提出しなくてよい．
 
 次の点を確認し，必要に応じてPythonファイル内のコメントに残すこと．
 
-1. どの関数を変更すればよいか
+1. どの関数を変更したか
 2. カテゴリの分布は変わるか
-3. どちらの分類ルールが分析目的に合っていると思うか
+3. 変更前後の分類ルールはそれぞれどのような分析目的に合っていると思うか
 ````
 
-````{note} 課題5：気温との対応表を考える
+````{note} 課題6：気温との対応表を考える
 
 気温表の地点名と天気表の地域名を対応させる表を作るとしたら，どのような列が必要か考えよ．
 
-`src/make_temperature_area_map.py` を作成し，
+`src/make_temperature_area_map.py`を作成し，
 <span style="color:red">
-WebClass「第7回課題」問5から提出せよ．
+WebClass「第7回課題」問6から提出せよ．
 </span>
 
 提出するのは作成したPythonファイルのみである．作成されるCSVファイルは提出しなくてよい．
@@ -1008,7 +1031,7 @@ WebClass「第7回課題」問5から提出せよ．
 地点名,地点コード,対応する地域名,対応する地域コード,対応理由
 ```
 
-作成するPythonファイルでは，対応表を `data/processed/temperature_area_map.csv` として出力すること．
+作成するPythonファイルでは，対応表を`data/processed/temperature_area_map.csv`として出力すること．
 
 次のコードを参考に，対応表の内容を自分で考えて作成すること．
 
