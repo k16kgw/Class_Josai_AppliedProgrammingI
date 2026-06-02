@@ -38,7 +38,7 @@
 
 ### 準備
 
-今回は第5回で作成したフォルダ `5` 内で作業を続ける．
+今回は第5回で作成したフォルダ`5`内で作業を続ける．
 
 第5回で取得した次のファイルを使う．
 
@@ -54,11 +54,11 @@
 
 [build_weekly_forecast_tables_py.zip](./analysis/5/src/build_weekly_forecast_tables_py.zip)
 
-ZIPファイルを展開し，`build_weekly_forecast_tables.py` を `5/src/` に配置すること．
+ZIPファイルを展開し，`build_weekly_forecast_tables.py`を`5/src/`に配置すること．
 
 ````{note} 演習0：作業フォルダと配布スクリプトを確認する
 
-1. 第5回で作成した `/User/<ユーザ名>/applied_programming_i/5` を開く．
+1. 第5回で作成した`/User/<ユーザ名>/applied_programming_i/5`を開く．
 2. 次のディレクトリ構成になっているか確認する．
 
 ```text
@@ -78,9 +78,9 @@ ZIPファイルを展開し，`build_weekly_forecast_tables.py` を `5/src/` に
 └── README.md
 ```
 
-3. `notebooks/`，`reports/figures/`，`src/`，`data/processed/` がない場合は作成する．
-4. JupyterLabまたはVS Codeで `notebooks/visualization.ipynb` を新規作成する．
-5. `README.md` に次の内容を追記する．
+3. `notebooks/`，`reports/figures/`，`src/`，`data/processed/`がない場合は作成する．
+4. JupyterLabまたはVS Codeで`notebooks/visualization.ipynb`を新規作成する．
+5. `README.md`に次の内容を追記する．
 
 ```markdown
 ## 第8回 可視化記録
@@ -107,7 +107,7 @@ ZIPファイルを展開し，`build_weekly_forecast_tables.py` を `5/src/` に
   - 東京の最低気温と最高気温の変化を確認する
 ```
 
-6. `.gitignore` に次の記述があることを確認する．
+6. `.gitignore`に次の記述があることを確認する．
 
 ```gitignore
 # Jupyter Notebook
@@ -173,7 +173,7 @@ reports/figures/weekly_temperature_tokyo.png
 
 ## 週間予報の表と集計データを作成する
 
-`jma_tokyo_forecast.json` は，一番外側がリストになっている．
+`jma_tokyo_forecast.json`は，一番外側がリストになっている．
 本講義で使うサンプルでは，次のような構造になっている．
 
 ```text
@@ -190,7 +190,7 @@ data
 今回は，`data[1]` の週間予報を使う．
 
 ````{note} 演習1：週間予報のCSVを作成する
-ターミナルで `5` フォルダに移動し，次のコマンドを実行せよ．
+ターミナルで`5`フォルダに移動し，次のコマンドを実行せよ．
 
 ```bash
 python src/build_weekly_forecast_tables.py
@@ -276,7 +276,7 @@ data/processed/jma_tokyo_weekly_temperature.csv
 Pythonで図を作成するために，`matplotlib` を使う．
 
 ````{note} 演習2：matplotlibを確認する
-`notebooks/visualization.ipynb` に「可視化の準備」という見出しを作り，次のセルを順番に実行せよ．
+`notebooks/visualization.ipynb`に「可視化の準備」という見出しを作り，次のセルを順番に実行せよ．
 
 **セル1：作業中のディレクトリを確認する**
 
@@ -325,7 +325,7 @@ Macでは `Hiragino Sans` を指定すると表示できることが多い．
 データの形を確認しないまま図を作ると，意図しない列を使ったり，空欄を含んだまま計算したりする可能性がある．
 
 ````{note} 演習3：可視化に使うデータを確認する
-`notebooks/visualization.ipynb` に「可視化に使うデータを確認する」という見出しを作り，次のセルを順番に実行せよ．
+`notebooks/visualization.ipynb`に「可視化に使うデータを確認する」という見出しを作り，次のセルを順番に実行せよ．
 
 **セル1：CSVを読み込む**（`<HOGE>`には適切なディレクトリを指定すること）
 
@@ -400,7 +400,7 @@ print("最低気温または最高気温が空欄の行数:", temperature_missin
 ## 集計用データセットを作成する
 
 可視化では，細かい行をそのまま図にする場合と，目的に合わせて集計した表を図にする場合がある．
-第8回で配布した `src/build_weekly_forecast_tables.py` は，週間予報から次の2種類のデータを作成している．
+第8回で配布した`src/build_weekly_forecast_tables.py`は，週間予報から次の2種類のデータを作成している．
 
 - 日付ごとの細かい表：`jma_tokyo_weekly_weather.csv`，`jma_tokyo_weekly_temperature.csv`
 - 地域別・地点別に要約した集計用データセット：`jma_tokyo_weekly_weather_summary.csv`，`jma_tokyo_weekly_temperature_summary.csv`
@@ -408,7 +408,7 @@ print("最低気温または最高気温が空欄の行数:", temperature_missin
 ここでは，集計用データセットがどのような考え方で作られているかをNotebookで確認する．
 
 ````{note} 演習4：週間予報の集計用データセットを確認する
-`notebooks/visualization.ipynb` に「集計用データセットを作成する」という見出しを作り，次のセルを順番に実行せよ．
+`notebooks/visualization.ipynb`に「集計用データセットを作成する」という見出しを作り，次のセルを順番に実行せよ．
 
 **セル1：平均を計算する関数を準備する**
 
@@ -521,7 +521,7 @@ temperature_summary_rows
 ````
 
 ```{tip} 注意
-上の処理と同じ考え方が，配布スクリプト `src/build_weekly_forecast_tables.py` の中に入っている．
+上の処理と同じ考え方が，配布スクリプト`src/build_weekly_forecast_tables.py`の中に入っている．
 Notebookでは処理の意味を確認し，Pythonファイルでは同じ処理を再実行できる形にしている．
 ```
 
@@ -539,7 +539,7 @@ Notebookでは処理の意味を確認し，Pythonファイルでは同じ処理
 - 複数の地域や地点の変化を比較したい
 
 ````{note} 演習5：地域別の降水確率を折れ線グラフにする
-`notebooks/visualization.ipynb` に「週間の降水確率を可視化する」という見出しを作り，次のセルを順番に実行せよ．
+`notebooks/visualization.ipynb`に「週間の降水確率を可視化する」という見出しを作り，次のセルを順番に実行せよ．
 
 **セル1：図に使うデータを作る**
 
@@ -600,12 +600,12 @@ plt.show()
 ````
 
 ````{warning} 課題1：週間の降水確率をPythonファイルで可視化する
-1. 演習5で確認した内容をもとに，`src/plot_weekly_pop.py` を作成し，
+1. 演習5で確認した内容をもとに，`src/plot_weekly_pop.py`を作成し，
 WebClass「第8回課題」問1から提出せよ．
 
 提出するのはPythonファイルのみである．作成されるCSVファイルやPNGファイルは提出しなくてよい．
 
-次のコードの `<FUGAFUGA>` と `<HOGEHOGE>` を適切に置き換え，`reports/figures/weekly_pop_by_area.png` を作成すること．
+次のコードの `<FUGAFUGA>` と `<HOGEHOGE>` を適切に置き換え，`reports/figures/weekly_pop_by_area.png`を作成すること．
 
 ```python
 import csv
@@ -651,13 +651,13 @@ plt.tight_layout()
 print("saved:", output_path)
 ```
 
-作成したPythonファイルを `5` フォルダ内でターミナルから実行せよ．
+作成したPythonファイルを`5`フォルダ内でターミナルから実行せよ．
 
 ```bash
 python src/plot_weekly_pop.py
 ```
 
-実行後，`reports/figures/weekly_pop_by_area.png` が作成されていることを確認せよ．
+実行後，`reports/figures/weekly_pop_by_area.png`が作成されていることを確認せよ．
 ````
 
 <!--
@@ -686,7 +686,7 @@ plt.savefig(output_path, dpi=150)
 気温は日付に沿って変化する値なので，ここでも折れ線グラフを使う．
 
 ````{note} 演習6：東京の最低気温と最高気温を折れ線グラフにする
-`notebooks/visualization.ipynb` に「週間の気温を可視化する」という見出しを作り，次のセルを順番に実行せよ．
+`notebooks/visualization.ipynb`に「週間の気温を可視化する」という見出しを作り，次のセルを順番に実行せよ．
 
 **セル1：東京の気温データを取り出す**
 
@@ -740,12 +740,12 @@ plt.show()
 ````
 
 ````{warning} 課題2：週間の気温をPythonファイルで可視化する
-1. 演習6で確認した内容をもとに，`src/plot_weekly_temperature.py` を作成し，
+1. 演習6で確認した内容をもとに，`src/plot_weekly_temperature.py`を作成し，
 WebClass「第8回課題」問2から提出せよ．
 
 提出するのはPythonファイルのみである．作成されるCSVファイルやPNGファイルは提出しなくてよい．
 
-次のコードの `<FUGAFUGA>` と `<HOGEHOGE>` を適切に置き換え，`reports/figures/weekly_temperature_tokyo.png` を作成すること．
+次のコードの `<FUGAFUGA>` と `<HOGEHOGE>` を適切に置き換え，`reports/figures/weekly_temperature_tokyo.png`を作成すること．
 
 ```python
 import csv
@@ -787,13 +787,13 @@ plt.tight_layout()
 print("saved:", output_path)
 ```
 
-作成したPythonファイルを `5` フォルダ内でターミナルから実行せよ．
+作成したPythonファイルを`5`フォルダ内でターミナルから実行せよ．
 
 ```bash
 python src/plot_weekly_temperature.py
 ```
 
-実行後，`reports/figures/weekly_temperature_tokyo.png` が作成されていることを確認せよ．
+実行後，`reports/figures/weekly_temperature_tokyo.png`が作成されていることを確認せよ．
 ````
 
 <!--
@@ -827,7 +827,7 @@ plt.savefig(output_path, dpi=150)
 ```
 
 ````{note} 参考：pandasとseabornで週間の降水確率を可視化する
-`notebooks/visualization.ipynb` に「便利なライブラリを使った可視化」という見出しを作り，次のセルを実行してみよ．
+`notebooks/visualization.ipynb`に「便利なライブラリを使った可視化」という見出しを作り，次のセルを実行してみよ．
 
 **セル1：ライブラリを読み込む**
 
@@ -881,7 +881,7 @@ plt.show()
 
 実行後，次を確認せよ．
 
-1. `weekly_weather_df.head()` で表の先頭行が表示されるか
+1. `weekly_weather_df.head()`で表の先頭行が表示されるか
 2. `dropna(subset=["降水確率"])` はどの行を除外しているか
 3. `hue="地域名"` は図の何を表しているか
 4. `csv` と `matplotlib` だけで作る場合と比べて，コードは短くなっているか
@@ -912,12 +912,12 @@ plt.show()
 そのため，図から読み取れることは，このデータの範囲に限定して説明する．
 
 ````{warning} 課題3：可視化結果を文章で説明する
-1. 作成した2つの図から読み取れることを記録する `src/write_visualization_comment.py` を作成し，
+1. 作成した2つの図から読み取れることを記録する`src/write_visualization_comment.py`を作成し，
 WebClass「第8回課題」問3から提出せよ．
 
 提出するのはPythonファイルのみである．作成されるMarkdownファイルは提出しなくてよい．
 
-次のコードの `<FUGAFUGA>` を適切に置き換え，`reports/visualization_comment.md` を作成すること．
+次のコードの `<FUGAFUGA>` を適切に置き換え，`reports/visualization_comment.md`を作成すること．
 
 ```python
 from pathlib import Path
@@ -942,13 +942,13 @@ comment = """## 第8回 可視化結果の考察
 print("saved:", output_path)
 ```
 
-作成したPythonファイルを `5` フォルダ内でターミナルから実行せよ．
+作成したPythonファイルを`5`フォルダ内でターミナルから実行せよ．
 
 ```bash
 python src/write_visualization_comment.py
 ```
 
-実行後，`reports/visualization_comment.md` が作成されていることを確認せよ．
+実行後，`reports/visualization_comment.md`が作成されていることを確認せよ．
 
 `comment` の中には，次の見出しを含め，作成した2つの図から読み取れることを記述すること．
 
@@ -1065,10 +1065,10 @@ WebClassの提出場所から提出したものについて加点対象としま
 
 ````{note} 課題4：気温の予報幅を可視化する
 
-`jma_tokyo_weekly_temperature.csv` には，最低気温・最高気温だけでなく，予報の上限・下限も含まれている．
+`jma_tokyo_weekly_temperature.csv`には，最低気温・最高気温だけでなく，予報の上限・下限も含まれている．
 東京の最高気温について，予報値と予報幅を同じ図に表示せよ．
 
-`src/plot_weekly_temperature_range.py` を作成し，WebClass「第8回課題」問4から提出せよ．
+`src/plot_weekly_temperature_range.py`を作成し，WebClass「第8回課題」問4から提出せよ．
 
 提出するのは作成したPythonファイルのみである．作成されるPNGファイルは提出しなくてよい．
 
@@ -1138,9 +1138,9 @@ print("saved:", output_path)
 
 ````{note} 課題5：信頼度ごとの平均降水確率を可視化する
 
-`jma_tokyo_weekly_weather.csv` の `信頼度` を使い，信頼度ごとの平均降水確率を棒グラフで表示せよ．
+`jma_tokyo_weekly_weather.csv`の `信頼度` を使い，信頼度ごとの平均降水確率を棒グラフで表示せよ．
 
-`src/plot_weekly_pop_by_reliability.py` を作成し，WebClass「第8回課題」問5から提出せよ．
+`src/plot_weekly_pop_by_reliability.py`を作成し，WebClass「第8回課題」問5から提出せよ．
 
 提出するのは作成したPythonファイルのみである．作成されるPNGファイルは提出しなくてよい．
 
@@ -1218,7 +1218,7 @@ print("saved:", output_path)
 
 `pandas` と `seaborn` を使い，地点別の最高気温を折れ線グラフで表示せよ．
 
-`src/plot_weekly_max_temperature_by_point_seaborn.py` を作成し，WebClass「第8回課題」問6から提出せよ．
+`src/plot_weekly_max_temperature_by_point_seaborn.py`を作成し，WebClass「第8回課題」問6から提出せよ．
 
 提出するのは作成したPythonファイルのみである．作成されるPNGファイルは提出しなくてよい．
 
@@ -1230,7 +1230,7 @@ print("saved:", output_path)
 ````
 
 ````{dropdown} 解答例
-`pandas` でCSVを読み込み，`seaborn.lineplot` で地点別に線を分けて表示する例である．
+`pandas` でCSVを読み込み，`seaborn.lineplot`で地点別に線を分けて表示する例である．
 
 ```python
 from pathlib import Path
