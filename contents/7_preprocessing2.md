@@ -68,7 +68,6 @@
 
 3. `notebooks/preprocessing2.ipynb`を新規作成する．
 4. `README.md`に次の内容を追記する．
-5. 変更を実施したgitでコミットする．
 
 ```markdown
 ## 第7回 前処理記録
@@ -104,6 +103,9 @@ data/raw
 .ipynb_checkpoints
 *.ipynb
 ```
+
+6. 変更を実施したgitでコミットする．
+
 ````
 
 ---
