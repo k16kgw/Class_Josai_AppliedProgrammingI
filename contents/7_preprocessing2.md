@@ -507,7 +507,7 @@ for row in weather_rows:
 print("結合後の行数:", len(rows_out))
 rows_out[:5]
 ```
-
+<!-- 
 **セル5：降水確率が入った行数を確認する**
 
 ```python
@@ -520,13 +520,41 @@ for row in rows_out:
 print("降水確率が入っている行数:", has_pop)
 print("降水確率が空欄の行数:", len(rows_out) - has_pop)
 ```
+ -->
+<!-- **セル6：結合前と結合後の表を比較する** -->
+**セル5：結合前と結合後の表を比較する**
+
+```python
+import pandas as pd
+from IPython.display import display
+
+weather_df = pd.DataFrame(weather_rows)
+pop_df = pd.DataFrame(pop_rows)
+joined_df = pd.DataFrame(rows_out)
+
+print("天気表（結合前）")
+display(weather_df.head(3))
+
+print("降水確率表（結合前）")
+display(pop_df.head(3))
+
+print("結合後の表")
+display(joined_df.head(3))
+```
+
+`pd.DataFrame(...)`は，辞書のリストを表形式のデータに変換する命令である．
+Notebookでは`display(...)`を使うと，`print(...)`よりも見やすい表として表示できる．
+
+この比較では，天気表にはなかった`降水確率`列が，結合後の表に追加されていることを確認する．
+また，同じ`地域コード`と`予報時刻`を持つ降水確率がない行では，`降水確率`が空欄になっていることも確認する．
 
 実行後，次を確認せよ．
 
 1. 結合後の行数は天気表と同じか
 2. `降水確率` が入っている行は何行あるか
 3. `降水確率` が空欄の行はなぜ発生したか
-4. 結合に使ったキーは何か
+4. 結合後の表には，結合前の天気表になかったどの列が追加されているか
+5. 結合に使ったキーは何か
 ````
 
 ````{warning} 課題2：天気表と降水確率表を結合する
@@ -892,7 +920,7 @@ data/processed/jma_tokyo_weather_pop_clean.csv
 - 横方向の結合：共通のキーを使って別の列を追加する処理
 - 結合できるかどうかは，列名だけでなく，地域や時刻の意味が一致しているかで判断する
 - 結合によって発生する空欄は，必ずしもデータの誤りではない
-- ISO形式の日時文字列から，日付や時刻を取り出すことで分析しやすくなる
+- 日時文字列から日付と時刻を区別して取り出すことで分析しやすくなる
 - 日本語の天気表現をカテゴリ化すると扱いやすくなるが，分類ルールを説明する必要がある
 - **データ観察はNotebook**で行い，**再実行する本処理はPythonファイル**として保存する
 
@@ -903,7 +931,7 @@ data/processed/jma_tokyo_weather_pop_clean.csv
 
 ### 課題の提出期限
 
-<span style="color: red; ">6月2日(火)23:59まで</span>
+<span style="color: red; ">6月5日(金)23:59まで</span>
 
 ---
 
