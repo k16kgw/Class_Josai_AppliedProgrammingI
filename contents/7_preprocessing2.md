@@ -22,12 +22,9 @@
 
 複数の表を組み合わせて分析用データセットを作成する．
 
-- 1つのJSONの中に含まれる複数の表を区別する
-- 天気表，降水確率表，気温表をそれぞれ作成する
 - 共通するキーを使って表を結合する
-- 結合できないデータを無理に結合しない理由を理解する
 - 結合後に発生する空欄の理由を理解する
-- ISO形式の日時文字列から日付や時刻を取り出す
+- 日時文字列から日付や時刻を取り出す
 - 日本語カテゴリを整理し，分析用のカテゴリを作成する
 
 ### 準備
@@ -44,11 +41,11 @@
 
 - 第6回で作成した次のファイルも使う．
     ```text
-    5/data/raw/jma_tokyo_weather_raw_table.csv
+    5/data/processed/jma_tokyo_weather_clean.csv
     ```
     これがない場合は次のリンクからダウンロードして配置すること．
 
-    [jma_tokyo_weather_raw_table_csv.zip](./analysis/5/data/raw/jma_tokyo_weather_raw_table_csv.zip)
+    [jma_tokyo_weather_clean_csv.zip](./analysis/5/data/processed/jma_tokyo_weather_clean_csv.zip)
 
 ````{note} 演習0：作業フォルダとデータを確認する
 
@@ -62,21 +59,22 @@
 │   └── preprocessing2.ipynb（←今回作成するファイル）
 ├── data/
 │   ├── raw/
-│   │   ├── jma_tokyo_forecast.json
-│   │   └── jma_tokyo_weather_raw_table.csv
+│   │   └── jma_tokyo_forecast.json
 │   └── processed/
+│       └── jma_tokyo_weather_clean.csv
 ├── src/
 └── README.md
 ```
 
 3. `notebooks/preprocessing2.ipynb`を新規作成する．
 4. `README.md`に次の内容を追記する．
+5. 変更を実施したgitでコミットする．
 
 ```markdown
 ## 第7回 前処理記録
 
 - 元データ：data/raw/jma_tokyo_forecast.json
-- 第6回で作成したデータ：data/raw/jma_tokyo_weather_raw_table.csv
+- 第6回で作成したデータ：data/processed/jma_tokyo_weather_clean.csv
 - 出典：気象庁ホームページ
 - URL：https://www.jma.go.jp/bosai/forecast/data/forecast/130000.json
 - 観察用ノートブック：notebooks/preprocessing2.ipynb（Gitでは管理しない）
@@ -117,7 +115,6 @@ data/raw
 
 次の処理を扱う．
 
-- 複数の時系列を別々の表として取り出す
 - 共通キーを使って表を横方向に結合する
 - 結合後に発生する空欄を確認する
 - 日時文字列から日付と時刻を取り出す
@@ -192,6 +189,8 @@ Notebookは作業用ファイルであり，Gitでは管理しない．
 | `data[0]["timeSeries"][1]` | 降水確率 | 東京地方，伊豆諸島北部，伊豆諸島南部，小笠原諸島 |
 | `data[0]["timeSeries"][2]` | 気温 | 東京，大島，八丈島，父島 |
 
+以下，簡単のため`data[0]["timeSeries"][2]`を`timeSeries[2]`のようにkey名を変数のように扱って示すこととする．
+
 天気表と降水確率表は，地域コードが同じなので結合しやすい．  
 一方，気温表は地域の単位が異なるため，そのまま結合すると誤ったデータセットになる可能性がある．
 
@@ -249,7 +248,7 @@ for i, series in enumerate(forecast["timeSeries"]):
 1. `timeSeries[0]` と `timeSeries[1]` の地域名は同じか
 2. `timeSeries[0]` と `timeSeries[1]` の地域コードは同じか
 3. `timeSeries[2]` の地域名は何か
-4. 気温表を天気表にそのまま結合してよいか
+4. `timeSeries[2]`の気温表を`timeSeries[0]`の天気表にそのまま結合してよいか
 ````
 
 ---
@@ -318,7 +317,7 @@ print("最初の地域の降水確率:",pop_series["areas"][0]["pops"])
 print("地域名一覧:", [area["area"]["name"] for area in pop_series["areas"]])
 ```
 
-**セル4：表の行を作成する**
+<!-- **セル4：表の行を作成する**
 
 ```python
 rows_out = []
@@ -337,13 +336,13 @@ for area in pop_series["areas"]:
 
 print("作成した行数:", len(rows_out))
 rows_out[:6]
-```
+``` -->
 
-実行後，次を確認せよ．
+<!-- 実行後，次を確認せよ．
 
 1. 降水確率表の行数はいくつか
 2. `降水確率` は文字列として表示されているか
-3. 第6回で作成した天気表と同じ `地域コード` が含まれているか
+3. 第6回で作成した天気表と同じ `地域コード` が含まれているか -->
 ````
 
 ````{warning} 課題1：降水確率の未整形CSVを作成する
@@ -352,7 +351,8 @@ rows_out[:6]
 WebClass「第7回課題」問1から提出せよ．
 </span>
 
-次のコードの `<FUGAFUGA>` を適切に書き換え（複数行必要），`data/raw/jma_tokyo_pop_raw_table.csv`を作成し，Notebookで確認した `pop_series`，`area`，`time`，`i` の中身を見ながら埋めること．
+次のコードの `<HOGEHOGE1>`〜`<HOGEHOGE4>` を適切に書き換え，`data/raw/jma_tokyo_pop_raw_table.csv`を作成せよ．
+Notebookで確認した `pop_series`，`area`，`time`，`i` の中身を見ながら埋めること．
 
 ```python
 import csv
@@ -369,7 +369,17 @@ pop_series = forecast["timeSeries"][1]
 
 rows_out = []
 
-<FUGAFUGA>
+for area in pop_series["areas"]:
+    area_name = area["area"]["name"]
+    area_code = area["area"]["code"]
+
+    for i, time in enumerate(pop_series["timeDefines"]):
+        rows_out.append({
+            "地域名": <HOGEHOGE1>,
+            "地域コード": <HOGEHOGE2>,
+            "予報時刻": <HOGEHOGE3>,
+            "降水確率": <HOGEHOGE4>
+        })
 
 fieldnames = ["地域名", "地域コード", "予報時刻", "降水確率"]
 
@@ -391,9 +401,13 @@ python src/make_raw_pop_table.py
 実行後，`data/raw/jma_tokyo_pop_raw_table.csv`が作成されていることを確認せよ．
 ````
 
+課題1がうまく進まなかった場合は，次のZIPファイルをダウンロードして展開し，`jma_tokyo_pop_raw_table.csv`を`data/raw/`に配置すること．
+
+[jma_tokyo_pop_raw_table_csv.zip](./analysis/5/data/raw/jma_tokyo_pop_raw_table_csv.zip)
+
 ### 表を結合する
 
-第6回で作成した**天気表**と課題1で作成した**降水確率表**を結合する．
+第6回で作成した**前処理済み天気表**と課題1で作成した**降水確率表**を結合する．
 ここでは次の結合ルールにしたがって表を結合する．
 - 天気表を基準にして，同じ `地域コード`，`予報時刻` に対応する降水確率がある場合だけ `降水確率` を追加する．
 - 対応する値がない場合は空欄にする．
@@ -401,7 +415,7 @@ python src/make_raw_pop_table.py
 このような結合は，左側の表の行を残すため**左結合**と呼ばれる．
 
 ```{tip} 注意
-結合したファイルはデータの値は変更していないため生データとして扱う．
+結合したファイルは，第7回の分析用データセットを作る前の中間データとして扱う．
 ```
 ```{tip} 注意
 天気表と降水確率表は地域コードは同じでも時刻の刻みが異なるため，完全には一致しない時刻があり，その行には空欄が発生する．
@@ -415,7 +429,7 @@ python src/make_raw_pop_table.py
 ```python
 import csv
 
-weather_path = "<HOGE>/jma_tokyo_weather_raw_table.csv"
+weather_path = "<HOGE>/jma_tokyo_weather_clean.csv"
 pop_path = "<HOGE>/jma_tokyo_pop_raw_table.csv"
 
 with open(weather_path, encoding="utf-8") as f:
@@ -473,6 +487,13 @@ for row in pop_rows:
 list(pop_by_key.items())[:5]
 ```
 
+このコードでは，降水確率表をあとで検索しやすいように辞書へ変換している．
+`key = (row["地域コード"], row["予報時刻"])`は，「どの地域の，どの予報時刻か」を表す組である．
+`pop_by_key[key] = row["降水確率"]`とすることで，同じ地域コード・予報時刻の降水確率をすぐに取り出せるようになる．
+
+たとえば，天気表のある行について同じ`地域コード`と`予報時刻`を持つ降水確率を探したいとき，毎回すべての降水確率表を上から探す必要がなくなる．
+次のセルでは，この辞書を使って天気表へ降水確率を追加する．
+
 **セル4：天気表へ降水確率を追加する**
 
 ```python
@@ -519,7 +540,7 @@ WebClass「第7回課題」問2から提出せよ．
 ```python
 import csv
 
-weather_path = "data/raw/jma_tokyo_weather_raw_table.csv"
+weather_path = "data/processed/jma_tokyo_weather_clean.csv"
 pop_path = "data/raw/jma_tokyo_pop_raw_table.csv"
 output_path = "data/raw/jma_tokyo_weather_pop_raw_table.csv"
 
@@ -541,7 +562,7 @@ rows_out = []
 
 fieldnames = [
     "発表機関", "発表時刻", "地域名", "地域コード", "予報時刻",
-    "天気コード", "天気", "風", "波", "降水確率"
+    "予報日", "予報時", "天気コード", "天気", "風", "波", "降水確率"
 ]
 
 with open(output_path, "w", encoding="utf-8", newline="") as f:
@@ -561,6 +582,10 @@ python src/join_weather_pop.py
 
 実行後，`data/raw/jma_tokyo_weather_pop_raw_table.csv`が作成されていることを確認せよ．
 ````
+
+課題2がうまく進まなかった場合は，次のZIPファイルをダウンロードして展開し，`jma_tokyo_weather_pop_raw_table.csv`を`data/raw/`に配置すること．
+
+[jma_tokyo_weather_pop_raw_table_csv.zip](./analysis/5/data/raw/jma_tokyo_weather_pop_raw_table_csv.zip)
 
 ### 結合後の空欄を確認する
 
@@ -815,6 +840,10 @@ python src/build_analysis_table.py
 実行後，`data/processed/jma_tokyo_weather_pop_clean.csv`が作成されていることを確認せよ．
 ````
 
+課題3がうまく進まなかった場合は，次のZIPファイルをダウンロードして展開し，`jma_tokyo_weather_pop_clean.csv`を`data/processed/`に配置すること．
+
+[jma_tokyo_weather_pop_clean_csv.zip](./analysis/5/data/processed/jma_tokyo_weather_pop_clean_csv.zip)
+
 ---
 
 ## 前処理の判断
@@ -841,7 +870,7 @@ data/raw/jma_tokyo_forecast.json
   ↓
 data/raw/jma_tokyo_pop_raw_table.csv
 
-data/raw/jma_tokyo_weather_raw_table.csv
+data/processed/jma_tokyo_weather_clean.csv
 data/raw/jma_tokyo_pop_raw_table.csv
   ↓
   ↓ notebooks/preprocessing2.ipynbで結合キーを確認
@@ -995,6 +1024,10 @@ python src/make_raw_temperature_table.py
 実行後，`data/raw/jma_tokyo_temperature_raw_table.csv`が作成されていることを確認せよ．
 ````
 
+課題4がうまく進まなかった場合は，次のZIPファイルをダウンロードして展開し，`jma_tokyo_temperature_raw_table.csv`を`data/raw/`に配置すること．
+
+[jma_tokyo_temperature_raw_table_csv.zip](./analysis/5/data/raw/jma_tokyo_temperature_raw_table_csv.zip)
+
 ````{note} 課題5：天気カテゴリのルールを変える
 
 現在のカテゴリ化では，`雨` を含む天気を最優先で「雨」に分類している．
@@ -1090,3 +1123,7 @@ print("saved:", output_path)
 2. 「大島」「八丈島」「父島」はどの地域と関係が深いか
 3. 対応表を作るとき，主観的な判断をどのように記録すべきか
 ````
+
+課題6がうまく進まなかった場合は，次のZIPファイルをダウンロードして展開し，`temperature_area_map.csv`を`data/processed/`に配置すること．
+
+[temperature_area_map_csv.zip](./analysis/5/data/processed/temperature_area_map_csv.zip)

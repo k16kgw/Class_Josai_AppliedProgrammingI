@@ -1,6 +1,6 @@
 import csv
 
-weather_path = "data/raw/jma_tokyo_weather_raw_table.csv"
+weather_path = "data/processed/jma_tokyo_weather_clean.csv"
 pop_path = "data/raw/jma_tokyo_pop_raw_table.csv"
 output_path = "data/raw/jma_tokyo_weather_pop_raw_table.csv"
 
@@ -27,7 +27,7 @@ for row in weather_rows:
 
 fieldnames = [
     "発表機関", "発表時刻", "地域名", "地域コード", "予報時刻",
-    "天気コード", "天気", "風", "波", "降水確率"
+    "予報日", "予報時", "天気コード", "天気", "風", "波", "降水確率"
 ]
 
 with open(output_path, "w", encoding="utf-8", newline="") as f:
