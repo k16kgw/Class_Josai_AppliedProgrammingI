@@ -28,12 +28,12 @@ project:
     - file: contents/5_api.md
     - file: contents/6_preprocessing1.md
     - file: contents/7_preprocessing2.md
-    # - file: contents/8_visualization.md
-    # - file: contents/9_statistics.md
-    # - file: contents/10_regression.md
-    # - file: contents/11_classification.md
-    # - file: contents/12_excercise.md
-    # - file: contents/13_review.md
+    - file: contents/8_visualization.md
+    # - file: contents/9_map_visualization.md
+    # - file: contents/10_administrative_statistics.md
+    # - file: contents/11_economic_data.md
+    # - file: contents/12_sports_data.md
+    # - file: contents/13_report_writing.md
 
 site:
   template: book-theme
