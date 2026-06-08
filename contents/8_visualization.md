@@ -41,7 +41,11 @@
 第5回に取得した天気予報データのJSONに含まれる**週間予報**を使い，可視化しやすいデータを作成して図を作成する．
 なお，今回は前処理と集計をまとめて実行するPythonスクリプトを使い，集計用データセットの作成を半自動で行う．
 
+**可視化**：データの傾向を知るために，色々な切り口からデータを眺める手法
+
 - データ分析の一連の流れの中で，可視化を適切に使う方法を学ぶ．
+- データの傾向を知るために，複数の切り口から図を作成できる
+- ヒストグラム，散布図，折れ線グラフ，棒グラフの役割を理解できる
 - Pythonの `matplotlib`や`seaborn` を使って図を作成できる
 
 ### 準備
@@ -131,52 +135,21 @@
 データ取得 → 前処理 → 集計 → 可視化 → 分析 → 報告
 ```
 
-可視化は，分析の途中でデータを眺め，前処理や集計が正しくできているかを確認するためにも使う．
+- 可視化：分析の途中でデータを眺め，前処理や集計が正しくできているかを確認するためにも使う．
+- 様々な可視化手法を身につけることで，データを眺める切り口を変えながらデータの傾向を探る．
 
-```text
-data/raw/jma_tokyo_forecast.json
-  ↓
-  ↓ src/build_weekly_forecast_tables.py
-  ↓
-data/processed/jma_tokyo_weekly_weather.csv
-data/processed/jma_tokyo_weekly_temperature.csv
-data/processed/jma_tokyo_weekly_weather_summary.csv
-data/processed/jma_tokyo_weekly_temperature_summary.csv
-  ↓
-  ↓ notebooks/visualization.ipynbで集計結果と図を確認
-  ↓ src/plot_weekly_pop.py
-  ↓ src/plot_weekly_temperature.py
-  ↓
-reports/figures/weekly_pop_by_area.png
-reports/figures/weekly_temperature_tokyo.png
-```
+| 切り口 | 確認できること | 図の例 |
+| --- | --- | --- |
+| 値の分布を見る | 値がどの範囲に多いか，外れた値があるか | ヒストグラム |
+| 2つの値の関係を見る | 一方が大きいとき，もう一方も大きいか | 散布図 |
+| 時間変化を見る | 日付や時刻に沿って値がどう変わるか | 折れ線グラフ |
+| グループを比較する | 地域や地点によって違いがあるか | 棒グラフ，色分けした図 |
 
-```{tip} 注意
-今回は前処理を省略するのではなく，第6回・第7回で学んだ処理を配布スクリプトとしてまとめて実行する．
-第8回では，作成されたデータをどう確認し，どう集計し，どう図にするかに集中する．
-```
+### データの準備
 
-### 図を作る前に考えること
+配布スクリプト`src/build_weekly_forecast_tables.py`を用いて，週間予報JSONを可視化しやすい表と集計表に変換する．
 
-図を作る前に，次を決める．
-
-- 何を比較したいのか
-- 横軸に何を置くのか
-- 縦軸に何を置くのか
-- 色や凡例で何を表すのか
-- 図を見た人に何を読み取ってほしいのか
-
-```{tip} 注意
-図はきれいに作ることが目的ではない．
-問いに対して，データから分かることを誤解なく伝えることが目的である．
-```
-
----
-
-## 週間予報の表と集計データを作成する
-
-`jma_tokyo_forecast.json`は，一番外側がリストになっている．
-本講義で使うサンプルでは，次のような構造になっている．
+本講義で使う天気予報データ`jma_tokyo_forecast.json`は次の構造になっている．
 
 ```text
 data
@@ -217,10 +190,63 @@ data/processed/jma_tokyo_weekly_temperature_summary.csv
 | `jma_tokyo_weekly_temperature_summary.csv` | 地点別の最低気温・最高気温の集計 |
 ````
 
-```{tip} 注意
-週間予報の初日は，降水確率や気温が空欄になっていることがある．
-空欄を見つけたらすぐに削除するのではなく，どの列で，どの行に，なぜ空欄があるのかを確認する．
+スクリプトの動作の概要
+
+| 手順 | スクリプトが行うこと | 作成・利用するデータ |
+| --- | --- | --- |
+| 1 | `data/raw/jma_tokyo_forecast.json`を読み込む | 第5回で取得した気象庁の予報JSON |
+| 2 | JSONの`data[1]`から週間予報を取り出す | 週間の天気・降水確率・信頼度，週間の気温 |
+| 3 | 地域別・日付別の天気表を作る | `data/processed/jma_tokyo_weekly_weather.csv` |
+| 4 | 地点別・日付別の気温表を作る | `data/processed/jma_tokyo_weekly_temperature.csv` |
+| 5 | 地域別に降水確率と信頼度を集計する | `data/processed/jma_tokyo_weekly_weather_summary.csv` |
+| 6 | 地点別に最低気温・最高気温を集計する | `data/processed/jma_tokyo_weekly_temperature_summary.csv` |
+
+配布スクリプトは「JSONから必要な値を取り出す」「空欄を確認しやすい形にする」「日付別・地域別・地点別に眺められる表を作る」という前処理をまとめて実行している．
+
+```text
+data/raw/jma_tokyo_forecast.json
+  ↓
+  ↓ src/build_weekly_forecast_tables.py
+  ↓
+data/processed/jma_tokyo_weekly_weather.csv
+data/processed/jma_tokyo_weekly_temperature.csv
+data/processed/jma_tokyo_weekly_weather_summary.csv
+data/processed/jma_tokyo_weekly_temperature_summary.csv
 ```
+
+### データ可視化の歴史
+
+データ可視化の歴史は1700年代に遡る．
+
+- 1700年代後半：折れ線グラフ・棒グラフなどのチャートが作られる．
+- 1800年代：複数の情報を一目でわかるような工夫がなされるようになる．（例：ナイチンゲールの鶏頭図）
+- 1900年代：コンピュータの出現によりデータ可視化手法が急速に発展する．
+
+![ナイチンゲールの鶏頭図](./figs/8/Nightingale-mortality.jpg)
+
+Yuichi Yazaki「ナイチンゲールによる「鶏冠」チャート」2020.8.14. URL:https://visualizing.jp/nightingale-chart/（2026年6月9日閲覧）より
+
+クリミア戦争におけるイギリス軍兵士の各月の死亡数を死因別に可視化したグラフ．
+- 円状に各月の死亡数が配置
+- 赤：戦闘での死亡数
+- 黒：その他の死亡数
+- 青：伝染病による死亡数
+
+ナイチンゲールはこのグラフから，伝染病の予防に力を入れるべきことをイギリス政府に提案し，兵士の死亡数の改善を実現した．
+
+### データ可視化の役割
+
+データ可視化の果たす役割として，以下の3つの機能が挙げられる．
+
+1. **概観**：データの全体像を把握する
+2. **発見**：データの特徴や新しい事象を見つける手助けをする
+3. **伝達**：データの読み手に1・2を伝える
+
+この役割を果たすにあたり，次の手順で可視化を行う
+
+1. データの着目点を考える
+2. データの収集・処理を行う
+3. 着目点に応じて適切な可視化を行う
 
 ---
 
@@ -1040,7 +1066,7 @@ reports/figures/weekly_temperature_tokyo.png
 
 ## まとめ
 
-- 可視化は，データ分析の流れの中で，データの傾向や違いを確認し，結果を伝えるための工程である
+- 可視化は，データの傾向を知るために，色々な切り口からデータを眺めるための工程である
 - 図を作る前には，行数，列名，値の例，空欄の有無を確認する
 - 集計用データセットを作ると，地域別・地点別の特徴を確認しやすくなる
 - 時間に沿った変化を見るときは，折れ線グラフが使いやすい
