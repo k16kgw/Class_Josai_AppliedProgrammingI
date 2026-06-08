@@ -224,10 +224,10 @@ data/processed/jma_tokyo_weekly_temperature_summary.csv
 
 ![ナイチンゲールの鶏頭図](./figs/8/Nightingale-mortality.jpg)
 
-Yuichi Yazaki「ナイチンゲールによる「鶏冠」チャート」2020.8.14. URL:https://visualizing.jp/nightingale-chart/（2026年6月9日閲覧）より
+Yuichi Yazaki「ナイチンゲールによる「鶏冠」チャート」2020.8.14. URL:https://visualizing.jp/nightingale-chart/ （2026年6月9日閲覧）より
 
 クリミア戦争におけるイギリス軍兵士の各月の死亡数を死因別に可視化したグラフ．
-- 円状に各月の死亡数が配置
+- 円状に各月の死亡数を配置
 - 赤：戦闘での死亡数
 - 黒：その他の死亡数
 - 青：伝染病による死亡数
@@ -270,6 +270,18 @@ data/processed/jma_tokyo_weekly_weather.csv
 
 このデータでは，地域ごとの降水確率の時間変化を可視化する．
 
+Notebookでは，ファイル名や列名だけでなく，実際に表の先頭行を確認する．
+`pandas`でCSVを読み込み，`head()`でデータの中身を眺める．
+
+```python
+import pandas as pd
+
+weekly_weather_path = "../data/processed/jma_tokyo_weekly_weather.csv"
+weekly_weather_df = pd.read_csv(weekly_weather_path)
+
+weekly_weather_df.head()
+```
+
 ### 週間気温データ
 
 ```text
@@ -291,6 +303,15 @@ data/processed/jma_tokyo_weekly_temperature.csv
 
 このデータでは，地点ごとの最低気温・最高気温の時間変化を可視化する．
 
+週間気温データについても，`head()`で先頭行を確認する．
+
+```python
+weekly_temperature_path = "../data/processed/jma_tokyo_weekly_temperature.csv"
+weekly_temperature_df = pd.read_csv(weekly_temperature_path)
+
+weekly_temperature_df.head()
+```
+
 ```{tip} 注意
 週間天気データの `地域名` は「東京地方」「伊豆諸島」「小笠原諸島」である．
 週間気温データの `地点名` は「東京」「八丈島」「父島」である．
@@ -301,9 +322,22 @@ data/processed/jma_tokyo_weekly_temperature.csv
 
 ## 可視化の準備
 
-Pythonで図を作成するために，`matplotlib` を使う．
+Pythonで可視化を行うときは，目的に応じてライブラリを使い分ける．
+第8回では，次のライブラリを使う．
 
-````{note} 演習2：matplotlibを確認する
+| ライブラリ | 主な役割 | この回での使い方 |
+| --- | --- | --- |
+| `pandas` | 表形式データの読み込み，確認，前処理，集計 | CSVを読み込み，欠損値や列を確認し，図に使う表を作る |
+| `seaborn` | 分布，比較，関係を少ないコードで可視化 | ヒストグラム，散布図，折れ線グラフ，棒グラフを作る |
+| `matplotlib` | 図の細かい調整と保存 | タイトル，軸ラベル，サイズ，保存先を指定する |
+| `janome` | 日本語テキストの分かち書き | 天気や風の説明文を単語に分け，出現回数を見る |
+
+```{tip} 注意
+`janome` は数値データの可視化に使うものではない．
+日本語の文章や単語を扱うときに使う．
+```
+
+````{note} 演習2：可視化に使うライブラリを確認する
 `notebooks/visualization.ipynb`に「可視化の準備」という見出しを作り，次のセルを順番に実行せよ．
 
 **セル1：作業中のディレクトリを確認する**
@@ -312,20 +346,39 @@ Pythonで図を作成するために，`matplotlib` を使う．
 !pwd
 ```
 
-**セル2：matplotlibを読み込む**
+**セル2：必要なライブラリをインストールする**
+
+初回のみ，次のセルを実行して必要なライブラリをインストールする．
+すでにインストール済みの場合は，すぐに終了する．
+
+```bash
+!python -m pip install pandas seaborn matplotlib janome
+```
+
+**セル3：ライブラリを読み込む**
 
 ```python
 import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+from janome.tokenizer import Tokenizer
 
 plt.rcParams["font.family"] = "Hiragino Sans"
+sns.set_theme(style="whitegrid", font="Hiragino Sans")
 ```
 
-**セル3：簡単な図を作る**
+**セル4：pandasとseabornで簡単な図を作る**
 
 ```python
+sample_df = pd.DataFrame({
+    "日付": ["5/21", "5/22", "5/23"],
+    "値": [21, 23, 20]
+})
+
 fig, ax = plt.subplots()
 
-ax.plot(["5/21", "5/22", "5/23"], [21, 23, 20], marker="o")
+sns.lineplot(data=sample_df, x="日付", y="値", marker="o", ax=ax)
+
 ax.set_title("折れ線グラフの確認")
 ax.set_xlabel("日付")
 ax.set_ylabel("値")
@@ -333,17 +386,37 @@ ax.set_ylabel("値")
 plt.show()
 ```
 
+**セル5：janomeで日本語を単語に分ける**
+
+```python
+tokenizer = Tokenizer()
+
+text = "くもり 時々 晴れ 夜遅く 雨"
+words = [token.surface for token in tokenizer.tokenize(text)]
+
+words
+```
+
 実行後，次を確認せよ．
 
 1. 図が表示されたか
 2. 日本語のタイトルや軸ラベルが表示されたか
-3. 日本語が文字化けした場合，どのように見えるか
+3. `sample_df` の表から図が作成されているか
+4. `janome` で日本語が単語に分かれているか
+5. 日本語が文字化けした場合，どのように見えるか
 ````
 
-```{tip} 注意
+````{tip} 注意
 日本語が正しく表示されない場合は，授業環境のフォント設定によって文字化けしている可能性がある．
 Macでは `Hiragino Sans` を指定すると表示できることが多い．
+
+`janome` が読み込めない場合は，セル2のインストールが完了していない可能性がある．
+セル2を実行してから，もう一度ライブラリを読み込む．
+
+```bash
+!python -m pip install janome
 ```
+````
 
 ---
 
@@ -355,72 +428,143 @@ Macでは `Hiragino Sans` を指定すると表示できることが多い．
 ````{note} 演習3：可視化に使うデータを確認する
 `notebooks/visualization.ipynb`に「可視化に使うデータを確認する」という見出しを作り，次のセルを順番に実行せよ．
 
-**セル1：CSVを読み込む**（`<HOGE>`には適切なディレクトリを指定すること）
+**セル1：CSVを読み込む**
 
 ```python
-import csv
+weekly_weather_path = "../data/processed/jma_tokyo_weekly_weather.csv"
+weekly_temperature_path = "../data/processed/jma_tokyo_weekly_temperature.csv"
 
-weekly_weather_path = "<HOGE>/jma_tokyo_weekly_weather.csv"
-weekly_temperature_path = "<HOGE>/jma_tokyo_weekly_temperature.csv"
-
-with open(weekly_weather_path, encoding="utf-8") as f:
-    reader = csv.DictReader(f)
-    weekly_weather_rows = list(reader)
-    weekly_weather_fieldnames = reader.fieldnames
-
-with open(weekly_temperature_path, encoding="utf-8") as f:
-    reader = csv.DictReader(f)
-    weekly_temperature_rows = list(reader)
-    weekly_temperature_fieldnames = reader.fieldnames
+weekly_weather_df = pd.read_csv(weekly_weather_path)
+weekly_temperature_df = pd.read_csv(weekly_temperature_path)
 ```
 
 **セル2：行数と列名を確認する**
 
 ```python
-print("週間天気データの行数:", len(weekly_weather_rows))
-print("週間天気データの列名:", weekly_weather_fieldnames)
+print("週間天気データの行数・列数:", weekly_weather_df.shape)
+print("週間天気データの列名:", list(weekly_weather_df.columns))
 print()
-print("週間気温データの行数:", len(weekly_temperature_rows))
-print("週間気温データの列名:", weekly_temperature_fieldnames)
+print("週間気温データの行数・列数:", weekly_temperature_df.shape)
+print("週間気温データの列名:", list(weekly_temperature_df.columns))
 ```
 
-**セル3：値の例を確認する**
+**セル3：表として先頭行を確認する**
 
 ```python
-print("週間天気データの先頭3行:")
-for row in weekly_weather_rows[:3]:
-    print(row)
+weekly_weather_df.head(3)
+```
 
-print("週間気温データの先頭3行:")
-for row in weekly_temperature_rows[:3]:
-    print(row)
+```python
+weekly_temperature_df.head(3)
 ```
 
 **セル4：空欄の数を確認する**
 
 ```python
-weather_missing_pop = 0
-
-for row in weekly_weather_rows:
-    if row["降水確率"] == "":
-        weather_missing_pop += 1
-
-temperature_missing = 0
-
-for row in weekly_temperature_rows:
-    if row["最低気温"] == "" or row["最高気温"] == "":
-        temperature_missing += 1
+weather_missing_pop = weekly_weather_df["降水確率"].isna().sum()
+temperature_missing = (
+    weekly_temperature_df["最低気温"].isna()
+    | weekly_temperature_df["最高気温"].isna()
+).sum()
 
 print("降水確率が空欄の行数:", weather_missing_pop)
 print("最低気温または最高気温が空欄の行数:", temperature_missing)
+```
+
+**セル5：数値列の概要を確認する**
+
+```python
+weekly_weather_df[["降水確率"]].describe()
+```
+
+```python
+weekly_temperature_df[["最低気温", "最高気温"]].describe()
 ```
 
 実行後，次を確認せよ．
 
 1. 週間天気データにはどのような列があるか
 2. 週間気温データにはどのような列があるか
-3. `降水確率`，`最低気温`，`最高気温` は文字列として読み込まれているか
+3. `pandas`では空欄がどのように表示されているか
 4. 空欄の行はあるか
+5. `降水確率`，`最低気温`，`最高気温` はどの範囲の値を取っているか
+````
+
+---
+
+## 日本語テキストを眺める
+
+数値データだけでなく，日本語の説明文も可視化の対象になる．
+ただし，日本語の文章は英語のように単語の間に空白が入っているとは限らないため，単語に分ける処理が必要になる．
+このようなときに`janome`を使う．
+
+ここでは，第6回で作成した`data/processed/jma_tokyo_weather_clean.csv`の`天気`列を使い，天気の説明に出てくる単語の回数を確認する．
+この演習は，日本語テキストを扱うときの例であり，降水確率や気温のような数値の可視化では`janome`を使わない．
+
+````{note} 演習4：janomeで天気の説明を単語に分けて可視化する
+`notebooks/visualization.ipynb`に「日本語テキストを眺める」という見出しを作り，次のセルを順番に実行せよ．
+
+**セル1：第6回で作成した天気表を読み込む**
+
+```python
+weather_text_path = "../data/processed/jma_tokyo_weather_clean.csv"
+
+weather_text_df = pd.read_csv(weather_text_path)
+weather_text_df[["地域名", "予報日", "天気"]].head()
+```
+
+`jma_tokyo_weather_clean.csv`が手元にない場合は，次のリンクからダウンロードして`data/processed`に配置すること．
+
+[jma_tokyo_weather_clean_csv.zip](./analysis/5/data/processed/jma_tokyo_weather_clean_csv.zip)
+
+**セル2：天気の説明を単語に分ける**
+
+```python
+from collections import Counter
+
+tokenizer = Tokenizer()
+words = []
+
+for text in weather_text_df["天気"].dropna().astype(str):
+    for token in tokenizer.tokenize(text):
+        part = token.part_of_speech.split(",")[0]
+
+        if part in {"名詞", "動詞", "形容詞"}:
+            words.append(token.surface)
+
+word_counts_df = pd.DataFrame(
+    Counter(words).most_common(10),
+    columns=["単語", "出現回数"]
+)
+
+word_counts_df
+```
+
+**セル3：出現回数を棒グラフにする**
+
+```python
+fig, ax = plt.subplots(figsize=(7, 5))
+
+sns.barplot(
+    data=word_counts_df,
+    x="出現回数",
+    y="単語",
+    ax=ax
+)
+
+ax.set_title("天気の説明に出てくる単語")
+ax.set_xlabel("出現回数")
+ax.set_ylabel("単語")
+
+plt.tight_layout()
+plt.show()
+```
+
+実行後，次を確認せよ．
+
+1. 天気の説明にはどのような単語が多く出ているか
+2. 数値データを可視化するときと，日本語テキストを可視化するときで，前処理はどのように違うか
+3. 単語の出現回数だけで，天気の傾向を十分に説明できるか
 ````
 
 ---
@@ -435,115 +579,72 @@ print("最低気温または最高気温が空欄の行数:", temperature_missin
 
 ここでは，集計用データセットがどのような考え方で作られているかをNotebookで確認する．
 
-````{note} 演習4：週間予報の集計用データセットを確認する
+````{note} 演習5：週間予報の集計用データセットを確認する
 `notebooks/visualization.ipynb`に「集計用データセットを作成する」という見出しを作り，次のセルを順番に実行せよ．
 
-**セル1：平均を計算する関数を準備する**
+**セル1：地域別に週間の降水確率を集計する**
 
 ```python
-def average_or_blank(values):
-    if len(values) == 0:
-        return ""
+weather_summary_df = (
+    weekly_weather_df
+    .groupby(["地域名", "地域コード"], as_index=False)
+    .agg(
+        予報日数=("予報日", "count"),
+        降水確率あり件数=("降水確率", "count"),
+        平均降水確率=("降水確率", "mean"),
+        最大降水確率=("降水確率", "max"),
+        最小降水確率=("降水確率", "min")
+    )
+)
 
-    return round(sum(values) / len(values), 1)
+weather_summary_df["平均降水確率"] = weather_summary_df["平均降水確率"].round(1)
+
+weather_summary_df
 ```
 
-**セル2：地域別に週間の降水確率と信頼度を集計する**
+`pandas`の`count`は，欠損値を除いて件数を数える．
+そのため，`降水確率あり件数`は，降水確率が空欄ではない行の数になる．
+
+**セル2：信頼度の件数を確認する**
 
 ```python
-weather_summary = {}
+reliability_count_df = (
+    weekly_weather_df
+    .dropna(subset=["信頼度"])
+    .groupby(["地域名", "信頼度"], as_index=False)
+    .size()
+)
 
-for row in weekly_weather_rows:
-    key = (row["地域名"], row["地域コード"])
-
-    if key not in weather_summary:
-        weather_summary[key] = {
-            "予報日数": 0,
-            "降水確率": [],
-            "信頼度A件数": 0,
-            "信頼度B件数": 0,
-            "信頼度C件数": 0
-        }
-
-    weather_summary[key]["予報日数"] += 1
-
-    if row["降水確率"] != "":
-        weather_summary[key]["降水確率"].append(int(row["降水確率"]))
-
-    if row["信頼度"] in {"A", "B", "C"}:
-        weather_summary[key][f"信頼度{row['信頼度']}件数"] += 1
-
-weather_summary_rows = []
-
-for (area_name, area_code), values in weather_summary.items():
-    pops = values["降水確率"]
-
-    weather_summary_rows.append({
-        "地域名": area_name,
-        "地域コード": area_code,
-        "予報日数": values["予報日数"],
-        "降水確率あり件数": len(pops),
-        "平均降水確率": average_or_blank(pops),
-        "最大降水確率": max(pops) if len(pops) > 0 else "",
-        "最小降水確率": min(pops) if len(pops) > 0 else "",
-        "信頼度A件数": values["信頼度A件数"],
-        "信頼度B件数": values["信頼度B件数"],
-        "信頼度C件数": values["信頼度C件数"]
-    })
-
-weather_summary_rows.sort(key=lambda row: row["地域コード"])
-weather_summary_rows
+reliability_count_df
 ```
 
 **セル3：地点別に週間の最低気温と最高気温を集計する**
 
 ```python
-temperature_summary = {}
+temperature_summary_df = (
+    weekly_temperature_df
+    .groupby(["地点名", "地点コード"], as_index=False)
+    .agg(
+        予報日数=("予報日", "count"),
+        最低気温あり日数=("最低気温", "count"),
+        最高気温あり日数=("最高気温", "count"),
+        平均最低気温=("最低気温", "mean"),
+        平均最高気温=("最高気温", "mean"),
+        最低気温の最小値=("最低気温", "min"),
+        最高気温の最大値=("最高気温", "max")
+    )
+)
 
-for row in weekly_temperature_rows:
-    key = (row["地点名"], row["地点コード"])
+temperature_summary_df["平均最低気温"] = temperature_summary_df["平均最低気温"].round(1)
+temperature_summary_df["平均最高気温"] = temperature_summary_df["平均最高気温"].round(1)
 
-    if key not in temperature_summary:
-        temperature_summary[key] = {
-            "予報日数": 0,
-            "最低気温": [],
-            "最高気温": []
-        }
-
-    temperature_summary[key]["予報日数"] += 1
-
-    if row["最低気温"] != "":
-        temperature_summary[key]["最低気温"].append(int(row["最低気温"]))
-
-    if row["最高気温"] != "":
-        temperature_summary[key]["最高気温"].append(int(row["最高気温"]))
-
-temperature_summary_rows = []
-
-for (point_name, point_code), values in temperature_summary.items():
-    min_temps = values["最低気温"]
-    max_temps = values["最高気温"]
-
-    temperature_summary_rows.append({
-        "地点名": point_name,
-        "地点コード": point_code,
-        "予報日数": values["予報日数"],
-        "最低気温あり日数": len(min_temps),
-        "最高気温あり日数": len(max_temps),
-        "平均最低気温": average_or_blank(min_temps),
-        "平均最高気温": average_or_blank(max_temps),
-        "最低気温の最小値": min(min_temps) if len(min_temps) > 0 else "",
-        "最高気温の最大値": max(max_temps) if len(max_temps) > 0 else ""
-    })
-
-temperature_summary_rows.sort(key=lambda row: row["地点コード"])
-temperature_summary_rows
+temperature_summary_df
 ```
 
 実行後，次を確認せよ．
 
-1. `降水確率` が空欄の行は，平均の計算から除外されているか
-2. `最低気温` や `最高気温` が空欄の行は，平均の計算から除外されているか
+1. `降水確率` が欠損している行は，平均の計算から除外されているか
+2. `最低気温` や `最高気温` が欠損している行は，平均の計算から除外されているか
 3. 地域別・地点別に，どのような値が要約されているか
 4. 集計用データセットは，細かい表と比べて何が見やすくなっているか
 ````
@@ -566,53 +667,36 @@ Notebookでは処理の意味を確認し，Pythonファイルでは同じ処理
 - 日付ごとの増減を確認したい
 - 複数の地域や地点の変化を比較したい
 
-````{note} 演習5：地域別の降水確率を折れ線グラフにする
+````{note} 演習6：地域別の降水確率を折れ線グラフにする
 `notebooks/visualization.ipynb`に「週間の降水確率を可視化する」という見出しを作り，次のセルを順番に実行せよ．
 
 **セル1：図に使うデータを作る**
 
 ```python
-area_names = []
-dates_by_area = {}
-pop_by_area = {}
+weekly_weather_plot_df = weekly_weather_df.dropna(subset=["降水確率"]).copy()
+weekly_weather_plot_df["予報日表示"] = weekly_weather_plot_df["予報日"].str[5:]
 
-for row in weekly_weather_rows:
-    if row["降水確率"] == "":
-        continue
-
-    area = row["地域名"]
-
-    if area not in area_names:
-        area_names.append(area)
-        dates_by_area[area] = []
-        pop_by_area[area] = []
-
-    dates_by_area[area].append(row["予報日"][5:])
-    pop_by_area[area].append(int(row["降水確率"]))
-
-print("地域:", area_names)
-print("東京地方の日付:", dates_by_area["東京地方"])
-print("東京地方の降水確率:", pop_by_area["東京地方"])
+weekly_weather_plot_df[["地域名", "予報日表示", "降水確率"]].head()
 ```
 
-**セル2：折れ線グラフを作成する**
+**セル2：seabornで折れ線グラフを作成する**
 
 ```python
 fig, ax = plt.subplots(figsize=(8, 5))
 
-for area in area_names:
-    ax.plot(
-        dates_by_area[area],
-        pop_by_area[area],
-        marker="o",
-        label=area
-    )
+sns.lineplot(
+    data=weekly_weather_plot_df,
+    x="予報日表示",
+    y="降水確率",
+    hue="地域名",
+    marker="o",
+    ax=ax
+)
 
 ax.set_title("週間予報の降水確率")
 ax.set_xlabel("予報日")
 ax.set_ylabel("降水確率（%）")
 ax.set_ylim(0, 100)
-ax.legend(title="地域")
 
 plt.tight_layout()
 plt.show()
@@ -628,7 +712,7 @@ plt.show()
 ````
 
 ````{warning} 課題1：週間の降水確率をPythonファイルで可視化する
-1. 演習5で確認した内容をもとに，`src/plot_weekly_pop.py`を作成し，
+1. 演習6で確認した内容をもとに，`src/plot_weekly_pop.py`を作成し，
 WebClass「第8回課題」問1から提出せよ．
 
 提出するのはPythonファイルのみである．作成されるCSVファイルやPNGファイルは提出しなくてよい．
@@ -636,42 +720,38 @@ WebClass「第8回課題」問1から提出せよ．
 次のコードの `<FUGAFUGA>` と `<HOGEHOGE>` を適切に置き換え，`reports/figures/weekly_pop_by_area.png`を作成すること．
 
 ```python
-import csv
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
 
 input_path = "data/processed/jma_tokyo_weekly_weather.csv"
 output_path = "reports/figures/weekly_pop_by_area.png"
 
 plt.rcParams["font.family"] = "Hiragino Sans"
+sns.set_theme(style="whitegrid", font="Hiragino Sans")
 Path("reports/figures").mkdir(parents=True, exist_ok=True)
 
-with open(input_path, encoding="utf-8") as f:
-    reader = csv.DictReader(f)
-    rows = list(reader)
-
-area_names = []
-dates_by_area = {}
-pop_by_area = {}
+weekly_weather_df = pd.read_csv(input_path)
 
 <FUGAFUGA>
 
 fig, ax = plt.subplots(figsize=(8, 5))
 
-for area in area_names:
-    ax.plot(
-        dates_by_area[area],
-        pop_by_area[area],
-        marker="o",
-        label=area
-    )
+sns.lineplot(
+    data=weekly_weather_plot_df,
+    x="予報日表示",
+    y="降水確率",
+    hue="地域名",
+    marker="o",
+    ax=ax
+)
 
 ax.set_title("週間予報の降水確率")
 ax.set_xlabel("予報日")
 ax.set_ylabel("降水確率（%）")
 ax.set_ylim(0, 100)
-ax.legend(title="地域")
 
 plt.tight_layout()
 <HOGEHOGE>
@@ -689,19 +769,8 @@ python src/plot_weekly_pop.py
 ````
 
 <!--
-for row in rows:
-    if row["降水確率"] == "":
-        continue
-
-    area = row["地域名"]
-
-    if area not in area_names:
-        area_names.append(area)
-        dates_by_area[area] = []
-        pop_by_area[area] = []
-
-    dates_by_area[area].append(row["予報日"][5:])
-    pop_by_area[area].append(int(row["降水確率"]))
+weekly_weather_plot_df = weekly_weather_df.dropna(subset=["降水確率"]).copy()
+weekly_weather_plot_df["予報日表示"] = weekly_weather_plot_df["予報日"].str[5:]
 
 plt.savefig(output_path, dpi=150)
 -->
@@ -713,7 +782,7 @@ plt.savefig(output_path, dpi=150)
 次に，週間気温データを使って，東京の最低気温と最高気温を可視化する．
 気温は日付に沿って変化する値なので，ここでも折れ線グラフを使う．
 
-````{note} 演習6：東京の最低気温と最高気温を折れ線グラフにする
+````{note} 演習7：東京の最低気温と最高気温を折れ線グラフにする
 `notebooks/visualization.ipynb`に「週間の気温を可視化する」という見出しを作り，次のセルを順番に実行せよ．
 
 **セル1：東京の気温データを取り出す**
@@ -721,38 +790,41 @@ plt.savefig(output_path, dpi=150)
 ```python
 target_point = "東京"
 
-dates = []
-min_temps = []
-max_temps = []
+tokyo_temperature_df = (
+    weekly_temperature_df[weekly_temperature_df["地点名"] == target_point]
+    .dropna(subset=["最低気温", "最高気温"])
+    .copy()
+)
 
-for row in weekly_temperature_rows:
-    if row["地点名"] != target_point:
-        continue
+tokyo_temperature_df["予報日表示"] = tokyo_temperature_df["予報日"].str[5:]
 
-    if row["最低気温"] == "" or row["最高気温"] == "":
-        continue
+tokyo_temperature_long_df = tokyo_temperature_df.melt(
+    id_vars=["予報日表示"],
+    value_vars=["最高気温", "最低気温"],
+    var_name="種類",
+    value_name="気温"
+)
 
-    dates.append(row["予報日"][5:])
-    min_temps.append(int(row["最低気温"]))
-    max_temps.append(int(row["最高気温"]))
-
-print("日付:", dates)
-print("最低気温:", min_temps)
-print("最高気温:", max_temps)
+tokyo_temperature_long_df.head()
 ```
 
-**セル2：折れ線グラフを作成する**
+**セル2：seabornで折れ線グラフを作成する**
 
 ```python
 fig, ax = plt.subplots(figsize=(8, 5))
 
-ax.plot(dates, max_temps, marker="o", label="最高気温")
-ax.plot(dates, min_temps, marker="o", label="最低気温")
+sns.lineplot(
+    data=tokyo_temperature_long_df,
+    x="予報日表示",
+    y="気温",
+    hue="種類",
+    marker="o",
+    ax=ax
+)
 
 ax.set_title("東京の週間気温予報")
 ax.set_xlabel("予報日")
 ax.set_ylabel("気温（℃）")
-ax.legend()
 
 plt.tight_layout()
 plt.show()
@@ -768,7 +840,7 @@ plt.show()
 ````
 
 ````{warning} 課題2：週間の気温をPythonファイルで可視化する
-1. 演習6で確認した内容をもとに，`src/plot_weekly_temperature.py`を作成し，
+1. 演習7で確認した内容をもとに，`src/plot_weekly_temperature.py`を作成し，
 WebClass「第8回課題」問2から提出せよ．
 
 提出するのはPythonファイルのみである．作成されるCSVファイルやPNGファイルは提出しなくてよい．
@@ -776,38 +848,39 @@ WebClass「第8回課題」問2から提出せよ．
 次のコードの `<FUGAFUGA>` と `<HOGEHOGE>` を適切に置き換え，`reports/figures/weekly_temperature_tokyo.png`を作成すること．
 
 ```python
-import csv
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
 
 input_path = "data/processed/jma_tokyo_weekly_temperature.csv"
 output_path = "reports/figures/weekly_temperature_tokyo.png"
 
 plt.rcParams["font.family"] = "Hiragino Sans"
+sns.set_theme(style="whitegrid", font="Hiragino Sans")
 Path("reports/figures").mkdir(parents=True, exist_ok=True)
 
-with open(input_path, encoding="utf-8") as f:
-    reader = csv.DictReader(f)
-    rows = list(reader)
+weekly_temperature_df = pd.read_csv(input_path)
 
 target_point = "東京"
-
-dates = []
-min_temps = []
-max_temps = []
 
 <FUGAFUGA>
 
 fig, ax = plt.subplots(figsize=(8, 5))
 
-ax.plot(dates, max_temps, marker="o", label="最高気温")
-ax.plot(dates, min_temps, marker="o", label="最低気温")
+sns.lineplot(
+    data=tokyo_temperature_long_df,
+    x="予報日表示",
+    y="気温",
+    hue="種類",
+    marker="o",
+    ax=ax
+)
 
 ax.set_title("東京の週間気温予報")
 ax.set_xlabel("予報日")
 ax.set_ylabel("気温（℃）")
-ax.legend()
 
 plt.tight_layout()
 <HOGEHOGE>
@@ -825,94 +898,94 @@ python src/plot_weekly_temperature.py
 ````
 
 <!--
-for row in rows:
-    if row["地点名"] != target_point:
-        continue
+tokyo_temperature_df = (
+    weekly_temperature_df[weekly_temperature_df["地点名"] == target_point]
+    .dropna(subset=["最低気温", "最高気温"])
+    .copy()
+)
 
-    if row["最低気温"] == "" or row["最高気温"] == "":
-        continue
+tokyo_temperature_df["予報日表示"] = tokyo_temperature_df["予報日"].str[5:]
 
-    dates.append(row["予報日"][5:])
-    min_temps.append(int(row["最低気温"]))
-    max_temps.append(int(row["最高気温"]))
+tokyo_temperature_long_df = tokyo_temperature_df.melt(
+    id_vars=["予報日表示"],
+    value_vars=["最高気温", "最低気温"],
+    var_name="種類",
+    value_name="気温"
+)
 
 plt.savefig(output_path, dpi=150)
 -->
 
 ---
 
-## 可視化に便利なライブラリ
+## ライブラリの使い分けを振り返る
 
-ここまでは，Python標準ライブラリの `csv` と，図を作るための `matplotlib` を使ってきた．
-実際のデータ分析では，表形式データを扱いやすくする `pandas` や，少ないコードで見やすい図を作れる `seaborn` もよく使われる．
+ここまでに，次のようにライブラリを使い分けた．
 
-- `pandas`：CSVを表形式データとして読み込み，列の選択，集計，並べ替えを行いやすくするライブラリ
-- `seaborn`：`matplotlib` をもとにした可視化ライブラリで，カテゴリ別・グループ別の図を少ないコードで作成できる
+| したいこと | 使ったライブラリ | 理由 |
+| --- | --- | --- |
+| CSVを表として読み込む | `pandas` | 行数，列名，欠損値，集計を確認しやすい |
+| 日本語の説明文を単語に分ける | `janome` | 日本語テキストを単語単位で眺められる |
+| 分布やグループごとの違いを図にする | `seaborn` | データフレームを指定するだけで図を作りやすい |
+| 図のタイトルや軸，保存先を調整する | `matplotlib` | 図の細かい見た目や保存を制御しやすい |
 
-```{tip} 注意
-`pandas` や `seaborn` が import できない場合は，授業環境にライブラリが入っていない可能性がある．
-その場合でも，この講義の課題は `csv` と `matplotlib` だけで実施できる．
-```
+同じデータでも，図の種類を変えると見えることが変わる．
+ここでは，降水確率を「分布」と「関係」の切り口から眺める．
 
-````{note} 参考：pandasとseabornで週間の降水確率を可視化する
-`notebooks/visualization.ipynb`に「便利なライブラリを使った可視化」という見出しを作り，次のセルを実行してみよ．
+````{note} 演習8：ヒストグラムと散布図で別の切り口から眺める
+`notebooks/visualization.ipynb`に「別の切り口から眺める」という見出しを作り，次のセルを順番に実行せよ．
 
-**セル1：ライブラリを読み込む**
-
-```python
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-plt.rcParams["font.family"] = "Hiragino Sans"
-```
-
-**セル2：CSVを読み込む**（`<HOGE>`には適切なディレクトリを指定すること）
+**セル1：降水確率の分布をヒストグラムで見る**
 
 ```python
-weekly_weather_path = "<HOGE>/jma_tokyo_weekly_weather.csv"
+fig, ax = plt.subplots(figsize=(7, 5))
 
-weekly_weather_df = pd.read_csv(weekly_weather_path)
-weekly_weather_df.head()
-```
-
-**セル3：空欄を除外する**
-
-```python
-weekly_weather_plot_df = weekly_weather_df.dropna(subset=["降水確率"])
-weekly_weather_plot_df
-```
-
-**セル4：seabornで折れ線グラフを作る**
-
-```python
-fig, ax = plt.subplots(figsize=(8, 5))
-
-sns.lineplot(
+sns.histplot(
     data=weekly_weather_plot_df,
-    x="予報日",
-    y="降水確率",
+    x="降水確率",
+    bins=6,
     hue="地域名",
-    marker="o",
+    multiple="dodge",
     ax=ax
 )
 
-ax.set_title("週間予報の降水確率（seaborn）")
-ax.set_xlabel("予報日")
-ax.set_ylabel("降水確率（%）")
-ax.set_ylim(0, 100)
+ax.set_title("降水確率の分布")
+ax.set_xlabel("降水確率（%）")
+ax.set_ylabel("件数")
 
-plt.xticks(rotation=20)
+plt.tight_layout()
+plt.show()
+```
+
+**セル2：最低気温と最高気温の関係を散布図で見る**
+
+```python
+temperature_scatter_df = weekly_temperature_df.dropna(subset=["最低気温", "最高気温"])
+
+fig, ax = plt.subplots(figsize=(6, 5))
+
+sns.scatterplot(
+    data=temperature_scatter_df,
+    x="最低気温",
+    y="最高気温",
+    hue="地点名",
+    s=80,
+    ax=ax
+)
+
+ax.set_title("最低気温と最高気温の関係")
+ax.set_xlabel("最低気温（℃）")
+ax.set_ylabel("最高気温（℃）")
+
 plt.tight_layout()
 plt.show()
 ```
 
 実行後，次を確認せよ．
 
-1. `weekly_weather_df.head()`で表の先頭行が表示されるか
-2. `dropna(subset=["降水確率"])` はどの行を除外しているか
-3. `hue="地域名"` は図の何を表しているか
-4. `csv` と `matplotlib` だけで作る場合と比べて，コードは短くなっているか
+1. 折れ線グラフとヒストグラムでは，見えてくることがどのように違うか
+2. 散布図から，最低気温と最高気温の関係を読み取れるか
+3. どの図が，どの問いに向いているか
 ````
 
 ---
@@ -1026,7 +1099,7 @@ Path(output_path).write_text(comment, encoding="utf-8")
 - 小さなデータから大きな結論を述べてしまう図
 
 ---
-
+<!-- 
 ## Git管理と集計・可視化
 
 集計や可視化では，出力した表や図そのものだけでなく，それらを作る手順も残すことが重要である．
@@ -1061,6 +1134,7 @@ data/processed/jma_tokyo_weekly_temperature_summary.csv
 reports/figures/weekly_pop_by_area.png
 reports/figures/weekly_temperature_tokyo.png
 ```
+ -->
 
 ---
 
@@ -1068,6 +1142,7 @@ reports/figures/weekly_temperature_tokyo.png
 
 - 可視化は，データの傾向を知るために，色々な切り口からデータを眺めるための工程である
 - 図を作る前には，行数，列名，値の例，空欄の有無を確認する
+- 表の確認と集計には`pandas`，日本語テキストには`janome`，分布や比較の図には`seaborn`，図の調整と保存には`matplotlib`を使う
 - 集計用データセットを作ると，地域別・地点別の特徴を確認しやすくなる
 - 時間に沿った変化を見るときは，折れ線グラフが使いやすい
 - 図には，タイトル，軸ラベル，単位，凡例を適切に設定する
@@ -1112,10 +1187,10 @@ WebClassの提出場所から提出したものについて加点対象としま
 最高気温の予報値を折れ線で示し，上限と下限の範囲を薄い帯として表示する例である．
 
 ```python
-import csv
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import pandas as pd
 
 input_path = "data/processed/jma_tokyo_weekly_temperature.csv"
 output_path = "reports/figures/weekly_temperature_range_tokyo.png"
@@ -1123,39 +1198,33 @@ output_path = "reports/figures/weekly_temperature_range_tokyo.png"
 plt.rcParams["font.family"] = "Hiragino Sans"
 Path("reports/figures").mkdir(parents=True, exist_ok=True)
 
-with open(input_path, encoding="utf-8") as f:
-    reader = csv.DictReader(f)
-    rows = list(reader)
+temperature_df = pd.read_csv(input_path)
 
-dates = []
-max_temps = []
-max_lowers = []
-max_uppers = []
+tokyo_df = (
+    temperature_df[temperature_df["地点名"] == "東京"]
+    .dropna(subset=["最高気温", "最高気温下限", "最高気温上限"])
+    .copy()
+)
 
-for row in rows:
-    if row["地点名"] != "東京":
-        continue
-
-    if row["最高気温"] == "" or row["最高気温下限"] == "" or row["最高気温上限"] == "":
-        continue
-
-    dates.append(row["予報日"][5:])
-    max_temps.append(int(row["最高気温"]))
-    max_lowers.append(int(row["最高気温下限"]))
-    max_uppers.append(int(row["最高気温上限"]))
-
-x = list(range(len(dates)))
+tokyo_df["予報日表示"] = tokyo_df["予報日"].str[5:]
+x = list(range(len(tokyo_df)))
 
 fig, ax = plt.subplots(figsize=(8, 5))
 
-ax.plot(x, max_temps, marker="o", label="最高気温")
-ax.fill_between(x, max_lowers, max_uppers, alpha=0.2, label="最高気温の予報幅")
+ax.plot(x, tokyo_df["最高気温"], marker="o", label="最高気温")
+ax.fill_between(
+    x,
+    tokyo_df["最高気温下限"],
+    tokyo_df["最高気温上限"],
+    alpha=0.2,
+    label="最高気温の予報幅"
+)
 
 ax.set_title("東京の最高気温予報と予報幅")
 ax.set_xlabel("予報日")
 ax.set_ylabel("気温（℃）")
 ax.set_xticks(x)
-ax.set_xticklabels(dates)
+ax.set_xticklabels(tokyo_df["予報日表示"])
 ax.legend()
 
 plt.tight_layout()
@@ -1184,53 +1253,44 @@ print("saved:", output_path)
 信頼度が `A`，`B`，`C` の行だけを使い，それぞれの平均降水確率を計算して表示する例である．
 
 ```python
-import csv
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
 
 input_path = "data/processed/jma_tokyo_weekly_weather.csv"
 output_path = "reports/figures/weekly_pop_by_reliability.png"
 
 plt.rcParams["font.family"] = "Hiragino Sans"
+sns.set_theme(style="whitegrid", font="Hiragino Sans")
 Path("reports/figures").mkdir(parents=True, exist_ok=True)
 
-summary = {
-    "A": {"合計": 0, "件数": 0},
-    "B": {"合計": 0, "件数": 0},
-    "C": {"合計": 0, "件数": 0},
-}
+weather_df = pd.read_csv(input_path)
 
-with open(input_path, encoding="utf-8") as f:
-    reader = csv.DictReader(f)
+summary_df = (
+    weather_df
+    .dropna(subset=["信頼度", "降水確率"])
+)
 
-    for row in reader:
-        reliability = row["信頼度"]
-
-        if reliability not in summary:
-            continue
-
-        if row["降水確率"] == "":
-            continue
-
-        summary[reliability]["合計"] += int(row["降水確率"])
-        summary[reliability]["件数"] += 1
-
-labels = []
-values = []
-
-for reliability in ["A", "B", "C"]:
-    count = summary[reliability]["件数"]
-
-    if count == 0:
-        continue
-
-    labels.append(reliability)
-    values.append(summary[reliability]["合計"] / count)
+summary_df = (
+    summary_df[summary_df["信頼度"].isin(["A", "B", "C"])]
+    .groupby("信頼度", as_index=False)
+    .agg(
+        平均降水確率=("降水確率", "mean"),
+        件数=("降水確率", "count")
+    )
+)
 
 fig, ax = plt.subplots(figsize=(6, 4))
 
-ax.bar(labels, values)
+sns.barplot(
+    data=summary_df,
+    x="信頼度",
+    y="平均降水確率",
+    ax=ax
+)
+
 ax.set_title("信頼度ごとの平均降水確率")
 ax.set_xlabel("信頼度")
 ax.set_ylabel("平均降水確率（%）")
@@ -1253,7 +1313,7 @@ print("saved:", output_path)
 
 実行後，次の点を確認し，必要に応じてPythonファイル内のコメントに残すこと．
 
-1. `csv` と `matplotlib` だけで作る場合と比べて，コードはどう変わったか
+1. `pandas` と `seaborn` を使うと，データの選択やグループ分けはどう書けるか
 2. `hue="地点名"` は何を表しているか
 3. ライブラリを使う利点と注意点は何か
 ````

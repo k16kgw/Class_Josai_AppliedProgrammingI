@@ -24,7 +24,7 @@
 - 緯度・経度を持つデータを読み込み，地図上に点として表示できる
 - 色，大きさ，ポップアップを使って，地図上に追加情報を表現できる
 - 地図上の分布から読み取れることと，読み取れないことを区別できる
-- `pandas`，`seaborn`，`plotly`を使い分けて可視化できる
+- `pandas`，`janome`，`seaborn`，`plotly`，`folium`を使い分けて可視化できる
 
 ---
 
@@ -43,6 +43,16 @@
 | 比較 | 何と何を比較したいのか |
 | 注意点 | 人口規模，面積，観測点の偏りなどを考慮する必要があるか |
 
+第9回では，次のようにライブラリを使い分ける．
+
+| ライブラリ | 主な役割 |
+| --- | --- |
+| `pandas` | 位置情報を含むCSVを読み込み，欠損値や列を確認する |
+| `janome` | 地名や施設名など，日本語の名前に含まれる単語を確認する |
+| `seaborn` | 地図に載せる前に，値の分布やカテゴリ別の違いを確認する |
+| `plotly` | Notebook上でインタラクティブな地図をすばやく作る |
+| `folium` | 地図をHTMLとして保存し，ブラウザで確認できる形にする |
+
 ---
 
 ## 演習の流れ
@@ -58,9 +68,13 @@ pandasで読み込み
   ↓
 前処理
   ↓
+janomeで日本語名を確認
+  ↓
 seabornで分布を確認
   ↓
 plotlyで地図上に可視化
+  ↓
+foliumでHTML地図を作成
   ↓
 読み取れることを文章で整理
 ```
@@ -72,14 +86,41 @@ plotlyで地図上に可視化
 ```python
 import pandas as pd
 
-df = pd.read_csv("data/raw/sample_location_data.csv")
+df = pd.read_csv("../data/raw/sample_location_data.csv")
 
 print(df.shape)
 print(df.columns)
 df.head()
 ```
 
-### 演習2：地図に載せる前に分布を確認する
+### 演習2：日本語名を単語に分けて確認する
+
+地名や施設名などの日本語テキストは，必要に応じて単語に分けて確認する．
+ここでは`name`列に入っている名称を`janome`で分かち書きする．
+
+```python
+from collections import Counter
+from janome.tokenizer import Tokenizer
+
+tokenizer = Tokenizer()
+words = []
+
+for name in df["name"].dropna().astype(str):
+    for token in tokenizer.tokenize(name):
+        part = token.part_of_speech.split(",")[0]
+
+        if part in {"名詞", "動詞", "形容詞"}:
+            words.append(token.surface)
+
+word_count_df = pd.DataFrame(
+    Counter(words).most_common(10),
+    columns=["単語", "出現回数"]
+)
+
+word_count_df
+```
+
+### 演習3：地図に載せる前に分布を確認する
 
 地図上に載せる前に，値の分布を確認する．
 値の偏りが大きい場合，地図上の色や大きさが読みにくくなることがある．
@@ -90,7 +131,7 @@ import seaborn as sns
 sns.histplot(data=df, x="value")
 ```
 
-### 演習3：plotlyで地図上にプロットする
+### 演習4：plotlyで地図上にプロットする
 
 `plotly.express`を使って，緯度・経度を地図上に表示する．
 
@@ -111,7 +152,44 @@ fig = px.scatter_map(
 fig.show()
 ```
 
-### 演習4：地図から読み取れることを書く
+### 演習5：foliumでHTML地図を作成する
+
+`folium`を使うと，地図をHTMLファイルとして保存できる．
+Notebook上で確認するだけでなく，ブラウザで開ける地図として残したいときに便利である．
+
+```python
+import folium
+
+center_lat = df["latitude"].mean()
+center_lon = df["longitude"].mean()
+
+m = folium.Map(location=[center_lat, center_lon], zoom_start=10)
+
+for _, row in df.iterrows():
+    popup_text = f"{row['name']}<br>値：{row['value']}<br>カテゴリ：{row['category']}"
+
+    folium.CircleMarker(
+        location=[row["latitude"], row["longitude"]],
+        radius=6,
+        popup=popup_text,
+        color="blue",
+        fill=True,
+        fill_opacity=0.6,
+    ).add_to(m)
+
+m
+```
+
+HTMLファイルとして保存する場合は，次を実行する．
+
+```python
+from pathlib import Path
+
+Path("../reports/figures").mkdir(parents=True, exist_ok=True)
+m.save("../reports/figures/sample_location_map.html")
+```
+
+### 演習6：地図から読み取れることを書く
 
 作成した地図を見て，次の観点で短い文章を書く．
 
@@ -125,5 +203,6 @@ fig.show()
 
 - 地図上への可視化は，地域差や空間的な偏りを確認するために有効である
 - 地図に載せる前に，データの行数，列名，欠損値，値の分布を確認する
+- `folium`を使うと，地図をHTMLとして保存し，ブラウザで確認できる
 - 点の色や大きさは，読み手が何を比較するかを意識して設定する
 - 地図から読み取れることと，地図だけでは判断できないことを分けて説明する
