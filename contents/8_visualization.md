@@ -655,8 +655,8 @@ plt.show()
 
 ````{warning} 課題1：地域別の平均降水確率をPythonファイルで可視化する
 演習5で確認した内容を応用する．
-以下のコードの`<HOGEHOGE1>`〜`<HOGEHOGE3>`を適切に書き換えて`src/plot_weekly_pop.py`を作成し，コードを実行して`report/figures/weekly_pop_by_area.png`を作成せよ．  
-最後に，作成した`src/plot_weekly_pop.py`と`report/figures/weekly_pop_by_area.png`を<span style="color:red">WebClass「第8回課題」問1・問2</span>から提出せよ．
+以下のコードの`<HOGEHOGE1>`〜`<HOGEHOGE3>`を適切に書き換えてpythonスクリプト`src/plot_weekly_pop.py`を作成し，コードを実行して画像ファイル`report/figures/weekly_pop_by_area.png`を作成せよ．  
+最後に，作成したpythonスクリプト`src/plot_weekly_pop.py`と画像ファイル`report/figures/weekly_pop_by_area.png`を<span style="color:red">WebClass「第8回課題」問1・問2</span>から提出せよ．
 
 ```{tip} ポイント
 いきなりpythonファイルを作成するのではなく，notebookで試験的にコードを実行し，うまくコードが走るようになってからpythonコードにコピーして実施すると書きやすい．
@@ -845,21 +845,13 @@ plt.show()
 3. 最高気温と最低気温の差が大きい日はいつか
 ````
 
-````{warning} 課題2：週間の気温をPythonファイルで可視化する
-1. 演習6で確認した内容をもとに，`src/plot_weekly_temperature.py`を作成し，
-WebClass「第8回課題」問2から提出せよ．
+````{warning} 課題2：地点別の平均気温差をPythonファイルで可視化する
+演習6で確認した内容を応用する．
+以下のコードの`<FUGAFUGA>`，`<HOGEHOGE1>`〜`<HOGEHOGE4>`を適切に書き換えてpythonスクリプト`src/plot_weekly_temperature.py`を作成し，コードを実行して画像ファイル`report/figures/weekly_temperature_tokyo.png`を作成せよ．  
+最後に，作成したpythonスクリプト`src/plot_weekly_temperature.py`と画像ファイル`reports/figures/weekly_temperature_tokyo.png`を<span style="color:red">WebClass「第8回課題」問3・問4</span>から提出せよ．
 
-提出するのはPythonファイルのみである．作成されるCSVファイルやPNGファイルは提出しなくてよい．
-
-次のコードの `<FUGAFUGA>` と `<HOGEHOGE>` を適切に置き換え，`reports/figures/weekly_temperature_tokyo.png`を作成すること．
-
-ただし，演習6の図に加えて，次の条件を満たすこと．
-
-1. 東京のデータだけを取り出す
-2. `最低気温` または `最高気温` が欠損している行を除外する
-3. `気温差` 列を作成する
-4. 1つ目の図に最高気温・最低気温の折れ線グラフを描く
-5. 2つ目の図に日ごとの `気温差` を棒グラフで描く
+演習6では，東京の最高気温・最低気温を日付に沿って折れ線グラフで表示した．
+本課題では，全地点について`最高気温 - 最低気温`を計算し，**地点別の平均気温差**を棒グラフで表示する．
 
 ```python
 from pathlib import Path
@@ -876,40 +868,41 @@ sns.set_theme(style="whitegrid", font="Hiragino Sans")
 Path("reports/figures").mkdir(parents=True, exist_ok=True)
 
 weekly_temperature_df = pd.read_csv(input_path)
+weekly_temperature_plot_df = weekly_temperature_df.dropna(subset=["最低気温", "最高気温"]).copy()
+weekly_temperature_plot_df["気温差"] = <FUGAFUGA>
 
-target_point = "東京"
+summary_rows = []
 
-<FUGAFUGA>
+for point in weekly_temperature_plot_df["地点名"].unique():
+    point_df = weekly_temperature_plot_df[weekly_temperature_plot_df["地点名"] == point]
+    temp_diff_description = point_df["気温差"].describe()
 
-fig, axes = plt.subplots(2, 1, figsize=(8, 8), sharex=True)
+    summary_rows.append({
+        "地点名": <HOGEHOGE1>,
+        "平均気温差": <HOGEHOGE2>,
+        "最大気温差": <HOGEHOGE3>,
+        "データ数": <HOGEHOGE4>
+    })
 
-sns.lineplot(
-    data=tokyo_temperature_long_df,
-    x="予報日表示",
-    y="気温",
-    hue="種類",
-    marker="o",
-    ax=axes[0]
-)
+temperature_diff_summary_df = pd.DataFrame(summary_rows)
 
-axes[0].set_title("東京の週間気温予報")
-axes[0].set_xlabel("")
-axes[0].set_ylabel("気温（℃）")
+print(temperature_diff_summary_df)
+
+fig, ax = plt.subplots(figsize=(7, 5))
 
 sns.barplot(
-    data=tokyo_temperature_df,
-    x="予報日表示",
-    y="気温差",
-    color="lightgray",
-    ax=axes[1]
+    data=temperature_diff_summary_df,
+    x="平均気温差",
+    y="地点名",
+    ax=ax
 )
 
-axes[1].set_title("最高気温と最低気温の差")
-axes[1].set_xlabel("予報日")
-axes[1].set_ylabel("気温差（℃）")
+ax.set_title("地点別の平均気温差")
+ax.set_xlabel("平均気温差（℃）")
+ax.set_ylabel("地点")
 
 plt.tight_layout()
-<HOGEHOGE>
+plt.savefig(output_path, dpi=150)
 
 print("saved:", output_path)
 ```
@@ -924,23 +917,65 @@ python src/plot_weekly_temperature.py
 ````
 
 <!--
-tokyo_temperature_df = (
-    weekly_temperature_df[weekly_temperature_df["地点名"] == target_point]
-    .dropna(subset=["最低気温", "最高気温"])
-    .copy()
+````{dropdown} 解答例
+```python
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+
+input_path = "data/processed/jma_tokyo_weekly_temperature.csv"
+output_path = "reports/figures/weekly_temperature_tokyo.png"
+
+plt.rcParams["font.family"] = "Hiragino Sans"
+sns.set_theme(style="whitegrid", font="Hiragino Sans")
+Path("reports/figures").mkdir(parents=True, exist_ok=True)
+
+weekly_temperature_df = pd.read_csv(input_path)
+weekly_temperature_plot_df = weekly_temperature_df.dropna(subset=["最低気温", "最高気温"]).copy()
+weekly_temperature_plot_df["気温差"] = (
+    weekly_temperature_plot_df["最高気温"]
+    - weekly_temperature_plot_df["最低気温"]
 )
 
-tokyo_temperature_df["予報日表示"] = tokyo_temperature_df["予報日"].str[5:]
-tokyo_temperature_df["気温差"] = tokyo_temperature_df["最高気温"] - tokyo_temperature_df["最低気温"]
+summary_rows = []
 
-tokyo_temperature_long_df = tokyo_temperature_df.melt(
-    id_vars=["予報日表示"],
-    value_vars=["最高気温", "最低気温"],
-    var_name="種類",
-    value_name="気温"
+for point in weekly_temperature_plot_df["地点名"].unique():
+    point_df = weekly_temperature_plot_df[weekly_temperature_plot_df["地点名"] == point]
+    temp_diff_description = point_df["気温差"].describe()
+
+    summary_rows.append({
+        "地点名": point,
+        "平均気温差": round(temp_diff_description["mean"], 1),
+        "最大気温差": temp_diff_description["max"],
+        "データ数": int(temp_diff_description["count"])
+    })
+
+temperature_diff_summary_df = pd.DataFrame(summary_rows)
+temperature_diff_summary_df = temperature_diff_summary_df.sort_values("平均気温差", ascending=False)
+
+print(temperature_diff_summary_df)
+
+fig, ax = plt.subplots(figsize=(7, 5))
+
+sns.barplot(
+    data=temperature_diff_summary_df,
+    x="平均気温差",
+    y="地点名",
+    ax=ax
 )
 
+ax.set_title("地点別の平均気温差")
+ax.set_xlabel("平均気温差（℃）")
+ax.set_ylabel("地点")
+
+plt.tight_layout()
 plt.savefig(output_path, dpi=150)
+
+print("saved:", output_path)
+```
+````
 -->
 
 同じデータでも，図の種類を変えると見えることが変わる．
