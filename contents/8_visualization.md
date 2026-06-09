@@ -655,7 +655,7 @@ plt.show()
 
 ````{warning} 課題1：地域別の平均降水確率をPythonファイルで可視化する
 演習5で確認した内容を応用する．
-以下のコードの`<HOGEHOGE1>`〜`<HOGEHOGE3>`を適切に書き換えてpythonスクリプト`src/plot_weekly_pop.py`を作成し，コードを実行して画像ファイル`report/figures/weekly_pop_by_area.png`を作成せよ．  
+以下のコードの`<HOGEHOGE1>`〜`<HOGEHOGE3>`，`<PIYOPIYO1>`，`<PIYOPIYO2>`を適切に書き換えてpythonスクリプト`src/plot_weekly_pop.py`を作成し，コードを実行して画像ファイル`report/figures/weekly_pop_by_area.png`を作成せよ．  
 最後に，作成したpythonスクリプト`src/plot_weekly_pop.py`と画像ファイル`report/figures/weekly_pop_by_area.png`を<span style="color:red">WebClass「第8回課題」問1・問2</span>から提出せよ．
 
 ```{tip} ポイント
@@ -702,8 +702,8 @@ fig, ax = plt.subplots(figsize=(7, 5))
 
 sns.barplot(
     data=pop_summary_df,
-    x="平均降水確率",
-    y="地域名",
+    x=<PIYOPIYO1>,
+    y=<PIYOPIYO2>,
     ax=ax
 )
 
@@ -847,7 +847,7 @@ plt.show()
 
 ````{warning} 課題2：地点別の平均気温差をPythonファイルで可視化する
 演習6で確認した内容を応用する．
-以下のコードの`<FUGAFUGA>`，`<HOGEHOGE1>`〜`<HOGEHOGE4>`を適切に書き換えてpythonスクリプト`src/plot_weekly_temperature.py`を作成し，コードを実行して画像ファイル`report/figures/weekly_temperature_tokyo.png`を作成せよ．  
+以下のコードの`<FUGAFUGA>`，`<HOGEHOGE1>`〜`<HOGEHOGE4>`，`<PIYOPIYO1>`，`<PIYOPIYO2>`を適切に書き換えてpythonスクリプト`src/plot_weekly_temperature.py`を作成し，コードを実行して画像ファイル`report/figures/weekly_temperature_tokyo.png`を作成せよ．  
 最後に，作成したpythonスクリプト`src/plot_weekly_temperature.py`と画像ファイル`reports/figures/weekly_temperature_tokyo.png`を<span style="color:red">WebClass「第8回課題」問3・問4</span>から提出せよ．
 
 演習6では，東京の最高気温・最低気温を日付に沿って折れ線グラフで表示した．
@@ -892,8 +892,8 @@ fig, ax = plt.subplots(figsize=(7, 5))
 
 sns.barplot(
     data=temperature_diff_summary_df,
-    x="平均気温差",
-    y="地点名",
+    x=<PIYOPIYO1>,
+    y=<PIYOPIYO2>,
     ax=ax
 )
 
