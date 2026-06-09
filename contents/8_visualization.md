@@ -655,11 +655,14 @@ plt.show()
 
 ````{warning} 課題1：地域別の平均降水確率をPythonファイルで可視化する
 演習5で確認した内容を応用する．
-以下のコードの`<FUGAFUGA>`を適切に書き換えて`src/plot_weekly_pop.py`を作成し，コードを実行して`report/figures/weekly_pop_by_area.png`を作成せよ．  
+以下のコードの`<HOGEHOGE1>`〜`<HOGEHOGE3>`を適切に書き換えて`src/plot_weekly_pop.py`を作成し，コードを実行して`report/figures/weekly_pop_by_area.png`を作成せよ．  
 最後に，作成した`src/plot_weekly_pop.py`と`report/figures/weekly_pop_by_area.png`を<span style="color:red">WebClass「第8回課題」問1・問2</span>から提出せよ．
 
-演習5では地域別に日付ごとの降水確率を折れ線グラフで表示した．
-課題1では**地域別の平均降水確率**を棒グラフで表示する．
+```{tip} ポイント
+いきなりpythonファイルを作成するのではなく，notebookで試験的にコードを実行し，うまくコードが走るようになってからpythonコードにコピーして実施すると書きやすい．
+```
+
+演習5では地域別に日付ごとの降水確率を折れ線グラフで表示したが，本課題では**地域別の平均降水確率**を棒グラフで表示する．
 
 ```python
 from pathlib import Path
@@ -678,17 +681,84 @@ Path("reports/figures").mkdir(parents=True, exist_ok=True)
 weekly_weather_df = pd.read_csv(input_path)
 weekly_weather_plot_df = weekly_weather_df.dropna(subset=["降水確率"]).copy()
 
-pop_summary_df = (
-    weekly_weather_plot_df
-    .groupby("地域名", as_index=False)
-    .agg(
-        平均降水確率=("降水確率", "mean"),
-        最大降水確率=("降水確率", "max"),
-        データ数=("降水確率", "count")
-    )
+summary_rows = []
+
+for area in weekly_weather_plot_df["地域名"].unique():
+    area_df = weekly_weather_plot_df[weekly_weather_plot_df["地域名"] == area]
+    pop_description = area_df["降水確率"].describe()
+
+    summary_rows.append({
+        "地域名": <HOGEHOGE1>,
+        "平均降水確率": <HOGEHOGE2>,
+        "最大降水確率": <HOGEHOGE3>,
+        "データ数": int(pop_description["count"])
+    })
+
+pop_summary_df = pd.DataFrame(summary_rows)
+
+print(pop_summary_df)
+
+fig, ax = plt.subplots(figsize=(7, 5))
+
+sns.barplot(
+    data=pop_summary_df,
+    x="平均降水確率",
+    y="地域名",
+    ax=ax
 )
 
-pop_summary_df["平均降水確率"] = pop_summary_df["平均降水確率"].round(1)
+ax.set_title("地域別の平均降水確率")
+ax.set_xlabel("平均降水確率（%）")
+ax.set_ylabel("地域")
+ax.set_xlim(0, 100)
+
+plt.tight_layout()
+plt.savefig(output_path, dpi=150)
+
+print("saved:", output_path)
+```
+
+作成したPythonファイルを`5`フォルダ内でターミナルから実行せよ．
+
+```bash
+python src/plot_weekly_pop.py
+```
+
+実行後，`reports/figures/weekly_pop_by_area.png`が作成されていることを確認せよ．
+````
+<!-- 
+````{dropdown} 解答例
+```python
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+
+input_path = "data/processed/jma_tokyo_weekly_weather.csv"
+output_path = "reports/figures/weekly_pop_by_area.png"
+
+plt.rcParams["font.family"] = "Hiragino Sans"
+sns.set_theme(style="whitegrid", font="Hiragino Sans")
+Path("reports/figures").mkdir(parents=True, exist_ok=True)
+
+weekly_weather_df = pd.read_csv(input_path)
+weekly_weather_plot_df = weekly_weather_df.dropna(subset=["降水確率"]).copy()
+
+summary_rows = []
+
+for area in weekly_weather_plot_df["地域名"].unique():
+    area_df = weekly_weather_plot_df[weekly_weather_plot_df["地域名"] == area]
+    pop_description = area_df["降水確率"].describe()
+
+    summary_rows.append({
+        "地域名": area,
+        "平均降水確率": round(pop_description["mean"], 1),
+        "最大降水確率": pop_description["max"],
+        "データ数": int(pop_description["count"])
+    })
+
+pop_summary_df = pd.DataFrame(summary_rows)
 pop_summary_df = pop_summary_df.sort_values("平均降水確率", ascending=False)
 
 print(pop_summary_df)
@@ -705,29 +775,15 @@ sns.barplot(
 ax.set_title("地域別の平均降水確率")
 ax.set_xlabel("平均降水確率（%）")
 ax.set_ylabel("地域")
-ax.set_ylim(0, 100)
+ax.set_xlim(0, 100)
 
 plt.tight_layout()
 plt.savefig(output_path, dpi=150)
 
 print("saved:", output_path)
 ```
-
-作成したPythonファイルを`5`フォルダ内でターミナルから実行せよ．
-
-```bash
-python src/plot_weekly_pop.py
-```
-
-実行後，`reports/figures/weekly_pop_by_area.png`が作成されていることを確認せよ．
-
-実行後，次を確認し，必要に応じてPythonファイル内のコメントに残すこと．
-
-1. 平均降水確率が最も高い地域はどこか
-2. `最大降水確率` と `平均降水確率` では，読み取れることがどう違うか
-3. `データ数` は地域ごとに同じか
-4. 欠損している降水確率をどのように扱ったか
 ````
+ -->
 
 ### 週間の気温
 
@@ -785,10 +841,8 @@ plt.show()
 実行後，次を確認せよ．
 
 1. 最高気温と最低気温が別の線として表示されているか
-2. 気温の単位が分かるか
-3. どの日の最高気温が高いか
-4. 最高気温と最低気温の差が大きい日はいつか
-5. 空欄の気温をどのように扱ったか
+2. どの日の最高気温が高いか
+3. 最高気温と最低気温の差が大きい日はいつか
 ````
 
 ````{warning} 課題2：週間の気温をPythonファイルで可視化する
