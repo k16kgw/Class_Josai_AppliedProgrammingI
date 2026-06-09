@@ -588,109 +588,30 @@ plt.show()
 
 1. 天気の説明にはどのような単語が多く出ているか
 ````
-<!-- 
-### 集計用データセットを作成する
 
-可視化では，細かい行をそのまま図にする場合と，目的に合わせて集計した表を図にする場合がある．
-第8回で配布した`src/build_weekly_forecast_tables.py`は，週間予報から次の2種類のデータを作成している．
-
-- 日付ごとの細かい表：`jma_tokyo_weekly_weather.csv`，`jma_tokyo_weekly_temperature.csv`
-- 地域別・地点別に要約した集計用データセット：`jma_tokyo_weekly_weather_summary.csv`，`jma_tokyo_weekly_temperature_summary.csv`
-
-ここでは，集計用データセットがどのような考え方で作られているかをNotebookで確認する．
-
-````{note} 演習5：週間予報の集計用データセットを確認する
-`notebooks/visualization.ipynb`に「集計用データセットを作成する」という見出しを作り，次のセルを順番に実行せよ．
-
-**セル1：地域別に週間の降水確率を集計する**
-
-```python
-weather_summary_df = (
-    weekly_weather_df
-    .groupby(["地域名", "地域コード"], as_index=False)
-    .agg(
-        予報日数=("予報日", "count"),
-        降水確率あり件数=("降水確率", "count"),
-        平均降水確率=("降水確率", "mean"),
-        最大降水確率=("降水確率", "max"),
-        最小降水確率=("降水確率", "min")
-    )
-)
-
-weather_summary_df["平均降水確率"] = weather_summary_df["平均降水確率"].round(1)
-
-weather_summary_df
-```
-
-`pandas`の`count`は，欠損値を除いて件数を数える．
-そのため，`降水確率あり件数`は，降水確率が空欄ではない行の数になる．
-
-**セル2：信頼度の件数を確認する**
-
-```python
-reliability_count_df = (
-    weekly_weather_df
-    .dropna(subset=["信頼度"])
-    .groupby(["地域名", "信頼度"], as_index=False)
-    .size()
-)
-
-reliability_count_df
-```
-
-**セル3：地点別に週間の最低気温と最高気温を集計する**
-
-```python
-temperature_summary_df = (
-    weekly_temperature_df
-    .groupby(["地点名", "地点コード"], as_index=False)
-    .agg(
-        予報日数=("予報日", "count"),
-        最低気温あり日数=("最低気温", "count"),
-        最高気温あり日数=("最高気温", "count"),
-        平均最低気温=("最低気温", "mean"),
-        平均最高気温=("最高気温", "mean"),
-        最低気温の最小値=("最低気温", "min"),
-        最高気温の最大値=("最高気温", "max")
-    )
-)
-
-temperature_summary_df["平均最低気温"] = temperature_summary_df["平均最低気温"].round(1)
-temperature_summary_df["平均最高気温"] = temperature_summary_df["平均最高気温"].round(1)
-
-temperature_summary_df
-```
-
-実行後，次を確認せよ．
-
-1. `降水確率` が欠損している行は，平均の計算から除外されているか
-2. `最低気温` や `最高気温` が欠損している行は，平均の計算から除外されているか
-3. 地域別・地点別に，どのような値が要約されているか
-4. 集計用データセットは，細かい表と比べて何が見やすくなっているか
-````
-
-```{tip} 注意
-上の処理と同じ考え方が，配布スクリプト`src/build_weekly_forecast_tables.py`の中に入っている．
-Notebookでは処理の意味を確認し，Pythonファイルでは同じ処理を再実行できる形にしている．
-```
- -->
 ---
 
-## 週間の降水確率を可視化する
+## 可視化の実施
 
-週間予報では，複数の日付に対して降水確率が入っている．
-時間に沿った変化を見るため，ここでは**折れ線グラフ**を使う．
+### 週間の降水確率
 
-### 折れ線グラフが向いている場合
+週間予報では複数の日付に対して降水確率が入っている．
+時間に沿った変化を見るために**折れ線グラフ**で可視化する．
 
-- 時間に沿った変化を見たい
-- 日付ごとの増減を確認したい
-- 複数の地域や地点の変化を比較したい
+折れ線グラフが有効な場合
 
-````{note} 演習6：地域別の降水確率を折れ線グラフにする
+- 時間に沿った変化を見る
+- 日付ごとの増減を確認する
+- 複数の地域や地点の変化を比較する
+
+````{note} 演習5：地域別の降水確率を折れ線グラフにする
 `notebooks/visualization.ipynb`に「週間の降水確率を可視化する」という見出しを作り，次のセルを順番に実行せよ．
 
 **セル1：図に使うデータを作る**
+
+- 降水確率の欠損値がない行だけ取り出した DataFrame を作成する．
+- 年の表示は必要ないので月日だけ取得する．(`2026-05-24` → `05-24`)
+- 図に使う「地域名」「予報日表示」「降水確率」のデータの中身を最終確認する．
 
 ```python
 weekly_weather_plot_df = weekly_weather_df.dropna(subset=["降水確率"]).copy()
@@ -700,6 +621,8 @@ weekly_weather_plot_df[["地域名", "予報日表示", "降水確率"]].head()
 ```
 
 **セル2：seabornで折れ線グラフを作成する**
+
+- `hue="地域名"`：地域名ごとにプロットを作成する．
 
 ```python
 fig, ax = plt.subplots(figsize=(8, 5))
@@ -728,23 +651,15 @@ plt.show()
 2. 縦軸は0から100になっているか
 3. どの日に降水確率が高いか
 4. 地域ごとの違いはあるか
-5. 空欄の降水確率をどのように扱ったか
 ````
 
-````{warning} 課題1：週間の降水確率をPythonファイルで可視化する
-1. 演習6で確認した内容をもとに，`src/plot_weekly_pop.py`を作成し，
-WebClass「第8回課題」問1から提出せよ．
+````{warning} 課題1：地域別の平均降水確率をPythonファイルで可視化する
+演習5で確認した内容を応用する．
+以下のコードの`<FUGAFUGA>`を適切に書き換えて`src/plot_weekly_pop.py`を作成し，コードを実行して`report/figures/weekly_pop_by_area.png`を作成せよ．  
+最後に，作成した`src/plot_weekly_pop.py`と`report/figures/weekly_pop_by_area.png`を<span style="color:red">WebClass「第8回課題」問1・問2</span>から提出せよ．
 
-提出するのはPythonファイルのみである．作成されるCSVファイルやPNGファイルは提出しなくてよい．
-
-次のコードの `<FUGAFUGA>` と `<HOGEHOGE>` を適切に置き換え，`reports/figures/weekly_pop_by_area.png`を作成すること．
-
-ただし，演習6の図に加えて，次の条件を満たすこと．
-
-1. `降水確率` が欠損している行を除外する
-2. `予報日` から月日だけを取り出した `予報日表示` 列を作る
-3. 全地域・全日付の平均降水確率を計算し，その値を破線で図に追加する
-4. 破線の凡例を「平均降水確率」とする
+演習5では地域別に日付ごとの降水確率を折れ線グラフで表示した．
+課題1では**地域別の平均降水確率**を棒グラフで表示する．
 
 ```python
 from pathlib import Path
@@ -761,35 +676,39 @@ sns.set_theme(style="whitegrid", font="Hiragino Sans")
 Path("reports/figures").mkdir(parents=True, exist_ok=True)
 
 weekly_weather_df = pd.read_csv(input_path)
+weekly_weather_plot_df = weekly_weather_df.dropna(subset=["降水確率"]).copy()
 
-<FUGAFUGA>
+pop_summary_df = (
+    weekly_weather_plot_df
+    .groupby("地域名", as_index=False)
+    .agg(
+        平均降水確率=("降水確率", "mean"),
+        最大降水確率=("降水確率", "max"),
+        データ数=("降水確率", "count")
+    )
+)
 
-fig, ax = plt.subplots(figsize=(8, 5))
+pop_summary_df["平均降水確率"] = pop_summary_df["平均降水確率"].round(1)
+pop_summary_df = pop_summary_df.sort_values("平均降水確率", ascending=False)
 
-sns.lineplot(
-    data=weekly_weather_plot_df,
-    x="予報日表示",
-    y="降水確率",
-    hue="地域名",
-    marker="o",
+print(pop_summary_df)
+
+fig, ax = plt.subplots(figsize=(7, 5))
+
+sns.barplot(
+    data=pop_summary_df,
+    x="平均降水確率",
+    y="地域名",
     ax=ax
 )
 
-ax.axhline(
-    average_pop,
-    linestyle="--",
-    color="gray",
-    label="平均降水確率"
-)
-
-ax.set_title("週間予報の降水確率")
-ax.set_xlabel("予報日")
-ax.set_ylabel("降水確率（%）")
+ax.set_title("地域別の平均降水確率")
+ax.set_xlabel("平均降水確率（%）")
+ax.set_ylabel("地域")
 ax.set_ylim(0, 100)
-ax.legend()
 
 plt.tight_layout()
-<HOGEHOGE>
+plt.savefig(output_path, dpi=150)
 
 print("saved:", output_path)
 ```
@@ -801,24 +720,21 @@ python src/plot_weekly_pop.py
 ```
 
 実行後，`reports/figures/weekly_pop_by_area.png`が作成されていることを確認せよ．
+
+実行後，次を確認し，必要に応じてPythonファイル内のコメントに残すこと．
+
+1. 平均降水確率が最も高い地域はどこか
+2. `最大降水確率` と `平均降水確率` では，読み取れることがどう違うか
+3. `データ数` は地域ごとに同じか
+4. 欠損している降水確率をどのように扱ったか
 ````
 
-<!--
-weekly_weather_plot_df = weekly_weather_df.dropna(subset=["降水確率"]).copy()
-weekly_weather_plot_df["予報日表示"] = weekly_weather_plot_df["予報日"].str[5:]
-average_pop = weekly_weather_plot_df["降水確率"].mean()
+### 週間の気温
 
-plt.savefig(output_path, dpi=150)
--->
+週間気温データから東京の最低気温と最高気温を可視化する．
+気温は日付に沿って変化する値であるため**折れ線グラフ**を使う．
 
----
-
-## 週間の気温を可視化する
-
-次に，週間気温データを使って，東京の最低気温と最高気温を可視化する．
-気温は日付に沿って変化する値なので，ここでも折れ線グラフを使う．
-
-````{note} 演習7：東京の最低気温と最高気温を折れ線グラフにする
+````{note} 演習6：東京の最低気温と最高気温を折れ線グラフにする
 `notebooks/visualization.ipynb`に「週間の気温を可視化する」という見出しを作り，次のセルを順番に実行せよ．
 
 **セル1：東京の気温データを取り出す**
@@ -876,14 +792,14 @@ plt.show()
 ````
 
 ````{warning} 課題2：週間の気温をPythonファイルで可視化する
-1. 演習7で確認した内容をもとに，`src/plot_weekly_temperature.py`を作成し，
+1. 演習6で確認した内容をもとに，`src/plot_weekly_temperature.py`を作成し，
 WebClass「第8回課題」問2から提出せよ．
 
 提出するのはPythonファイルのみである．作成されるCSVファイルやPNGファイルは提出しなくてよい．
 
 次のコードの `<FUGAFUGA>` と `<HOGEHOGE>` を適切に置き換え，`reports/figures/weekly_temperature_tokyo.png`を作成すること．
 
-ただし，演習7の図に加えて，次の条件を満たすこと．
+ただし，演習6の図に加えて，次の条件を満たすこと．
 
 1. 東京のデータだけを取り出す
 2. `最低気温` または `最高気温` が欠損している行を除外する
@@ -973,23 +889,10 @@ tokyo_temperature_long_df = tokyo_temperature_df.melt(
 plt.savefig(output_path, dpi=150)
 -->
 
----
-
-## ライブラリの使い分けを振り返る
-
-ここまでに，次のようにライブラリを使い分けた．
-
-| したいこと | 使ったライブラリ | 理由 |
-| --- | --- | --- |
-| CSVを表として読み込む | `pandas` | 行数，列名，欠損値，集計を確認しやすい |
-| 日本語の説明文を単語に分ける | `janome` | 日本語テキストを単語単位で眺められる |
-| 分布やグループごとの違いを図にする | `seaborn` | データフレームを指定するだけで図を作りやすい |
-| 図のタイトルや軸，保存先を調整する | `matplotlib` | 図の細かい見た目や保存を制御しやすい |
-
 同じデータでも，図の種類を変えると見えることが変わる．
 ここでは，降水確率を「分布」と「関係」の切り口から眺める．
 
-````{note} 演習8：ヒストグラムと散布図で別の切り口から眺める
+````{note} 演習7：ヒストグラムと散布図で別の切り口から眺める
 `notebooks/visualization.ipynb`に「別の切り口から眺める」という見出しを作り，次のセルを順番に実行せよ．
 
 **セル1：降水確率の分布をヒストグラムで見る**
@@ -1044,173 +947,6 @@ plt.show()
 2. 散布図から，最低気温と最高気温の関係を読み取れるか
 3. どの図が，どの問いに向いているか
 ````
-
----
-
-## 図から読み取れることを書く
-
-図を作成したら，図から読み取れることを文章で説明する．
-このとき，図から読み取れることと，読み取れないことを分けて書くことが重要である．
-
-### 読み取れることの例
-
-- どの日の降水確率が高いか
-- 地域ごとに降水確率の変化がどのように異なるか
-- どの日の最高気温が高いか
-- 最高気温と最低気温の差がどの程度あるか
-- 空欄を除外した図であること
-
-### 読み取れないことの例
-
-- 長期的な気候の特徴
-- 他の都道府県でも同じ傾向があるかどうか
-- 実際にその天気や気温になったかどうか
-
-今回のデータは，取得時点の週間予報から作成した小さなデータである．
-そのため，図から読み取れることは，このデータの範囲に限定して説明する．
-
-````{warning} 課題3：可視化結果を文章で説明する
-1. 作成した2つの図から読み取れることを記録する`src/write_visualization_comment.py`を作成し，
-WebClass「第8回課題」問3から提出せよ．
-
-提出するのはPythonファイルのみである．作成されるMarkdownファイルは提出しなくてよい．
-
-次のコードの `<FUGAFUGA>` を適切に置き換え，`reports/visualization_comment.md`を作成すること．
-
-文章には，次の4点を必ず含めること．
-
-1. 降水確率の図から読み取れること
-2. 平均降水確率の破線を入れたことで分かりやすくなったこと
-3. 東京の気温図から読み取れること
-4. このデータだけでは判断できないこと
-
-```python
-from pathlib import Path
-
-output_path = "reports/visualization_comment.md"
-
-comment = """## 第8回 可視化結果の考察
-
-### 週間予報の降水確率
-
-- 図から読み取れること：
-- 平均降水確率の破線から分かること：
-- 注意点：
-
-### 東京の週間気温予報
-
-- 図から読み取れること：
-- 気温差の棒グラフから分かること：
-- 注意点：
-
-### このデータだけでは判断できないこと
-
-- 
-"""
-
-<FUGAFUGA>
-
-print("saved:", output_path)
-```
-
-作成したPythonファイルを`5`フォルダ内でターミナルから実行せよ．
-
-```bash
-python src/write_visualization_comment.py
-```
-
-実行後，`reports/visualization_comment.md`が作成されていることを確認せよ．
-
-`comment` の中には，次の見出しを含め，作成した2つの図から読み取れることを記述すること．
-
-```markdown
-## 第8回 可視化結果の考察
-
-### 週間予報の降水確率
-
-- 図から読み取れること：
-- 平均降水確率の破線から分かること：
-- 注意点：
-
-### 東京の週間気温予報
-
-- 図から読み取れること：
-- 気温差の棒グラフから分かること：
-- 注意点：
-
-### このデータだけでは判断できないこと
-
-- 
-```
-````
-
-<!--
-Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-Path(output_path).write_text(comment, encoding="utf-8")
--->
-
----
-
-## 誤解の少ない図にする
-
-図を作るときは，見た目だけでなく，読み手が誤解しないかを確認する．
-
-### 確認すること
-
-- タイトルは図の内容を表しているか
-- 横軸と縦軸にラベルがあるか
-- 単位が必要な場合，単位が書かれているか
-- 凡例は必要か
-- 不要な装飾で値が読みにくくなっていないか
-- 空欄や欠損値をどう扱ったか説明できるか
-- 図から読み取れる範囲を超えて説明していないか
-
-### 避けたい図
-
-- 軸ラベルがない図
-- 単位が分からない図
-- 色の意味が分からない図
-- 必要以上に立体的な図
-- 0から始めるべき棒グラフの縦軸を途中から始めた図
-- 小さなデータから大きな結論を述べてしまう図
-
----
-<!-- 
-## Git管理と集計・可視化
-
-集計や可視化では，出力した表や図そのものだけでなく，それらを作る手順も残すことが重要である．
-
-Gitで管理するとよいものは次の通りである．
-
-- 可視化スクリプト（`src/*.py`）
-- 前処理・集計スクリプト（`src/build_weekly_forecast_tables.py`）
-- README
-- 小さな集計データ
-- 最終的に提出する図
-
-一方，作業用NotebookはGitで管理しない．
-Notebookで試行錯誤し，最終的に再実行できる処理をPythonファイルとして残す．
-
-今回の処理の流れは，次のように表せる．
-
-```text
-data/raw/jma_tokyo_forecast.json
-  ↓
-  ↓ src/build_weekly_forecast_tables.py
-  ↓
-data/processed/jma_tokyo_weekly_weather.csv
-data/processed/jma_tokyo_weekly_temperature.csv
-data/processed/jma_tokyo_weekly_weather_summary.csv
-data/processed/jma_tokyo_weekly_temperature_summary.csv
-  ↓
-  ↓ notebooks/visualization.ipynbで集計結果と図を確認
-  ↓ src/plot_weekly_pop.py
-  ↓ src/plot_weekly_temperature.py
-  ↓
-reports/figures/weekly_pop_by_area.png
-reports/figures/weekly_temperature_tokyo.png
-```
- -->
 
 ---
 
