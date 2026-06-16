@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_e929c501bc97b2dafd9efa10607fd69d {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_e929c501bc97b2dafd9efa10607fd69d" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_e929c501bc97b2dafd9efa10607fd69d = L.map(
+                "map_e929c501bc97b2dafd9efa10607fd69d",
+                {
+                    center: [33.5, 139.8],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 5,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_a9d521e912532c9205ade28881b00e57 = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_a9d521e912532c9205ade28881b00e57.addTo(map_e929c501bc97b2dafd9efa10607fd69d);
+        
+    
+            var circle_marker_903568dabcf699ce88f5e6013d4c5af3 = L.circleMarker(
+                [35.691667, 139.75],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12.83, "stroke": true, "weight": 3}
+            ).addTo(map_e929c501bc97b2dafd9efa10607fd69d);
+        
+    
+        var popup_ee26d1d45dbb34fae4c7366d4cc1a6b6 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_6fdd4984ff1fce8986518dfe09d35179 = $(`<div id="html_6fdd4984ff1fce8986518dfe09d35179" style="width: 100.0%; height: 100.0%;">東京都：東京地方<br>細分地域：東京地方<br>アメダス地点：東京<br>平均降水確率：48.3%<br>最大降水確率：80.0%<br>標高：25m</div>`)[0];
+                popup_ee26d1d45dbb34fae4c7366d4cc1a6b6.setContent(html_6fdd4984ff1fce8986518dfe09d35179);
+            
+        
+
+        circle_marker_903568dabcf699ce88f5e6013d4c5af3.bindPopup(popup_ee26d1d45dbb34fae4c7366d4cc1a6b6)
+        ;
+
+        
+    
+    
+            var circle_marker_f9f9cf48b0f40f870deacbfcb2e41bc2 = L.circleMarker(
+                [34.748333, 139.361667],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 13.17, "stroke": true, "weight": 3}
+            ).addTo(map_e929c501bc97b2dafd9efa10607fd69d);
+        
+    
+        var popup_0eb48a7d0ca2d298c281dc5c72faa859 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_0fef36249c6957aaf8bd8c4d58365dcb = $(`<div id="html_0fef36249c6957aaf8bd8c4d58365dcb" style="width: 100.0%; height: 100.0%;">東京都：伊豆諸島<br>細分地域：伊豆諸島北部<br>アメダス地点：大島<br>平均降水確率：51.7%<br>最大降水確率：80.0%<br>標高：74m</div>`)[0];
+                popup_0eb48a7d0ca2d298c281dc5c72faa859.setContent(html_0fef36249c6957aaf8bd8c4d58365dcb);
+            
+        
+
+        circle_marker_f9f9cf48b0f40f870deacbfcb2e41bc2.bindPopup(popup_0eb48a7d0ca2d298c281dc5c72faa859)
+        ;
+
+        
+    
+    
+            var circle_marker_05ce8459ea60c446a8e024972f2985f5 = L.circleMarker(
+                [33.121667, 139.778333],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 13.17, "stroke": true, "weight": 3}
+            ).addTo(map_e929c501bc97b2dafd9efa10607fd69d);
+        
+    
+        var popup_b7515bcde32e2608e24ddcfb96de1711 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_5f7f4ceb3e01ad1d6567e72b9f905b0c = $(`<div id="html_5f7f4ceb3e01ad1d6567e72b9f905b0c" style="width: 100.0%; height: 100.0%;">東京都：伊豆諸島<br>細分地域：伊豆諸島南部<br>アメダス地点：八丈島<br>平均降水確率：51.7%<br>最大降水確率：80.0%<br>標高：151m</div>`)[0];
+                popup_b7515bcde32e2608e24ddcfb96de1711.setContent(html_5f7f4ceb3e01ad1d6567e72b9f905b0c);
+            
+        
+
+        circle_marker_05ce8459ea60c446a8e024972f2985f5.bindPopup(popup_b7515bcde32e2608e24ddcfb96de1711)
+        ;
+
+        
+    
+    
+            var circle_marker_3237a853ed53db4d8a62a0c2134a3e80 = L.circleMarker(
+                [27.091667, 142.19],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.33, "stroke": true, "weight": 3}
+            ).addTo(map_e929c501bc97b2dafd9efa10607fd69d);
+        
+    
+        var popup_2c66c0f484459416c57c3d0b041f314d = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_d5d6c8dc169faef30cd515c0827b015a = $(`<div id="html_d5d6c8dc169faef30cd515c0827b015a" style="width: 100.0%; height: 100.0%;">東京都：小笠原諸島<br>細分地域：小笠原諸島<br>アメダス地点：父島<br>平均降水確率：33.3%<br>最大降水確率：40.0%<br>標高：3m</div>`)[0];
+                popup_2c66c0f484459416c57c3d0b041f314d.setContent(html_d5d6c8dc169faef30cd515c0827b015a);
+            
+        
+
+        circle_marker_3237a853ed53db4d8a62a0c2134a3e80.bindPopup(popup_2c66c0f484459416c57c3d0b041f314d)
+        ;
+
+        
+    
+</script>
+</html>

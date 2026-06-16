@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_e539b3360def7ea399fca6db787db8da {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_e539b3360def7ea399fca6db787db8da" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_e539b3360def7ea399fca6db787db8da = L.map(
+                "map_e539b3360def7ea399fca6db787db8da",
+                {
+                    center: [36.3, 138.7],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 6,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_bb61eefda8d21a5b989d6099283f39ec = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_bb61eefda8d21a5b989d6099283f39ec.addTo(map_e539b3360def7ea399fca6db787db8da);
+        
+    
+            var circle_marker_e97b779383409ac77c11f8960a0f9b4d = L.circleMarker(
+                [35.691667, 139.75],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.25, "stroke": true, "weight": 3}
+            ).addTo(map_e539b3360def7ea399fca6db787db8da);
+        
+    
+        var popup_acf944092ff417bea6308cea86ff4ade = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_82abc9b421399e0e0213e23882b2235a = $(`<div id="html_82abc9b421399e0e0213e23882b2235a" style="width: 100.0%; height: 100.0%;">東京都：東京地方<br>細分地域：東京地方<br>アメダス地点：東京<br>平均降水確率：48.3%<br>最大降水確率：60.0%<br>標高：25m</div>`)[0];
+                popup_acf944092ff417bea6308cea86ff4ade.setContent(html_82abc9b421399e0e0213e23882b2235a);
+            
+        
+
+        circle_marker_e97b779383409ac77c11f8960a0f9b4d.bindPopup(popup_acf944092ff417bea6308cea86ff4ade)
+        ;
+
+        
+    
+    
+            var circle_marker_c0f97522a1cbe36be6cb656a4f51ff9f = L.circleMarker(
+                [34.748333, 139.361667],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.74, "stroke": true, "weight": 3}
+            ).addTo(map_e539b3360def7ea399fca6db787db8da);
+        
+    
+        var popup_551aa39a6f69e75aa51296ba30af0c43 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_5752dea175d3178f5c4aae0d9ef1477a = $(`<div id="html_5752dea175d3178f5c4aae0d9ef1477a" style="width: 100.0%; height: 100.0%;">東京都：伊豆諸島<br>細分地域：伊豆諸島北部<br>アメダス地点：大島<br>平均降水確率：51.7%<br>最大降水確率：60.0%<br>標高：74m</div>`)[0];
+                popup_551aa39a6f69e75aa51296ba30af0c43.setContent(html_5752dea175d3178f5c4aae0d9ef1477a);
+            
+        
+
+        circle_marker_c0f97522a1cbe36be6cb656a4f51ff9f.bindPopup(popup_551aa39a6f69e75aa51296ba30af0c43)
+        ;
+
+        
+    
+    
+            var circle_marker_05fbb0218f6c1db625433440057f5bf5 = L.circleMarker(
+                [33.121667, 139.778333],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.51, "stroke": true, "weight": 3}
+            ).addTo(map_e539b3360def7ea399fca6db787db8da);
+        
+    
+        var popup_c8b4c32fab2950b2d5aa9e7637ef0ea3 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_01fa52163ef3bb83ef4488b3e7095610 = $(`<div id="html_01fa52163ef3bb83ef4488b3e7095610" style="width: 100.0%; height: 100.0%;">東京都：伊豆諸島<br>細分地域：伊豆諸島南部<br>アメダス地点：八丈島<br>平均降水確率：51.7%<br>最大降水確率：60.0%<br>標高：151m</div>`)[0];
+                popup_c8b4c32fab2950b2d5aa9e7637ef0ea3.setContent(html_01fa52163ef3bb83ef4488b3e7095610);
+            
+        
+
+        circle_marker_05fbb0218f6c1db625433440057f5bf5.bindPopup(popup_c8b4c32fab2950b2d5aa9e7637ef0ea3)
+        ;
+
+        
+    
+    
+            var circle_marker_f3e21dad72716db22778e83696f8fa03 = L.circleMarker(
+                [27.091667, 142.19],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "green", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.03, "stroke": true, "weight": 3}
+            ).addTo(map_e539b3360def7ea399fca6db787db8da);
+        
+    
+        var popup_9e4166684fd80218f5d4cce0bbaed72c = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_4b66b80dabf6639e399c4dff41e2666c = $(`<div id="html_4b66b80dabf6639e399c4dff41e2666c" style="width: 100.0%; height: 100.0%;">東京都：小笠原諸島<br>細分地域：小笠原諸島<br>アメダス地点：父島<br>平均降水確率：28.3%<br>最大降水確率：40.0%<br>標高：3m</div>`)[0];
+                popup_9e4166684fd80218f5d4cce0bbaed72c.setContent(html_4b66b80dabf6639e399c4dff41e2666c);
+            
+        
+
+        circle_marker_f3e21dad72716db22778e83696f8fa03.bindPopup(popup_9e4166684fd80218f5d4cce0bbaed72c)
+        ;
+
+        
+    
+    
+            var circle_marker_0e0f82dc2e0a1fadb608fc7b8b94c184 = L.circleMarker(
+                [35.875, 139.586667],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.08, "stroke": true, "weight": 3}
+            ).addTo(map_e539b3360def7ea399fca6db787db8da);
+        
+    
+        var popup_172e8355283d794aad6e047ff70a136a = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_ed2869e738616106a7d943cee049f9e4 = $(`<div id="html_ed2869e738616106a7d943cee049f9e4" style="width: 100.0%; height: 100.0%;">埼玉県：埼玉県<br>細分地域：南部<br>アメダス地点：さいたま<br>平均降水確率：48.3%<br>最大降水確率：50.0%<br>標高：8m</div>`)[0];
+                popup_172e8355283d794aad6e047ff70a136a.setContent(html_ed2869e738616106a7d943cee049f9e4);
+            
+        
+
+        circle_marker_0e0f82dc2e0a1fadb608fc7b8b94c184.bindPopup(popup_172e8355283d794aad6e047ff70a136a)
+        ;
+
+        
+    
+    
+            var circle_marker_087a8b50d38fc02f4c0c7c17c651ac05 = L.circleMarker(
+                [36.15, 139.38],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.3, "stroke": true, "weight": 3}
+            ).addTo(map_e539b3360def7ea399fca6db787db8da);
+        
+    
+        var popup_82bf6fc5ca176a7c65790ceb791da402 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_acca6d2c8aaabc140020a95c0c6233e7 = $(`<div id="html_acca6d2c8aaabc140020a95c0c6233e7" style="width: 100.0%; height: 100.0%;">埼玉県：埼玉県<br>細分地域：北部<br>アメダス地点：熊谷<br>平均降水確率：48.3%<br>最大降水確率：50.0%<br>標高：30m</div>`)[0];
+                popup_82bf6fc5ca176a7c65790ceb791da402.setContent(html_acca6d2c8aaabc140020a95c0c6233e7);
+            
+        
+
+        circle_marker_087a8b50d38fc02f4c0c7c17c651ac05.bindPopup(popup_82bf6fc5ca176a7c65790ceb791da402)
+        ;
+
+        
+    
+    
+            var circle_marker_9db3f48ed49ebd055768e56203e5ddc8 = L.circleMarker(
+                [35.99, 139.073333],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.32, "stroke": true, "weight": 3}
+            ).addTo(map_e539b3360def7ea399fca6db787db8da);
+        
+    
+        var popup_e35fa4939c66a9e26c123e49e261cd0b = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_30c52080e4eb2564967497884f54f76c = $(`<div id="html_30c52080e4eb2564967497884f54f76c" style="width: 100.0%; height: 100.0%;">埼玉県：埼玉県<br>細分地域：秩父地方<br>アメダス地点：秩父<br>平均降水確率：48.3%<br>最大降水確率：50.0%<br>標高：232m</div>`)[0];
+                popup_e35fa4939c66a9e26c123e49e261cd0b.setContent(html_30c52080e4eb2564967497884f54f76c);
+            
+        
+
+        circle_marker_9db3f48ed49ebd055768e56203e5ddc8.bindPopup(popup_e35fa4939c66a9e26c123e49e261cd0b)
+        ;
+
+        
+    
+    
+            var circle_marker_d741263e6dd221fffebd40a22d674ccc = L.circleMarker(
+                [36.661667, 138.191667],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 10.18, "stroke": true, "weight": 3}
+            ).addTo(map_e539b3360def7ea399fca6db787db8da);
+        
+    
+        var popup_2e8874dba68e8208d0b48c3de2f31358 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_dc8bfb71724d84ebbc0f868e7a21df17 = $(`<div id="html_dc8bfb71724d84ebbc0f868e7a21df17" style="width: 100.0%; height: 100.0%;">長野県：長野県<br>細分地域：北部<br>アメダス地点：長野<br>平均降水確率：45.0%<br>最大降水確率：50.0%<br>標高：418m</div>`)[0];
+                popup_2e8874dba68e8208d0b48c3de2f31358.setContent(html_dc8bfb71724d84ebbc0f868e7a21df17);
+            
+        
+
+        circle_marker_d741263e6dd221fffebd40a22d674ccc.bindPopup(popup_2e8874dba68e8208d0b48c3de2f31358)
+        ;
+
+        
+    
+    
+            var circle_marker_b5368862a35ff3da5f48d0cbe77b500a = L.circleMarker(
+                [36.246667, 137.97],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 12.1, "stroke": true, "weight": 3}
+            ).addTo(map_e539b3360def7ea399fca6db787db8da);
+        
+    
+        var popup_3877fa22af22481f29aaf25007edd018 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_fccc6fd500f732eef7bbc86b456a2665 = $(`<div id="html_fccc6fd500f732eef7bbc86b456a2665" style="width: 100.0%; height: 100.0%;">長野県：長野県<br>細分地域：中部<br>アメダス地点：松本<br>平均降水確率：45.0%<br>最大降水確率：50.0%<br>標高：610m</div>`)[0];
+                popup_3877fa22af22481f29aaf25007edd018.setContent(html_fccc6fd500f732eef7bbc86b456a2665);
+            
+        
+
+        circle_marker_b5368862a35ff3da5f48d0cbe77b500a.bindPopup(popup_3877fa22af22481f29aaf25007edd018)
+        ;
+
+        
+    
+    
+            var circle_marker_e081a4b9d67bc211ce16762590d3bd05 = L.circleMarker(
+                [36.045, 138.108333],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 13.6, "stroke": true, "weight": 3}
+            ).addTo(map_e539b3360def7ea399fca6db787db8da);
+        
+    
+        var popup_19fa5a99657287f54bceaa5831411831 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_7d8a5cf02e4efc3b9e657187297b8f95 = $(`<div id="html_7d8a5cf02e4efc3b9e657187297b8f95" style="width: 100.0%; height: 100.0%;">長野県：長野県<br>細分地域：中部<br>アメダス地点：諏訪<br>平均降水確率：45.0%<br>最大降水確率：50.0%<br>標高：760m</div>`)[0];
+                popup_19fa5a99657287f54bceaa5831411831.setContent(html_7d8a5cf02e4efc3b9e657187297b8f95);
+            
+        
+
+        circle_marker_e081a4b9d67bc211ce16762590d3bd05.bindPopup(popup_19fa5a99657287f54bceaa5831411831)
+        ;
+
+        
+    
+    
+            var circle_marker_9fffb5a8ac8a5dcf4049dc16dca86951 = L.circleMarker(
+                [36.341667, 138.546667],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 14.0, "stroke": true, "weight": 3}
+            ).addTo(map_e539b3360def7ea399fca6db787db8da);
+        
+    
+        var popup_451085b3a69971c8e9c40af06771a69c = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_bf8d6b6add2facb4e81efe5d928d6b46 = $(`<div id="html_bf8d6b6add2facb4e81efe5d928d6b46" style="width: 100.0%; height: 100.0%;">長野県：長野県<br>細分地域：中部<br>アメダス地点：軽井沢<br>平均降水確率：45.0%<br>最大降水確率：50.0%<br>標高：999m</div>`)[0];
+                popup_451085b3a69971c8e9c40af06771a69c.setContent(html_bf8d6b6add2facb4e81efe5d928d6b46);
+            
+        
+
+        circle_marker_9fffb5a8ac8a5dcf4049dc16dca86951.bindPopup(popup_451085b3a69971c8e9c40af06771a69c)
+        ;
+
+        
+    
+    
+            var circle_marker_d8ed1f7cf58ebe6a56caab024b02a6e2 = L.circleMarker(
+                [35.523333, 137.821667],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 11.16, "stroke": true, "weight": 3}
+            ).addTo(map_e539b3360def7ea399fca6db787db8da);
+        
+    
+        var popup_28f6241191eae162d23a9695792067d9 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_3a1804db1b14b31e96882f0211071841 = $(`<div id="html_3a1804db1b14b31e96882f0211071841" style="width: 100.0%; height: 100.0%;">長野県：長野県<br>細分地域：南部<br>アメダス地点：飯田<br>平均降水確率：45.0%<br>最大降水確率：50.0%<br>標高：516m</div>`)[0];
+                popup_28f6241191eae162d23a9695792067d9.setContent(html_3a1804db1b14b31e96882f0211071841);
+            
+        
+
+        circle_marker_d8ed1f7cf58ebe6a56caab024b02a6e2.bindPopup(popup_28f6241191eae162d23a9695792067d9)
+        ;
+
+        
+    
+    
+            var circle_marker_9351f1567ee94b487aa4a1f1fe58bb7c = L.circleMarker(
+                [37.893333, 139.018333],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.04, "stroke": true, "weight": 3}
+            ).addTo(map_e539b3360def7ea399fca6db787db8da);
+        
+    
+        var popup_9cfe62eada7ab64cca2dbd76aaee9262 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_46df7470255b5e0bde8af41d29223a3f = $(`<div id="html_46df7470255b5e0bde8af41d29223a3f" style="width: 100.0%; height: 100.0%;">新潟県：新潟県<br>細分地域：下越<br>アメダス地点：新潟<br>平均降水確率：41.7%<br>最大降水確率：50.0%<br>標高：4m</div>`)[0];
+                popup_9cfe62eada7ab64cca2dbd76aaee9262.setContent(html_46df7470255b5e0bde8af41d29223a3f);
+            
+        
+
+        circle_marker_9351f1567ee94b487aa4a1f1fe58bb7c.bindPopup(popup_9cfe62eada7ab64cca2dbd76aaee9262)
+        ;
+
+        
+    
+    
+            var circle_marker_72b2393eb1d40366d0ba8b1e011e268c = L.circleMarker(
+                [37.671667, 139.446667],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.0, "stroke": true, "weight": 3}
+            ).addTo(map_e539b3360def7ea399fca6db787db8da);
+        
+    
+        var popup_1d33179d16f79b7f4f0b05ae0f398a3b = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_81a572068c3d94ef9042d3d253b0a481 = $(`<div id="html_81a572068c3d94ef9042d3d253b0a481" style="width: 100.0%; height: 100.0%;">新潟県：新潟県<br>細分地域：下越<br>アメダス地点：津川<br>平均降水確率：41.7%<br>最大降水確率：50.0%<br>標高：100m</div>`)[0];
+                popup_1d33179d16f79b7f4f0b05ae0f398a3b.setContent(html_81a572068c3d94ef9042d3d253b0a481);
+            
+        
+
+        circle_marker_72b2393eb1d40366d0ba8b1e011e268c.bindPopup(popup_1d33179d16f79b7f4f0b05ae0f398a3b)
+        ;
+
+        
+    
+    
+            var circle_marker_dbbbb17ec1da12d540e604d8f357fa0f = L.circleMarker(
+                [37.45, 138.823333],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.23, "stroke": true, "weight": 3}
+            ).addTo(map_e539b3360def7ea399fca6db787db8da);
+        
+    
+        var popup_12061b85a408650e23b1fafc992fa613 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_a39dc491d5fd5b1b130974953babb451 = $(`<div id="html_a39dc491d5fd5b1b130974953babb451" style="width: 100.0%; height: 100.0%;">新潟県：新潟県<br>細分地域：中越<br>アメダス地点：長岡<br>平均降水確率：41.7%<br>最大降水確率：50.0%<br>標高：23m</div>`)[0];
+                popup_12061b85a408650e23b1fafc992fa613.setContent(html_a39dc491d5fd5b1b130974953babb451);
+            
+        
+
+        circle_marker_dbbbb17ec1da12d540e604d8f357fa0f.bindPopup(popup_12061b85a408650e23b1fafc992fa613)
+        ;
+
+        
+    
+    
+            var circle_marker_667b23d58d24b30fb6b32bebe960a8cb = L.circleMarker(
+                [36.941667, 138.81],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.4, "stroke": true, "weight": 3}
+            ).addTo(map_e539b3360def7ea399fca6db787db8da);
+        
+    
+        var popup_10ff29b98ac302490b9458a2046f76cc = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_7707f8e597f3c9d2fa3624e7bccc6cc4 = $(`<div id="html_7707f8e597f3c9d2fa3624e7bccc6cc4" style="width: 100.0%; height: 100.0%;">新潟県：新潟県<br>細分地域：中越<br>アメダス地点：湯沢<br>平均降水確率：41.7%<br>最大降水確率：50.0%<br>標高：340m</div>`)[0];
+                popup_10ff29b98ac302490b9458a2046f76cc.setContent(html_7707f8e597f3c9d2fa3624e7bccc6cc4);
+            
+        
+
+        circle_marker_667b23d58d24b30fb6b32bebe960a8cb.bindPopup(popup_10ff29b98ac302490b9458a2046f76cc)
+        ;
+
+        
+    
+    
+            var circle_marker_f50da24d9a6b4e01baae93f81e705aef = L.circleMarker(
+                [37.106667, 138.246667],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.13, "stroke": true, "weight": 3}
+            ).addTo(map_e539b3360def7ea399fca6db787db8da);
+        
+    
+        var popup_5d8d9426554fa7c4c6a4b2af22c5d1a1 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_fa976a20f1cf01fbcf07baa6cc1fcb54 = $(`<div id="html_fa976a20f1cf01fbcf07baa6cc1fcb54" style="width: 100.0%; height: 100.0%;">新潟県：新潟県<br>細分地域：上越<br>アメダス地点：高田<br>平均降水確率：41.7%<br>最大降水確率：50.0%<br>標高：13m</div>`)[0];
+                popup_5d8d9426554fa7c4c6a4b2af22c5d1a1.setContent(html_fa976a20f1cf01fbcf07baa6cc1fcb54);
+            
+        
+
+        circle_marker_f50da24d9a6b4e01baae93f81e705aef.bindPopup(popup_5d8d9426554fa7c4c6a4b2af22c5d1a1)
+        ;
+
+        
+    
+    
+            var circle_marker_248d9ecf98bf9d1bdd4307770b82c718 = L.circleMarker(
+                [38.028333, 138.24],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.06, "stroke": true, "weight": 3}
+            ).addTo(map_e539b3360def7ea399fca6db787db8da);
+        
+    
+        var popup_135dc0f17ca950d79ace92cc12be8632 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_09991fa18aab2c5e5737df0014972fe5 = $(`<div id="html_09991fa18aab2c5e5737df0014972fe5" style="width: 100.0%; height: 100.0%;">新潟県：新潟県<br>細分地域：佐渡<br>アメダス地点：相川<br>平均降水確率：41.7%<br>最大降水確率：50.0%<br>標高：6m</div>`)[0];
+                popup_135dc0f17ca950d79ace92cc12be8632.setContent(html_09991fa18aab2c5e5737df0014972fe5);
+            
+        
+
+        circle_marker_248d9ecf98bf9d1bdd4307770b82c718.bindPopup(popup_135dc0f17ca950d79ace92cc12be8632)
+        ;
+
+        
+    
+    
+            var circle_marker_2e356a32494f5e9f5772e17ddd33d984 = L.circleMarker(
+                [35.438333, 139.651667],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.39, "stroke": true, "weight": 3}
+            ).addTo(map_e539b3360def7ea399fca6db787db8da);
+        
+    
+        var popup_86c74f3d4cd8d47cb8ae8dae72b90e7e = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_96a99bfb37635cc6754812645c3d7b3c = $(`<div id="html_96a99bfb37635cc6754812645c3d7b3c" style="width: 100.0%; height: 100.0%;">神奈川県：神奈川県<br>細分地域：東部<br>アメダス地点：横浜<br>平均降水確率：50.0%<br>最大降水確率：60.0%<br>標高：39m</div>`)[0];
+                popup_86c74f3d4cd8d47cb8ae8dae72b90e7e.setContent(html_96a99bfb37635cc6754812645c3d7b3c);
+            
+        
+
+        circle_marker_2e356a32494f5e9f5772e17ddd33d984.bindPopup(popup_86c74f3d4cd8d47cb8ae8dae72b90e7e)
+        ;
+
+        
+    
+    
+            var circle_marker_be953e9c0975fc38792b78ea514af17b = L.circleMarker(
+                [35.276667, 139.155],
+                {"bubblingMouseEvents": true, "color": "orange", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "orange", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.14, "stroke": true, "weight": 3}
+            ).addTo(map_e539b3360def7ea399fca6db787db8da);
+        
+    
+        var popup_7a322f10ee4b0ffdf613fa9feabcb411 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_028883787aad95fabd610a1d535d3dc2 = $(`<div id="html_028883787aad95fabd610a1d535d3dc2" style="width: 100.0%; height: 100.0%;">神奈川県：神奈川県<br>細分地域：西部<br>アメダス地点：小田原<br>平均降水確率：50.0%<br>最大降水確率：60.0%<br>標高：14m</div>`)[0];
+                popup_7a322f10ee4b0ffdf613fa9feabcb411.setContent(html_028883787aad95fabd610a1d535d3dc2);
+            
+        
+
+        circle_marker_be953e9c0975fc38792b78ea514af17b.bindPopup(popup_7a322f10ee4b0ffdf613fa9feabcb411)
+        ;
+
+        
+    
+</script>
+</html>

@@ -1,65 +1,63 @@
-# 第9回　可視化II：地図上への可視化
+# 第9回　地図上への可視化
 
 ### 前回の復習
 
-第8回では，週間予報データを使い，折れ線グラフや棒グラフでデータを眺めた．
-可視化は，データの傾向を知るために，色々な切り口からデータを眺める手法である．
+可視化：データの傾向を知るために様々な切り口からデータを眺める手法
 
-| 第8回で見た切り口 | 確認できること | 図の例 |
+週間予報データを使い折れ線グラフや棒グラフでデータを眺めた．
+
+| 何を見るか | 確認できること | 図の例 |
 | --- | --- | --- |
 | 値の分布を見る | 値がどの範囲に多いか，外れた値があるか | ヒストグラム |
 | 2つの値の関係を見る | 一方が大きいとき，もう一方も大きいか | 散布図 |
-| 時間変化を見る | 日付に沿って値がどう変わるか | 折れ線グラフ |
+| 連続的な変化を見る | 日付に沿って値がどう変わるか | 折れ線グラフ |
 | グループを比較する | 地域や地点によって違いがあるか | 棒グラフ，色分けした図 |
-
-今回は，ここに新しい切り口を追加する．
-
-| 今回追加する切り口 | 確認できること | 図の例 |
-| --- | --- | --- |
-| **場所ごとの違いを見る** | どの場所で値が大きいか，地域的な偏りがあるか | **地図上への可視化** |
-
-```{tip} 地図にする意味
-地図は「場所」を読むための図である．
-同じ値でも，棒グラフで見る場合と地図上で見る場合では，気づきやすいことが異なる．
-地図では，近い場所どうしが似ているか，海沿い・内陸・島しょ部で違いがあるか，といった空間的な傾向を眺めやすい．
-```
-
-### 今回の位置づけ
-
-最終レポートでは，各自でデータを選び，**データ取得 → 前処理 → 可視化 → 考察**を一気通貫で行う．
-第9回では，その練習として，気象庁の天気予報データを地図上に表示する．
-
-今日の流れは次の通りである．
-
-| 段階 | 内容 | 目的 |
-| --- | --- | --- |
-| 1 | 東京都の週間予報CSVを読み込む | 第8回までのデータを確認する |
-| 2 | 地点名・地域名に緯度経度を対応させる | 予報データを地図に載せられる形にする |
-| 3 | 東京都の気温データを地図上に表示する | 地図可視化の基本を試す |
-| 4 | 東京都の降水確率データを地図上に表示する | 気温以外の予報値に応用する |
-| 5 | 自分で選んだ複数地域の予報データを取得して地図化する | 最終レポートに向けた一気通貫の練習をする |
 
 ### 到達目標
 
-- 位置情報を持たない表に，緯度・経度の表を結合して地図用データを作成できる
-- `plotly`を使ってNotebook上でインタラクティブな地図を作成できる
-- `folium`を使ってHTMLファイルとして保存できる地図を作成できる
-- 気温と降水確率を，地図上で別々の見方として可視化できる
-- 自分で選んだ複数地域の予報データを取得し，1つのCSVにまとめ，地図上に表示できる
+次の視点を追加する．
 
----
+| 何を見るか | 確認できること | 図の例 |
+| --- | --- | --- |
+| **場所ごとの違いを見る** | どの場所で値が大きいか，地域的な偏りがあるか | **地図上への可視化** |
 
-## 準備
+- 気象庁の天気予報JSONから，地図上に表示するための表を作成する
+- 位置情報を持たない表に，緯度・経度・標高を持つCSVを結合する
+- `plotly`を使い，Notebook上でインタラクティブな地図を作成する
+- `folium`を使い，HTMLファイルとして保存できる地図を作成する
+- 位置情報に関連する情報を付加して可視化する
+
+```{tip} 地図上に可視化する意味
+空間的な位置情報は多くの情報を包含している．
+現実世界の現象の多くは3次元空間に紐づけられており，その空間の情報を引きずっていることが多々ある．
+地図上にデータを可視化することで空間的な傾向を眺めやすくなる．
+
+例えば，地図上に可視化することで，近い場所で似ているのか，海沿い・内陸・山地・島しょ部で違いがあるかといった空間的な傾向を眺めやすくなる．
+```
+
+**今回の流れ**
+
+| 段階 | 内容 | 目的 |
+| --- | --- | --- |
+| 1 | 第5回で取得した東京都の天気予報JSONを読み込む | これまで扱ったデータを再利用する |
+| 2 | 週間予報から降水確率を取り出す | 地図に載せる値を作る |
+| 3 | 地域名に緯度・経度・標高を結合する | 地図に載せられる表にする |
+| 4 | 東京都の予報データを地図上に表示する | 地図可視化の基本を確認する |
+| 5 | 東京都・埼玉県・長野県・新潟県のJSONをAPIで取得する | 複数都道府県のデータ取得を練習する |
+| 6 | 降水確率と標高を地図上に重ねて表示する | 複数の情報を同時に眺める |
+| 7 | 各自で好きな都道府県を追加する | 最終レポートに向けた応用練習をする |
+
+### 準備
 
 今回は新しくフォルダ`9`を作成して作業する．
-第8回で作成した週間予報CSVを使うが，手元にない場合は下のリンクからダウンロードしてよい．
+第5回で取得した`jma_tokyo_forecast.json`を使うので，手元にない場合は下のリンクからダウンロードしてよい．
 
 ````{note} 演習0：作業フォルダを作成する
 
 1. ターミナルを起動し，次のコマンドを順に実行する．
 
 ```bash
-cd /User/<ユーザ名>/applied_programming_i
+cd /Users/<ユーザ名>/applied_programming_i
 mkdir 9
 cd 9
 mkdir -p notebooks data/raw data/processed src reports/figures
@@ -74,6 +72,7 @@ git init
 │   └── map_visualization.ipynb（←今回作成するファイル）
 ├── data/
 │   ├── raw/
+│   │   └── jma_tokyo_forecast.json
 │   └── processed/
 ├── reports/
 │   └── figures/
@@ -81,17 +80,11 @@ git init
 └── README.md
 ```
 
-3. 第8回で作成した次の2つのCSVを`9/data/processed`にコピーする．
+3. 第5回で作成した`5/data/raw/jma_tokyo_forecast.json`を`9/data/raw`にコピーする．
 
-```text
-data/processed/jma_tokyo_weekly_temperature.csv
-data/processed/jma_tokyo_weekly_weather.csv
-```
+ファイルが手元にない場合は，次のリンクからダウンロード・解凍して`data/raw`に配置すること．
 
-ファイルが手元にない場合は，次のリンクからダウンロード・解凍して`data/processed`に配置すること．
-
-- [jma_tokyo_weekly_temperature_csv.zip](./analysis/5/data/processed/jma_tokyo_weekly_temperature_csv.zip)
-- [jma_tokyo_weekly_weather_csv.zip](./analysis/5/data/processed/jma_tokyo_weekly_weather_csv.zip)
+- [jma_tokyo_forecast_json.zip](./analysis/5/data/raw/jma_tokyo_forecast_json.zip)
 
 4. JupyterLabまたはVS Codeで`notebooks/map_visualization.ipynb`を新規作成する．
 
@@ -105,31 +98,30 @@ data/processed/jma_tokyo_weekly_weather.csv
 
 ## 今日の目標
 
-気象庁の週間予報データを地図上に可視化する．
+気象庁の天気予報JSONから地図用データを作成し，降水確率と標高を地図上に可視化する．
 
 ## 第9回 分析記録
 
 - 元データ：
-  - data/processed/jma_tokyo_weekly_temperature.csv
-  - data/processed/jma_tokyo_weekly_weather.csv
+  - data/raw/jma_tokyo_forecast.json
+  - 気象庁の天気予報JSON API
 - 出典：気象庁ホームページ
-- URL：https://www.jma.go.jp/bosai/forecast/data/forecast/130000.json
+- URL：https://www.jma.go.jp/bosai/forecast/data/forecast/130000.json など
 - 観察用ノートブック：notebooks/map_visualization.ipynb（Gitでは管理しない）
+- 予報地域・アメダス対応データ：data/processed/forecast_area_points.csv（気象庁JSONから作成）
 - 作成するデータ：
-  - data/processed/tokyo_temperature_points.csv
-  - data/processed/tokyo_weather_area_points.csv
-  - data/processed/tokyo_temperature_map_data.csv
-  - data/processed/tokyo_pop_map_data.csv
+  - data/processed/tokyo_weekly_weather_from_json.csv
+  - data/processed/tokyo_forecast_map_data.csv
+  - data/processed/multi_pref_weekly_weather.csv
+  - data/processed/multi_pref_forecast_map_data.csv
 - 作成するスクリプト：
-  - src/plot_tokyo_pop_map.py
-  - src/build_selected_forecast_map.py
+  - src/build_my_forecast_map.py
 - 出力する図：
-  - reports/figures/tokyo_temperature_map_check.html
-  - reports/figures/tokyo_pop_map.html
-  - reports/figures/selected_forecast_map.html
-- 可視化の目的：
-  - 東京都の週間予報を地図上で確認する
-  - 自分で選んだ複数地域の予報データを地図上に表示する
+  - reports/figures/tokyo_pop_map_check.html
+  - reports/figures/multi_pref_pop_map.html
+  - reports/figures/multi_pref_elevation_map.html
+  - reports/figures/multi_pref_pop_elevation_map.html
+  - reports/figures/my_forecast_pop_elevation_map.html
 ```
 
 6. `.gitignore`を作成し，次の内容を記入する．
@@ -154,114 +146,178 @@ git commit -m "first commit"
 
 ---
 
-## 地図上への可視化で考えること
+## 地図上への可視化
 
 地図上への可視化は，**位置情報**と**表示したい値**を組み合わせて行う．
 地図に点を置くには，少なくとも次の情報が必要である．
 
 | 必要な情報 | 例 | 今回の扱い |
 | --- | --- | --- |
-| 位置 | 緯度，経度 | 地点名・地域名に代表点の緯度経度を対応させる |
-| 値 | 平均最高気温，平均降水確率 | 色や点の大きさで表す |
-| 名前 | 東京，八丈島，父島，東京地方など | クリック時やマウスオーバー時に表示する |
+| 位置 | 緯度，経度 | アメダス地点情報から取得する |
+| 値 | 平均降水確率，最大降水確率，標高 | 色や点の大きさで表す |
+| 名前 | 東京地方，北部，中部など | クリック時やマウスオーバー時に表示する |
 
-今回使う気象庁の週間予報CSVには，`地点名`や`地域名`は含まれているが，緯度・経度は含まれていない．
-そこで，次のように小さな対応表を自分で作成し，予報データに結合する．
+````{tip} 注意
+気象庁の天気予報JSONには`地域名`や`地域コード`は含まれているが，緯度・経度・標高は含まれていないため，別に情報を取得してCSVを結合する必要がある．
+
+気象庁の天気予報では予報地域に対応する代表的なアメダス地点が別のJSONで公開されている．
+今回はそのアメダス地点を地図に載せるための代表点として使う．
 
 ```text
-週間予報CSV
-  地点名，最高気温，最低気温，降水確率など
+天気予報JSONから作った表
+  発表区域名，地域名，平均降水確率，最大降水確率など
         +
-座標の対応表
-  地点名，緯度，経度
+予報地域・アメダス対応CSV
+  発表区域名，地域名，アメダス地点名，緯度，経度，標高
         ↓
 地図用データ
-  地点名，緯度，経度，地図に表示したい値
+  発表区域名，地域名，アメダス地点名，緯度，経度，標高，平均降水確率，最大降水確率など
 ```
+````
 
-```{tip} 代表点
-「東京地方」「伊豆諸島」のような地域は，本来は面積を持つ範囲である．
-今回はポイントマップの練習なので，地域全体を1つの点で代表させる．
-このような点を**代表点**と呼ぶことにする．
-代表点は便利だが，地域全体を正確に表しているわけではない点に注意する．
-```
-
-第9回では，次のライブラリを使う．
+今回は次のライブラリを使う．
 
 | ライブラリ | 主な役割 | この回での使い方 |
 | --- | --- | --- |
-| `pandas` | 表形式データの読み込み・確認・前処理 | CSVを読み込み，座標表と結合する |
-| `plotly` | Notebook上のインタラクティブな地図 | 試験的に気温データを地図で眺める |
-| `folium` | HTMLとして保存できる地図 | 課題として提出できる地図を作る |
-| `requests` | Web上のデータ取得 | 複数地域の天気予報JSONを取得する |
+| `json` | JSONファイルの読み込み | 第5回で取得したJSONを読み込む |
+| `requests` | Web上のデータ取得 | 複数都道府県の天気予報JSONを取得する |
+| `pandas` | 表形式データの作成・確認・前処理 | JSONから表を作り，アメダス地点情報を結合する |
+| `plotly` | Notebook上のインタラクティブな地図 | 試験的に地図を眺める |
+| `folium` | HTMLとして保存できる地図 | 提出用・共有用の地図を作る |
 
 ---
 
 ## 使用するデータ
 
-### 週間気温データ
+### 気象庁の天気予報JSON
+
+前半では第5回で取得した東京都の天気予報JSONを使う．
 
 ```text
-data/processed/jma_tokyo_weekly_temperature.csv
+data/raw/jma_tokyo_forecast.json
+```
+
+後半では次のURLから複数都道府県の天気予報JSONを取得する．
+
+```text
+https://www.jma.go.jp/bosai/forecast/data/forecast/<発表区域コード>.json
+```
+
+| 発表区域名 | 発表区域コード | 今回の扱い |
+| --- | --- | --- |
+| 東京都 | `130000` | 第5回のJSONとAPI取得の両方で使う |
+| 埼玉県 | `110000` | APIで取得する |
+| 長野県 | `200000` | APIで取得する |
+| 新潟県 | `150000` | APIで取得する |
+
+各区域のコードは次のJSONから確認することができる．
+
+https://www.jma.go.jp/bosai/common/const/area.json
+
+### 区域の地図上の表示
+
+地図上に表示するには各地点の緯度・経度情報が必要である．
+そこで，予報区域とアメダス地点の対応，アメダス地点とその緯度・経度情報の対応から予報区域の緯度・経度を定める．
+
+- 予報区域コードとアメダス地点の対応は次のJSONから確認することができる．
+
+    https://www.jma.go.jp/bosai/forecast/const/forecast_area.json
+
+    後のプログラムではこのJSONファイルを `data/raw/forecast_area.json` に保存する．
+
+- アメダス地点とその緯度・経度の対応は次のJSONから確認することができる．
+
+    https://www.jma.go.jp/bosai/amedas/const/amedastable.json
+
+    後のプログラムではこのJSONファイルを `data/raw/amedastable.json` に保存する．
+
+ここから予報区域にアメダス地点の緯度・経度・標高を対応させたCSVを作成する．
+
+```text
+data/processed/forecast_area_points.csv
 ```
 
 主な列：
 
-- `地点名`
-- `地点コード`
-- `予報日`
-- `最低気温`
-- `最高気温`
-
-このデータは，「東京」「八丈島」「父島」など，気温を予報する地点ごとの週間予報である．
-
-### 週間天気データ
-
-```text
-data/processed/jma_tokyo_weekly_weather.csv
-```
-
-主な列：
-
+- `発表区域名`
+- `発表区域コード`
 - `地域名`
 - `地域コード`
-- `予報日`
-- `天気コード`
-- `降水確率`
-- `信頼度`
+- `細分地域名`
+- `細分地域コード`
+- `アメダス番号`
+- `アメダス地点名`
+- `緯度`
+- `経度`
+- `標高`
+- `予報区域対応取得元`
+- `座標標高取得元`
 
-このデータは，「東京地方」「伊豆諸島」「小笠原諸島」など，天気や降水確率を予報する地域ごとの週間予報である．
+<!-- 
+このデータは，次の2段階で作成する．
 
-```{warning} 地点名と地域名は同じではない
-気温データは`地点名`，天気データは`地域名`を使う．
-「東京」と「東京地方」のように似ている名前もあるが，データ上は別の単位である．
-そのため，気温用の座標表と降水確率用の座標表を分けて作成する．
+| 手順 | 使うJSON | 取得するもの |
+| --- | --- | --- |
+| 1 | 気象庁`forecast_area.json` | 予報地域コードとアメダス番号の対応 |
+| 2 | 気象庁`amedastable.json` | アメダス地点の緯度・経度・標高 |
+ -->
+<!-- 
+```{tip} 予報地域と細分地域
+週間予報で使われる地域の細かさは，都道府県によって異なる．
+例えば東京都は「東京地方」「伊豆諸島」「小笠原諸島」に分かれるが，埼玉県・長野県・新潟県の週間予報は県全体で出る．
+一方，アメダス地点との対応は「南部」「北部」「中部」などの細分地域を持つことがある．
+このため，今回作るCSVでは，予報データと結合するための`地域名`・`地域コード`と，アメダス対応を確認するための`細分地域名`・`細分地域コード`を分けて保存する．
 ```
+ -->
+<!-- 
+```{tip} 地域名だけで結合しない
+「北部」「中部」「南部」のような地域名は，複数の都道府県で使われることがある．
+そのため，`地域名`だけで結合すると別の都道府県の座標が混ざる可能性がある．
+今回は`発表区域名`と`地域名`の2つをキーにして結合する．
+```
+ -->
+<!--  
+```{tip} アメダス地点は予報区域そのものではない
+ここで使う緯度・経度・標高は，予報地域に対応するアメダス地点の値である．
+例えば「長野県中部」という予報地域全体の標高ではなく，対応するアメダス地点である「松本」「諏訪」「軽井沢」などの標高である．
+地図上に表示するときは，予報地域の厳密な範囲ではなく，予報地域を点で眺めるための代表地点として扱う．
+```
+ -->
 
 ---
 
-## データを確認する
+## 東京都のJSONを地図用データにする
 
-````{note} 演習1：CSVを読み込んで中身を確認する
-`notebooks/map_visualization.ipynb`に「データの確認」という見出しを作り，次のセルを順番に実行せよ．
+まず，第5回で取得した東京都のJSONを使う．
+ここでは，週間予報に含まれる`降水確率`を取り出し，地域ごとの平均降水確率を地図上に表示する．
 
-**セル1：作業中のディレクトリを確認する**
 
-```bash
-!pwd
-```
+
+
+
+
+
+
+
+
+````{note} 演習1：東京都のJSONを読み込んで中身を確認する
+`notebooks/map_visualization.ipynb`に「東京都のJSONを確認する」という見出しを作り，次のセルを順番に実行せよ．
 
 **セル2：必要なライブラリをインストールする**
 
-初回のみ実行する．すでにインストール済みの場合はすぐに終了する．
+このnotebookファイルで実行しているpythonに必要なライブラリをインストールする．
 
 ```bash
-!python -m pip install pandas plotly folium requests
+%pip install pandas plotly folium requests
 ```
+
+※ 前回までに記載していた`!python -m pip install ...`はOSのPATH上のpythonにインストールされてしまうため，そのままnotebookでは利用できなかった．
+notebookで使用しているpythonにインストールする場合には`%pip install ...`で対応する．
 
 **セル3：ライブラリを読み込む**
 
 ```python
+import json
 from pathlib import Path
 
 import folium
@@ -269,339 +325,347 @@ import pandas as pd
 import plotly.express as px
 import requests
 ```
-
-**セル4：週間気温データを読み込む**
-
-Notebookから実行するので，データのパスは`../data/processed/...`とする．
-
-```python
-temperature_path = "../data/processed/jma_tokyo_weekly_temperature.csv"
-
-weekly_temperature_df = pd.read_csv(temperature_path)
-
-print("行数・列数:", weekly_temperature_df.shape)
-weekly_temperature_df.head()
-```
-
-**セル5：週間天気データを読み込む**
-
-```python
-weather_path = "../data/processed/jma_tokyo_weekly_weather.csv"
-
-weekly_weather_df = pd.read_csv(weather_path)
-
-print("行数・列数:", weekly_weather_df.shape)
-weekly_weather_df.head()
-```
-
-**セル6：地点名と地域名を確認する**
-
-```python
-print("気温データの地点名")
-print(weekly_temperature_df["地点名"].unique())
-
-print()
-print("天気データの地域名")
-print(weekly_weather_df["地域名"].unique())
-```
-
-実行後，次を確認せよ．
-
-1. 週間気温データにはどの地点が含まれているか
-2. 週間天気データにはどの地域が含まれているか
-3. 気温データと天気データで，場所を表す列名がどのように違うか
 ````
 
----
+````{note} 演習2：週間予報から降水確率の表を作る
+「東京都の週間予報を表にする」という見出しを作り，次のセルを順番に実行せよ．
 
-## 座標の対応表を作る
-
-地図上に点を置くには，緯度と経度が必要である．
-今回は練習として，次の代表点を使う．
-
-| 用途 | 名前 | 緯度 | 経度 | 備考 |
-| --- | --- | --- | --- | --- |
-| 気温 | 東京 | 35.6895 | 139.6917 | 東京都庁付近 |
-| 気温 | 八丈島 | 33.1030 | 139.7890 | 八丈島付近 |
-| 気温 | 父島 | 27.0945 | 142.1918 | 父島付近 |
-| 降水確率 | 東京地方 | 35.6895 | 139.6917 | 東京地方の代表点 |
-| 降水確率 | 伊豆諸島 | 33.1030 | 139.7890 | 伊豆諸島の代表点 |
-| 降水確率 | 小笠原諸島 | 27.0945 | 142.1918 | 小笠原諸島の代表点 |
-
-````{note} 演習2：座標の対応表を作成する
-「座標の対応表」という見出しを作り，次のセルを順番に実行せよ．
-
-**セル1：気温地点の座標表を作る**
+**セル1：週間予報から地域別・日付別の降水確率を取り出す**
 
 ```python
-temperature_point_df = pd.DataFrame({
-    "地点名": ["東京", "八丈島", "父島"],
-    "緯度": [35.6895, 33.1030, 27.0945],
-    "経度": [139.6917, 139.7890, 142.1918],
-})
+weather_rows = []
 
-temperature_point_df
+for area in weather_series["areas"]:
+    area_name = area["area"]["name"]
+    area_code = area["area"]["code"]
+
+    for i, forecast_time in enumerate(weather_series["timeDefines"]):
+        pop_text = area["pops"][i]
+
+        if pop_text == "":
+            pop = None
+        else:
+            pop = int(pop_text)
+
+        weather_rows.append({
+            "発表区域名": "東京都",
+            "発表区域コード": "130000",
+            "発表機関": weekly_forecast["publishingOffice"],
+            "発表時刻": weekly_forecast["reportDatetime"],
+            "地域名": area_name,
+            "地域コード": area_code,
+            "予報時刻": forecast_time,
+            "予報日": forecast_time[:10],
+            "天気コード": area["weatherCodes"][i],
+            "降水確率": pop,
+            "信頼度": area["reliabilities"][i],
+        })
+
+tokyo_weather_df = pd.DataFrame(weather_rows)
+
+tokyo_weather_df.head()
 ```
 
-**セル2：降水確率地域の座標表を作る**
+**セル2：表の形と空欄を確認する**
 
 ```python
-weather_area_point_df = pd.DataFrame({
-    "地域名": ["東京地方", "伊豆諸島", "小笠原諸島"],
-    "緯度": [35.6895, 33.1030, 27.0945],
-    "経度": [139.6917, 139.7890, 142.1918],
-})
+print("行数・列数:", tokyo_weather_df.shape)
+print("地域名:", tokyo_weather_df["地域名"].unique())
+print("降水確率が空欄の行数:", tokyo_weather_df["降水確率"].isna().sum())
 
-weather_area_point_df
+tokyo_weather_df[["降水確率"]].describe()
 ```
 
-**セル3：座標表をCSVとして保存する**
+**セル3：CSVとして保存する**
 
 ```python
 Path("../data/processed").mkdir(parents=True, exist_ok=True)
 
-temperature_point_df.to_csv(
-    "../data/processed/tokyo_temperature_points.csv",
-    index=False
-)
-weather_area_point_df.to_csv(
-    "../data/processed/tokyo_weather_area_points.csv",
+tokyo_weather_df.to_csv(
+    "../data/processed/tokyo_weekly_weather_from_json.csv",
     index=False
 )
 
-print("saved: ../data/processed/tokyo_temperature_points.csv")
-print("saved: ../data/processed/tokyo_weather_area_points.csv")
+print("saved: ../data/processed/tokyo_weekly_weather_from_json.csv")
 ```
 
 実行後，次を確認せよ．
 
-1. 気温データ用の座標表は`地点名`を持っているか
-2. 降水確率データ用の座標表は`地域名`を持っているか
-3. `data/processed`に2つのCSVが作成されたか
+1. `降水確率`は数値として扱われているか
+2. 空欄になっている降水確率はあるか
+3. `data/processed/tokyo_weekly_weather_from_json.csv`が作成されたか
 ````
 
----
+````{note} 演習3：予報地域・アメダス対応CSVを作成する
 
-## 東京都の気温データを地図に表示する
+「予報地域・アメダス対応データを作る」という見出しを作り，次のセルを順番に実行せよ．
 
-まず，練習として東京都の週間気温データを地図上に表示する．
-ここでは，地点ごとに週間の平均最高気温を計算し，地図上に表示する．
+**セル1：取得する発表区域を定義する**
 
-````{note} 演習3：気温データと座標表を結合する
-「気温データの地図用データ作成」という見出しを作り，次のセルを順番に実行せよ．
-
-**セル1：気温データの空欄を除く**
+今回は，東京都・埼玉県・長野県・新潟県を扱う．
+発表区域コードは文字列として扱う．
+先頭が`0`のコードもあるため，数値ではなく文字列にしておく．
 
 ```python
-temperature_plot_source_df = weekly_temperature_df.dropna(
-    subset=["最低気温", "最高気温"]
-).copy()
-
-temperature_plot_source_df.head()
+FORECAST_OFFICES = {
+    "東京都": "130000",
+    "埼玉県": "110000",
+    "長野県": "200000",
+    "新潟県": "150000",
+}
 ```
 
-**セル2：地点ごとに平均最高気温を計算する**
+**セル2：予報地域・アメダス地点に関するJSONを取得する**
 
-ここでは，まだ複雑な集計関数を使わず，地点名ごとにデータを取り出して平均を計算する．
+- `area.json`：発表区域や予報地域の名前を確認するためのJSON
+- `forecast_area.json`：予報地域コードとアメダス番号の対応を持つJSON
+- `amedastable.json`：アメダス地点の緯度・経度・標高を持つJSON
 
 ```python
-temperature_summary_rows = []
+area_url = "https://www.jma.go.jp/bosai/common/const/area.json"
+forecast_area_url = "https://www.jma.go.jp/bosai/forecast/const/forecast_area.json"
+amedas_url = "https://www.jma.go.jp/bosai/amedas/const/amedastable.json"
 
-for point_name in temperature_plot_source_df["地点名"].unique():
-    point_df = temperature_plot_source_df[
-        temperature_plot_source_df["地点名"] == point_name
-    ]
+area_response = requests.get(area_url)
+area_response.raise_for_status()
+area_data = area_response.json()
 
-    temperature_summary_rows.append({
-        "地点名": point_name,
-        "予報日数": len(point_df),
-        "平均最低気温": round(point_df["最低気温"].mean(), 1),
-        "平均最高気温": round(point_df["最高気温"].mean(), 1),
+forecast_area_response = requests.get(forecast_area_url)
+forecast_area_response.raise_for_status()
+forecast_area_data = forecast_area_response.json()
+
+amedas_response = requests.get(amedas_url)
+amedas_response.raise_for_status()
+amedas_data = amedas_response.json()
+
+print("発表区域数:", len(area_data["offices"]))
+print("forecast_area.jsonに含まれる発表区域数:", len(forecast_area_data))
+print("アメダス地点数:", len(amedas_data))
+```
+
+**セル3：度分形式を小数の緯度・経度に変換する関数を作る**
+
+`amedastable.json`の緯度・経度は`[度, 分]`の形で入っている．
+地図では小数の緯度・経度を使うため，`度 + 分/60`に変換する．
+
+```python
+def degree_minute_to_decimal(value):
+    return value[0] + value[1] / 60
+```
+
+**セル4：週間予報の地域に合わせるための関数を作る**
+
+`forecast_area.json`の地域区分は，週間予報の地域区分より細かい場合がある．
+ここでは，週間予報の地域名・地域コードに合わせるための関数を作る．
+
+```python
+def to_weekly_forecast_area(office_name, office_code, class10_code, class10_name):
+    if office_code == "130000" and class10_code in {"130020", "130030"}:
+        return "130100", "伊豆諸島"
+
+    if office_code == "130000":
+        return class10_code, class10_name
+
+    return office_code, office_name
+```
+
+**セル5：予報地域とアメダス地点を対応させた表を作る**
+
+1つの予報地域に複数のアメダス地点が対応している場合がある．
+その場合，地図上には同じ予報値を持つ点が複数表示される．
+
+```python
+point_rows = []
+
+for office_name, office_code in FORECAST_OFFICES.items():
+    for item in forecast_area_data[office_code]:
+        class10_code = item["class10"]
+        class10_name = area_data["class10s"][class10_code]["name"]
+        forecast_area_code, forecast_area_name = to_weekly_forecast_area(
+            office_name,
+            office_code,
+            class10_code,
+            class10_name,
+        )
+
+        for amedas_id in item["amedas"]:
+            amedas_info = amedas_data[amedas_id]
+
+            lat = degree_minute_to_decimal(amedas_info["lat"])
+            lon = degree_minute_to_decimal(amedas_info["lon"])
+
+            point_rows.append({
+                "発表区域名": office_name,
+                "発表区域コード": office_code,
+                "地域名": forecast_area_name,
+                "地域コード": forecast_area_code,
+                "細分地域名": class10_name,
+                "細分地域コード": class10_code,
+                "アメダス番号": amedas_id,
+                "アメダス地点名": amedas_info["kjName"],
+                "緯度": round(lat, 6),
+                "経度": round(lon, 6),
+                "標高": amedas_info["alt"],
+                "予報区域対応取得元": "気象庁 forecast_area.json",
+                "座標標高取得元": "気象庁 amedastable.json",
+            })
+
+point_df = pd.DataFrame(point_rows)
+
+point_df
+```
+
+**セル6：CSVとして保存する**
+
+```python
+point_df.to_csv(
+    "../data/processed/forecast_area_points.csv",
+    index=False
+)
+
+print("saved: ../data/processed/forecast_area_points.csv")
+```
+
+**セル7：作成した表を確認する**
+
+```python
+print("行数・列数:", point_df.shape)
+point_df[
+    ["発表区域名", "地域名", "細分地域名", "アメダス地点名", "緯度", "経度", "標高"]
+].head()
+```
+
+**セル8：1つの予報地域に複数のアメダス地点がある例を確認する**
+
+```python
+point_df[point_df["地域名"].duplicated(keep=False)].sort_values(
+    ["発表区域名", "地域名", "細分地域名"]
+)
+```
+
+実行後，次を確認せよ．
+
+1. `data/processed/forecast_area_points.csv`が作成されたか
+2. `アメダス地点名`，`緯度`，`経度`，`標高`が入っているか
+3. `地域名`と`細分地域名`の違いを説明できるか
+4. 1つの予報地域に複数のアメダス地点が対応している例はあるか
+5. 標高は地域全体ではなく，アメダス地点の値であることを説明できるか
+````
+
+````{note} 演習4：地域ごとに集計し，標高CSVを結合する
+「東京都の地図用データを作る」という見出しを作り，次のセルを順番に実行せよ．
+
+**セル1：予報地域・アメダス対応CSVを読み込む**
+
+```python
+point_path = "../data/processed/forecast_area_points.csv"
+
+point_df = pd.read_csv(point_path)
+
+point_df.head()
+```
+
+**セル2：東京都だけを確認する**
+
+```python
+point_df[point_df["発表区域名"] == "東京都"]
+```
+
+**セル3：地域ごとに平均降水確率を計算する**
+
+ここでは，まだ複雑な集計関数を使わず，地域名ごとにデータを取り出して平均を計算する．
+
+```python
+tokyo_source_df = tokyo_weather_df.dropna(subset=["降水確率"]).copy()
+summary_rows = []
+
+for area_name in tokyo_source_df["地域名"].unique():
+    area_df = tokyo_source_df[tokyo_source_df["地域名"] == area_name]
+
+    summary_rows.append({
+        "発表区域名": "東京都",
+        "地域名": area_name,
+        "予報日数": len(area_df),
+        "平均降水確率": round(area_df["降水確率"].mean(), 1),
+        "最大降水確率": area_df["降水確率"].max(),
+        "信頼度A件数": (area_df["信頼度"] == "A").sum(),
     })
 
-temperature_summary_df = pd.DataFrame(temperature_summary_rows)
+tokyo_summary_df = pd.DataFrame(summary_rows)
 
-temperature_summary_df
+tokyo_summary_df
 ```
 
-**セル3：座標表を結合する**
+**セル4：アメダス地点情報を結合する**
 
 ```python
-temperature_map_df = pd.merge(
-    temperature_summary_df,
-    temperature_point_df,
-    on="地点名",
+tokyo_map_df = pd.merge(
+    tokyo_summary_df,
+    point_df,
+    on=["発表区域名", "地域名"],
     how="left"
 )
 
-temperature_map_df
+tokyo_map_df
 ```
 
-**セル4：地図用データを保存する**
+**セル5：結合できなかった行を確認する**
 
 ```python
-temperature_map_df.to_csv(
-    "../data/processed/tokyo_temperature_map_data.csv",
+tokyo_missing_point_df = tokyo_map_df[tokyo_map_df["緯度"].isna()]
+
+tokyo_missing_point_df
+```
+
+**セル6：地図用データを保存する**
+
+```python
+tokyo_map_df.to_csv(
+    "../data/processed/tokyo_forecast_map_data.csv",
     index=False
 )
 
-print("saved: ../data/processed/tokyo_temperature_map_data.csv")
+print("saved: ../data/processed/tokyo_forecast_map_data.csv")
 ```
 
 実行後，次を確認せよ．
 
-1. `平均最高気温`が計算されているか
-2. `緯度`と`経度`が結合されているか
-3. 緯度・経度が空欄になっている行はないか
+1. `平均降水確率`と`最大降水確率`が計算されているか
+2. `緯度`，`経度`，`標高`が結合されているか
+3. 結合できなかった行はないか
 ````
 
-````{note} 演習4：plotlyで気温データを地図上に表示する
-「plotlyで地図表示」という見出しを作り，次のセルを実行せよ．
+````{note} 演習5：東京都の降水確率を地図上に表示する
+「東京都の降水確率を地図化する」という見出しを作り，次のセルを順番に実行せよ．
+
+**セル1：plotlyで地図を確認する**
 
 ```python
 fig = px.scatter_map(
-    temperature_map_df,
+    tokyo_map_df,
     lat="緯度",
     lon="経度",
-    color="平均最高気温",
-    size="予報日数",
-    hover_name="地点名",
-    hover_data=["平均最低気温", "平均最高気温"],
-    color_continuous_scale="RdYlBu_r",
-    zoom=5,
+    color="平均降水確率",
+    size="最大降水確率",
+    hover_name="地域名",
+    hover_data=["発表区域名", "細分地域名", "アメダス地点名", "平均降水確率", "最大降水確率", "標高"],
+    color_continuous_scale="Blues",
+    zoom=4,
     height=600,
 )
 
 fig.update_layout(
-    title="東京都の週間予報：地点別の平均最高気温",
+    title="東京都の週間予報：平均降水確率",
     map_style="open-street-map",
 )
 
 fig.show()
 ```
 
-実行後，次を確認せよ．
-
-1. 東京，八丈島，父島の3地点が表示されているか
-2. 平均最高気温が高い地点はどこか
-3. マウスオーバーで地点名と平均気温が表示されるか
-````
-
-````{note} 演習5：foliumで気温データをHTMLとして保存する
-`folium`を使うと，地図をHTMLファイルとして保存できる．
-Notebookを開かなくてもブラウザで確認できるため，提出用・共有用の地図に向いている．
-
-**セル1：気温に応じた色を返す関数を作る**
+**セル2：HTMLとして保存する**
 
 ```python
-def temperature_color(value):
-    if value < 24:
-        return "blue"
-    elif value < 26:
-        return "orange"
-    else:
-        return "red"
-```
-
-**セル2：foliumで地図を作る**
-
-```python
-center_lat = temperature_map_df["緯度"].mean()
-center_lon = temperature_map_df["経度"].mean()
-
-m = folium.Map(location=[center_lat, center_lon], zoom_start=5)
-
-for _, row in temperature_map_df.iterrows():
-    popup_text = (
-        f"{row['地点名']}<br>"
-        f"平均最低気温：{row['平均最低気温']}℃<br>"
-        f"平均最高気温：{row['平均最高気温']}℃"
-    )
-
-    folium.CircleMarker(
-        location=[row["緯度"], row["経度"]],
-        radius=8,
-        popup=popup_text,
-        color=temperature_color(row["平均最高気温"]),
-        fill=True,
-        fill_opacity=0.7,
-    ).add_to(m)
-
-m
-```
-
-**セル3：HTMLファイルとして保存する**
-
-```python
-m.save("../reports/figures/tokyo_temperature_map_check.html")
-
-print("saved: ../reports/figures/tokyo_temperature_map_check.html")
-```
-
-実行後，次を確認せよ．
-
-1. 保存したHTMLファイルをブラウザで開けるか
-2. 点をクリックすると地点名と気温が表示されるか
-3. 色の区切りは今回の気温分布に合っているか
-````
-
----
-
-## 課題
-
-````{warning} 課題1：東京都の降水確率を地図上に表示する
-演習3〜5で確認した内容を応用する．
-以下のコードの`<HOGEHOGE1>`〜`<HOGEHOGE5>`，`<PIYOPIYO1>`，`<PIYOPIYO2>`を適切に書き換えてpythonスクリプト`src/plot_tokyo_pop_map.py`を作成し，コードを実行してHTMLファイル`reports/figures/tokyo_pop_map.html`を作成せよ．  
-最後に，作成したpythonスクリプト`src/plot_tokyo_pop_map.py`とHTMLファイル`reports/figures/tokyo_pop_map.html`を<span style="color:red">WebClass「第9回課題」問1・問2</span>から提出せよ．
-
-```{tip} ポイント
-いきなりpythonファイルを作成するのではなく，notebookで試験的にコードを実行し，うまくコードが走るようになってからpythonコードにコピーして実施すると書きやすい．
-```
-
-```python
-from pathlib import Path
-
-import folium
-import pandas as pd
-
-weather_path = "data/processed/jma_tokyo_weekly_weather.csv"
-point_path = "data/processed/tokyo_weather_area_points.csv"
-output_data_path = "data/processed/tokyo_pop_map_data.csv"
-output_map_path = "reports/figures/tokyo_pop_map.html"
-
-Path("data/processed").mkdir(parents=True, exist_ok=True)
-Path("reports/figures").mkdir(parents=True, exist_ok=True)
-
-weekly_weather_df = pd.read_csv(weather_path)
-weather_area_point_df = pd.read_csv(point_path)
-
-weather_plot_source_df = weekly_weather_df.dropna(subset=[<HOGEHOGE1>]).copy()
-
-pop_summary_rows = []
-
-for area_name in weather_plot_source_df[<HOGEHOGE2>].unique():
-    area_df = weather_plot_source_df[
-        weather_plot_source_df[<HOGEHOGE2>] == area_name
-    ]
-
-    pop_summary_rows.append({
-        "地域名": area_name,
-        "予報日数": len(area_df),
-        "平均降水確率": round(area_df[<HOGEHOGE3>].mean(), 1),
-        "最大降水確率": area_df[<HOGEHOGE3>].max(),
-    })
-
-pop_summary_df = pd.DataFrame(pop_summary_rows)
-
-pop_map_df = pd.merge(
-    pop_summary_df,
-    weather_area_point_df,
-    on=<HOGEHOGE4>,
-    how="left"
-)
-
-pop_map_df.to_csv(output_data_path, index=False)
-
+Path("../reports/figures").mkdir(parents=True, exist_ok=True)
 
 def pop_color(value):
     if value < 40:
@@ -612,20 +676,20 @@ def pop_color(value):
         return "red"
 
 
-center_lat = pop_map_df[<HOGEHOGE5>].mean()
-center_lon = pop_map_df["経度"].mean()
+m = folium.Map(location=[33.5, 139.8], zoom_start=5)
 
-m = folium.Map(location=[center_lat, center_lon], zoom_start=5)
-
-for _, row in pop_map_df.iterrows():
+for _, row in tokyo_map_df.iterrows():
     popup_text = (
-        f"{row['地域名']}<br>"
+        f"{row['発表区域名']}：{row['地域名']}<br>"
+        f"細分地域：{row['細分地域名']}<br>"
+        f"アメダス地点：{row['アメダス地点名']}<br>"
         f"平均降水確率：{row['平均降水確率']}%<br>"
-        f"最大降水確率：{row['最大降水確率']}%"
+        f"最大降水確率：{row['最大降水確率']}%<br>"
+        f"標高：{row['標高']}m"
     )
 
     folium.CircleMarker(
-        location=[row[<PIYOPIYO1>], row[<PIYOPIYO2>]],
+        location=[row["緯度"], row["経度"]],
         radius=8 + row["平均降水確率"] / 10,
         popup=popup_text,
         color=pop_color(row["平均降水確率"]),
@@ -633,175 +697,558 @@ for _, row in pop_map_df.iterrows():
         fill_opacity=0.7,
     ).add_to(m)
 
-m.save(output_map_path)
+m.save("../reports/figures/tokyo_pop_map_check.html")
 
-print("saved:", output_data_path)
-print("saved:", output_map_path)
+print("saved: ../reports/figures/tokyo_pop_map_check.html")
 ```
 
-作成したPythonファイルを`9`フォルダ内でターミナルから実行せよ．
+実行後，次を確認せよ．
+
+1. 東京地方，伊豆諸島，小笠原諸島が地図上に表示されているか
+2. 平均降水確率が高い地域ほど点が大きく表示されているか
+3. 点をクリックすると，アメダス地点名，降水確率，標高が表示されるか
+````
+
+---
+
+## 複数都道府県の予報JSONをAPIで取得する
+
+次に，東京都だけでなく，埼玉県・長野県・新潟県の天気予報JSONをAPIから取得する．
+今回は，関東平野，内陸の山地，日本海側を含めることで，地図上の違いを眺めやすくする．
+
+````{note} 演習6：複数都道府県のJSONをAPIで取得する
+「複数都道府県のJSON取得」という見出しを作り，次のセルを順番に実行せよ．
+
+**セル1：取得する発表区域を定義する**
+
+発表区域コードは文字列として扱う．
+先頭が`0`のコードもあるため，数値ではなく文字列にしておく．
+
+```python
+FORECAST_OFFICES = {
+    "東京都": "130000",
+    "埼玉県": "110000",
+    "長野県": "200000",
+    "新潟県": "150000",
+}
+```
+
+**セル2：APIからJSONを取得して保存する**
+
+```python
+forecast_jsons = {}
+
+for office_name, office_code in FORECAST_OFFICES.items():
+    url = f"https://www.jma.go.jp/bosai/forecast/data/forecast/{office_code}.json"
+    response = requests.get(url)
+    response.raise_for_status()
+    data = response.json()
+
+    forecast_jsons[office_name] = data
+
+    output_path = f"../data/raw/forecast_{office_code}.json"
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+    print("saved:", output_path)
+```
+
+**セル3：取得したJSONに含まれる地域名を確認する**
+
+```python
+for office_name, data in forecast_jsons.items():
+    weekly_forecast = data[1]
+    weather_series = weekly_forecast["timeSeries"][0]
+
+    print("----", office_name, "----")
+    for area in weather_series["areas"]:
+        print(area["area"]["name"], area["area"]["code"])
+```
+
+実行後，次を確認せよ．
+
+1. `data/raw`に4つのJSONファイルが保存されたか
+2. 東京都・埼玉県・長野県・新潟県では，どのような地域名が使われているか
+3. 「北部」「中部」「南部」のような地域名が複数の県で使われていないか
+````
+
+````{note} 演習7：複数都道府県のJSONから1つのCSVを作る
+「複数都道府県の週間予報を表にする」という見出しを作り，次のセルを順番に実行せよ．
+
+**セル1：JSONから週間天気を取り出す関数を作る**
+
+```python
+def build_weekly_weather_rows(data, office_name, office_code):
+    weekly_forecast = data[1]
+    weather_series = weekly_forecast["timeSeries"][0]
+    rows = []
+
+    for area in weather_series["areas"]:
+        area_name = area["area"]["name"]
+        area_code = area["area"]["code"]
+
+        for i, forecast_time in enumerate(weather_series["timeDefines"]):
+            pop_text = area["pops"][i]
+
+            if pop_text == "":
+                pop = None
+            else:
+                pop = int(pop_text)
+
+            rows.append({
+                "発表区域名": office_name,
+                "発表区域コード": office_code,
+                "発表機関": weekly_forecast["publishingOffice"],
+                "発表時刻": weekly_forecast["reportDatetime"],
+                "地域名": area_name,
+                "地域コード": area_code,
+                "予報時刻": forecast_time,
+                "予報日": forecast_time[:10],
+                "天気コード": area["weatherCodes"][i],
+                "降水確率": pop,
+                "信頼度": area["reliabilities"][i],
+            })
+
+    return rows
+```
+
+**セル2：4都県の週間予報を1つの表にまとめる**
+
+```python
+all_rows = []
+
+for office_name, office_code in FORECAST_OFFICES.items():
+    rows = build_weekly_weather_rows(
+        forecast_jsons[office_name],
+        office_name,
+        office_code
+    )
+    all_rows.extend(rows)
+
+multi_weather_df = pd.DataFrame(all_rows)
+
+print("行数・列数:", multi_weather_df.shape)
+multi_weather_df.head()
+```
+
+**セル3：CSVとして保存する**
+
+```python
+multi_weather_df.to_csv(
+    "../data/processed/multi_pref_weekly_weather.csv",
+    index=False
+)
+
+print("saved: ../data/processed/multi_pref_weekly_weather.csv")
+```
+
+実行後，次を確認せよ．
+
+1. `発表区域名`に4都県が含まれているか
+2. `地域名`だけでは同じ名前が複数県で使われていないか
+3. `data/processed/multi_pref_weekly_weather.csv`が作成されたか
+````
+
+````{note} 演習8：複数都道府県の予報データに標高CSVを結合する
+「複数都道府県の地図用データを作る」という見出しを作り，次のセルを順番に実行せよ．
+
+**セル1：地域ごとに降水確率を集計する**
+
+```python
+multi_source_df = multi_weather_df.dropna(subset=["降水確率"]).copy()
+summary_rows = []
+
+keys_df = multi_source_df[["発表区域名", "地域名"]].drop_duplicates()
+
+for _, key_row in keys_df.iterrows():
+    office_name = key_row["発表区域名"]
+    area_name = key_row["地域名"]
+
+    area_df = multi_source_df[
+        (multi_source_df["発表区域名"] == office_name)
+        & (multi_source_df["地域名"] == area_name)
+    ]
+
+    summary_rows.append({
+        "発表区域名": office_name,
+        "地域名": area_name,
+        "予報日数": len(area_df),
+        "平均降水確率": round(area_df["降水確率"].mean(), 1),
+        "最大降水確率": area_df["降水確率"].max(),
+        "信頼度A件数": (area_df["信頼度"] == "A").sum(),
+    })
+
+multi_summary_df = pd.DataFrame(summary_rows)
+
+multi_summary_df.head()
+```
+
+**セル2：標高CSVを結合する**
+
+```python
+multi_map_df = pd.merge(
+    multi_summary_df,
+    point_df,
+    on=["発表区域名", "地域名"],
+    how="left"
+)
+
+multi_map_df
+```
+
+**セル3：結合できなかった地域を確認する**
+
+```python
+missing_point_df = multi_map_df[multi_map_df["緯度"].isna()]
+
+missing_point_df
+```
+
+**セル4：地図用データを保存する**
+
+```python
+multi_map_df.to_csv(
+    "../data/processed/multi_pref_forecast_map_data.csv",
+    index=False
+)
+
+print("saved: ../data/processed/multi_pref_forecast_map_data.csv")
+```
+
+実行後，次を確認せよ．
+
+1. `平均降水確率`，`最大降水確率`，`標高`が同じ表に含まれているか
+2. 結合できなかった地域はないか
+3. 結合できなかった地域がある場合，週間予報の地域名と`forecast_area_points.csv`の`地域名`が対応しているか確認できるか
+````
+
+---
+
+## 標高データと予報データを地図上に可視化する
+
+ここからは，作成した`multi_pref_forecast_map_data.csv`を使って，複数の地図を作成する．
+同じデータでも，何を色にするか，何を点の大きさにするかによって，見え方が変わる．
+
+````{note} 演習9：平均降水確率を地図上に表示する
+「平均降水確率の地図」という見出しを作り，次のセルを実行せよ．
+
+```python
+fig = px.scatter_map(
+    multi_map_df,
+    lat="緯度",
+    lon="経度",
+    color="平均降水確率",
+    size="最大降水確率",
+    hover_name="地域名",
+    hover_data=["発表区域名", "細分地域名", "アメダス地点名", "平均降水確率", "最大降水確率", "標高"],
+    color_continuous_scale="Blues",
+    zoom=5,
+    height=650,
+)
+
+fig.update_layout(
+    title="東京都・埼玉県・長野県・新潟県の週間予報：平均降水確率",
+    map_style="open-street-map",
+)
+
+fig.show()
+
+fig.write_html("../reports/figures/multi_pref_pop_map.html")
+
+print("saved: ../reports/figures/multi_pref_pop_map.html")
+```
+
+実行後，次を確認せよ．
+
+1. どの地域の平均降水確率が高いか
+2. 日本海側の地域と内陸の地域に違いはあるか
+3. 地図で見ると，棒グラフより分かりやすい点は何か
+````
+
+````{note} 演習10：標高だけを地図上に表示する
+「標高の地図」という見出しを作り，次のセルを順番に実行せよ．
+
+**セル1：標高の範囲を確認する**
+
+```python
+multi_map_df[["標高"]].describe()
+```
+
+**セル2：標高を地図上に表示する**
+
+```python
+fig = px.scatter_map(
+    multi_map_df,
+    lat="緯度",
+    lon="経度",
+    color="標高",
+    size="標高",
+    hover_name="地域名",
+    hover_data=["発表区域名", "細分地域名", "アメダス地点名", "標高", "平均降水確率"],
+    color_continuous_scale="viridis",
+    size_max=25,
+    zoom=5,
+    height=650,
+)
+
+fig.update_layout(
+    title="アメダス地点の標高",
+    map_style="open-street-map",
+)
+
+fig.show()
+
+fig.write_html("../reports/figures/multi_pref_elevation_map.html")
+
+print("saved: ../reports/figures/multi_pref_elevation_map.html")
+```
+
+実行後，次を確認せよ．
+
+1. 標高が高いアメダス地点はどこか
+2. 平野部と山地を地図上で区別できるか
+3. アメダス地点の標高であり，地域全体の標高ではないことを説明できるか
+````
+
+````{note} 演習11：降水確率と標高を重ねて表示する
+「降水確率と標高を重ねる」という見出しを作り，次のセルを順番に実行せよ．
+
+ここでは，点の**色**で平均降水確率を表し，点の**大きさ**で標高を表す．
+ただし，標高をそのまま半径に使うと大きくなりすぎるため，表示用の値を作る．
+
+**セル1：表示用の標高サイズを作る**
+
+```python
+multi_map_df["標高表示サイズ"] = multi_map_df["標高"].clip(upper=800)
+
+multi_map_df[["発表区域名", "地域名", "標高", "標高表示サイズ"]].head()
+```
+
+**セル2：foliumで重ね合わせ地図を作る**
+
+```python
+def pop_color(value):
+    if value < 40:
+        return "green"
+    elif value < 60:
+        return "orange"
+    else:
+        return "red"
+
+
+Path("../reports/figures").mkdir(parents=True, exist_ok=True)
+
+m = folium.Map(location=[36.6, 138.5], zoom_start=6)
+
+for _, row in multi_map_df.iterrows():
+    popup_text = (
+        f"{row['発表区域名']}：{row['地域名']}<br>"
+        f"細分地域：{row['細分地域名']}<br>"
+        f"アメダス地点：{row['アメダス地点名']}<br>"
+        f"平均降水確率：{row['平均降水確率']}%<br>"
+        f"最大降水確率：{row['最大降水確率']}%<br>"
+        f"標高：{row['標高']}m"
+    )
+
+    radius = 6 + row["標高表示サイズ"] / 100
+
+    folium.CircleMarker(
+        location=[row["緯度"], row["経度"]],
+        radius=radius,
+        popup=popup_text,
+        color=pop_color(row["平均降水確率"]),
+        fill=True,
+        fill_opacity=0.7,
+    ).add_to(m)
+
+m.save("../reports/figures/multi_pref_pop_elevation_map.html")
+
+print("saved: ../reports/figures/multi_pref_pop_elevation_map.html")
+```
+
+実行後，次を確認せよ．
+
+1. 色は平均降水確率に対応しているか
+2. 点の大きさは標高に対応しているか
+3. 1つの地図に2つの情報を載せることで，見やすくなった点と見にくくなった点は何か
+````
+
+```{tip} 重ねすぎに注意
+1つの地図に多くの情報を重ねると，情報量は増えるが，読みにくくなることもある．
+色，大きさ，透明度，凡例，ポップアップを使い分け，何を伝えたい図なのかを意識する．
+```
+
+---
+
+## 課題
+
+````{warning} 課題1：好きな都道府県を追加して地図上に可視化する
+演習6〜11で確認した内容を応用する．
+東京都・埼玉県・長野県・新潟県に加えて，各自で好きな都道府県を1つ以上追加し，天気予報JSONをAPIで取得して，地図上に可視化せよ．
+
+作成したpythonスクリプト`src/build_my_forecast_map.py`とHTMLファイル`reports/figures/my_forecast_pop_elevation_map.html`をWebClass「第9回課題」問1・問2から提出せよ．
+CSVファイルは提出しなくてよいが，スクリプトを実行したときに`data/processed/my_forecast_map_data.csv`が作成されるようにすること．
+
+### 条件
+
+1. `FORECAST_OFFICES`に，好きな都道府県を1つ以上追加する．
+2. 追加した都道府県の天気予報JSONを`requests`で取得する．
+3. `forecast_area.json`と`amedastable.json`を使い，追加した都道府県の予報地域・アメダス対応データを作成する．
+4. `発表区域名`と`地域名`をキーにして，予報データとアメダス地点情報を結合する．
+5. 平均降水確率と標高を重ねた地図を作成する．
+6. HTMLファイルとして保存する．
+
+### 追加しやすい発表区域コードの例
+
+| 発表区域名 | 発表区域コード |
+| --- | --- |
+| 栃木県 | `090000` |
+| 群馬県 | `100000` |
+| 千葉県 | `120000` |
+| 神奈川県 | `140000` |
+| 山梨県 | `190000` |
+| 静岡県 | `220000` |
+| 富山県 | `160000` |
+| 石川県 | `170000` |
+
+```{warning} 発表区域コードは文字列として扱う
+`090000`のように先頭が`0`のコードがある．
+数値として扱うと先頭の`0`が消えてしまうため，必ず文字列として扱う．
+```
+
+### 進め方
+
+1. 追加したい都道府県を選ぶ．
+2. `FORECAST_OFFICES`に追加する．
+3. JSONを取得して，含まれる`地域名`を確認する．
+4. `forecast_area.json`と`amedastable.json`から，追加した都道府県のアメダス地点情報を取得する．
+5. Notebookで試験的に実行する．
+6. うまく動いたら，同じ処理を`src/build_my_forecast_map.py`にまとめる．
+7. `9`フォルダ内で次のコマンドを実行する．
 
 ```bash
-python src/plot_tokyo_pop_map.py
+python src/build_my_forecast_map.py
 ```
 
 実行後，次の点を確認せよ．
 
-1. `reports/figures/tokyo_pop_map.html`が作成されているか
-2. 東京地方，伊豆諸島，小笠原諸島が表示されているか
-3. 平均降水確率が高い地域ほど，点が大きく表示されているか
-4. 作成した地図から，どの地域の降水確率が高いと言えそうか
+1. `data/processed/my_forecast_map_data.csv`が作成されたか
+2. `reports/figures/my_forecast_pop_elevation_map.html`が作成されたか
+3. 追加した都道府県の地域が地図上に表示されているか
+4. 結合できずに`緯度`や`標高`が空欄になっている行はないか
+5. 地図から読み取れることを，README.mdに1〜2文で記録したか
 ````
 
-<!--
+
 ````{dropdown} 解答例
-- `<HOGEHOGE1>`：`"降水確率"`
-- `<HOGEHOGE2>`：`"地域名"`
-- `<HOGEHOGE3>`：`"降水確率"`
-- `<HOGEHOGE4>`：`"地域名"`
-- `<HOGEHOGE5>`：`"緯度"`
-- `<PIYOPIYO1>`：`"緯度"`
-- `<PIYOPIYO2>`：`"経度"`
-````
--->
-
-````{warning} 課題2：複数地域の天気予報データを取得して日本地図上に表示する
-自分で選んだ複数の地域について，気象庁の天気予報JSONを取得し，それらを1つのCSVファイルにまとめ，日本地図上に何かしらの予報データを表示せよ．  
-最後に，作成したpythonスクリプト`src/build_selected_forecast_map.py`とHTMLファイル`reports/figures/selected_forecast_map.html`を<span style="color:red">WebClass「第9回課題」問3・問4</span>から提出せよ．
-
-提出するHTMLでは，次のいずれかを地図上に表示すること．
-
-- 平均降水確率
-- 最大降水確率
-- 信頼度Aの件数
-- 最高気温の平均
-- 自分で説明できる別の予報値
-
-作成されるCSVファイル`data/processed/selected_forecast_map_data.csv`は提出しなくてよいが，スクリプトを実行したときに作成されるようにすること．
-
-### 条件
-
-1. 3つ以上の地域を自分で選ぶ．
-2. 気象庁の予報JSONを`requests`で取得する．
-3. 取得したデータを1つのCSVファイルにまとめる．
-4. 地図上に点を表示し，色または大きさで予報値の違いを表す．
-5. HTMLファイルとして保存する．
-
-### 気象庁の予報JSONのURL
-
-都府県などの発表区域コードを使って，次のURLからJSONを取得できる．
-
-```text
-https://www.jma.go.jp/bosai/forecast/data/forecast/<発表区域コード>.json
-```
-
-例：
-
-| 地域 | 発表区域コード | URL |
-| --- | --- | --- |
-| 東京都 | `130000` | `https://www.jma.go.jp/bosai/forecast/data/forecast/130000.json` |
-| 神奈川県 | `140000` | `https://www.jma.go.jp/bosai/forecast/data/forecast/140000.json` |
-| 埼玉県 | `110000` | `https://www.jma.go.jp/bosai/forecast/data/forecast/110000.json` |
-| 千葉県 | `120000` | `https://www.jma.go.jp/bosai/forecast/data/forecast/120000.json` |
-
-### 作成するCSVの例
-
-平均降水確率を地図に載せる場合，CSVは次のような列を持つとよい．
-
-| 列名 | 内容 |
-| --- | --- |
-| `発表区域名` | 東京都，神奈川県など |
-| `地域名` | 東京地方，東部，西部など |
-| `地域コード` | 気象庁の地域コード |
-| `予報日数` | 集計に使った日数 |
-| `平均降水確率` | 降水確率の平均 |
-| `最大降水確率` | 降水確率の最大値 |
-| `緯度` | 地図表示に使う代表点の緯度 |
-| `経度` | 地図表示に使う代表点の経度 |
-
-### 進め方
-
-1. まず，どの地域のデータを取得するか決める．
-2. それぞれのURLからJSONを取得する．
-3. `data[1]["timeSeries"][0]`から週間の天気・降水確率を取り出す．
-4. 地域ごとに平均降水確率などを計算する．
-5. 地域名に代表点の緯度・経度を対応させる．
-6. 1つのCSVファイルとして保存する．
-7. `folium`で地図を作り，HTMLとして保存する．
-
-### コードの骨組み
-
-次の骨組みを参考にしてよい．
-ただし，`FORECAST_AREAS`と`AREA_POINTS`は，自分で選んだ地域に合わせて変更すること．
+神奈川県を追加し，平均降水確率と標高を重ねた地図を作成する例である．
+`src/build_my_forecast_map.py`として保存し，`9`フォルダ内で実行する．
 
 ```python
+import json
 from pathlib import Path
 
 import folium
 import pandas as pd
 import requests
 
-FORECAST_AREAS = {
+
+FORECAST_OFFICES = {
     "東京都": "130000",
-    "神奈川県": "140000",
     "埼玉県": "110000",
+    "長野県": "200000",
+    "新潟県": "150000",
+    "神奈川県": "140000",
 }
 
-AREA_POINTS = {
-    "東京地方": {"緯度": 35.6895, "経度": 139.6917},
-    "東部": {"緯度": 35.4478, "経度": 139.6425},
-    "西部": {"緯度": 35.4667, "経度": 139.6222},
-    "秩父地方": {"緯度": 35.9917, "経度": 139.0856},
-}
+area_url = "https://www.jma.go.jp/bosai/common/const/area.json"
+forecast_area_url = "https://www.jma.go.jp/bosai/forecast/const/forecast_area.json"
+amedas_url = "https://www.jma.go.jp/bosai/amedas/const/amedastable.json"
 
-output_data_path = "data/processed/selected_forecast_map_data.csv"
-output_map_path = "reports/figures/selected_forecast_map.html"
+output_point_path = "data/processed/forecast_area_points.csv"
+output_weather_path = "data/processed/my_weekly_weather.csv"
+output_data_path = "data/processed/my_forecast_map_data.csv"
+output_map_path = "reports/figures/my_forecast_pop_elevation_map.html"
 
 Path("data/raw").mkdir(parents=True, exist_ok=True)
 Path("data/processed").mkdir(parents=True, exist_ok=True)
 Path("reports/figures").mkdir(parents=True, exist_ok=True)
 
-rows = []
 
-for office_name, office_code in FORECAST_AREAS.items():
-    url = f"https://www.jma.go.jp/bosai/forecast/data/forecast/{office_code}.json"
+def fetch_json(url):
     response = requests.get(url)
     response.raise_for_status()
-    data = response.json()
+    return response.json()
 
+
+def degree_minute_to_decimal(value):
+    return value[0] + value[1] / 60
+
+
+def build_weekly_area_lookup(forecast_json):
+    weekly_forecast = forecast_json[1]
+    weather_series = weekly_forecast["timeSeries"][0]
+    lookup = {}
+
+    for area in weather_series["areas"]:
+        lookup[area["area"]["code"]] = area["area"]["name"]
+
+    return lookup
+
+
+def to_weekly_forecast_area(
+    office_name,
+    office_code,
+    class10_code,
+    class10_name,
+    weekly_area_lookup,
+):
+    if class10_code in weekly_area_lookup:
+        return class10_code, weekly_area_lookup[class10_code]
+
+    if office_code == "130000" and class10_code in {"130020", "130030"}:
+        return "130100", "伊豆諸島"
+
+    if len(weekly_area_lookup) == 1:
+        area_code = list(weekly_area_lookup.keys())[0]
+        area_name = weekly_area_lookup[area_code]
+        return area_code, area_name
+
+    return class10_code, class10_name
+
+
+def build_weekly_weather_rows(data, office_name, office_code):
     weekly_forecast = data[1]
     weather_series = weekly_forecast["timeSeries"][0]
-    time_defines = weather_series["timeDefines"]
+    rows = []
 
     for area in weather_series["areas"]:
         area_name = area["area"]["name"]
         area_code = area["area"]["code"]
-        pops = []
 
-        for i, forecast_time in enumerate(time_defines):
+        for i, forecast_time in enumerate(weather_series["timeDefines"]):
             pop_text = area["pops"][i]
-            if pop_text != "":
-                pops.append(int(pop_text))
 
-        if len(pops) == 0:
-            continue
+            if pop_text == "":
+                pop = None
+            else:
+                pop = int(pop_text)
 
-        if area_name not in AREA_POINTS:
-            continue
+            rows.append({
+                "発表区域名": office_name,
+                "発表区域コード": office_code,
+                "発表機関": weekly_forecast["publishingOffice"],
+                "発表時刻": weekly_forecast["reportDatetime"],
+                "地域名": area_name,
+                "地域コード": area_code,
+                "予報時刻": forecast_time,
+                "予報日": forecast_time[:10],
+                "天気コード": area["weatherCodes"][i],
+                "降水確率": pop,
+                "信頼度": area["reliabilities"][i],
+            })
 
-        rows.append({
-            "発表区域名": office_name,
-            "地域名": area_name,
-            "地域コード": area_code,
-            "予報日数": len(pops),
-            "平均降水確率": round(sum(pops) / len(pops), 1),
-            "最大降水確率": max(pops),
-            "緯度": AREA_POINTS[area_name]["緯度"],
-            "経度": AREA_POINTS[area_name]["経度"],
-        })
-
-map_df = pd.DataFrame(rows)
-map_df.to_csv(output_data_path, index=False)
+    return rows
 
 
 def pop_color(value):
@@ -813,18 +1260,137 @@ def pop_color(value):
         return "red"
 
 
-m = folium.Map(location=[36.0, 138.5], zoom_start=5)
+area_data = fetch_json(area_url)
+forecast_area_data = fetch_json(forecast_area_url)
+amedas_data = fetch_json(amedas_url)
 
-for _, row in map_df.iterrows():
+forecast_jsons = {}
+
+for office_name, office_code in FORECAST_OFFICES.items():
+    url = f"https://www.jma.go.jp/bosai/forecast/data/forecast/{office_code}.json"
+    data = fetch_json(url)
+    forecast_jsons[office_name] = data
+
+    output_path = f"data/raw/forecast_{office_code}.json"
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    print("saved:", output_path)
+
+point_rows = []
+
+for office_name, office_code in FORECAST_OFFICES.items():
+    weekly_area_lookup = build_weekly_area_lookup(forecast_jsons[office_name])
+
+    for item in forecast_area_data[office_code]:
+        class10_code = item["class10"]
+        class10_name = area_data["class10s"][class10_code]["name"]
+        forecast_area_code, forecast_area_name = to_weekly_forecast_area(
+            office_name,
+            office_code,
+            class10_code,
+            class10_name,
+            weekly_area_lookup,
+        )
+
+        for amedas_id in item["amedas"]:
+            amedas_info = amedas_data[amedas_id]
+            lat = degree_minute_to_decimal(amedas_info["lat"])
+            lon = degree_minute_to_decimal(amedas_info["lon"])
+
+            point_rows.append({
+                "発表区域名": office_name,
+                "発表区域コード": office_code,
+                "地域名": forecast_area_name,
+                "地域コード": forecast_area_code,
+                "細分地域名": class10_name,
+                "細分地域コード": class10_code,
+                "アメダス番号": amedas_id,
+                "アメダス地点名": amedas_info["kjName"],
+                "緯度": round(lat, 6),
+                "経度": round(lon, 6),
+                "標高": amedas_info["alt"],
+                "予報区域対応取得元": "気象庁 forecast_area.json",
+                "座標標高取得元": "気象庁 amedastable.json",
+            })
+
+point_df = pd.DataFrame(point_rows)
+point_df.to_csv(output_point_path, index=False)
+print("saved:", output_point_path)
+
+weather_rows = []
+
+for office_name, office_code in FORECAST_OFFICES.items():
+    weather_rows.extend(
+        build_weekly_weather_rows(
+            forecast_jsons[office_name],
+            office_name,
+            office_code,
+        )
+    )
+
+weather_df = pd.DataFrame(weather_rows)
+weather_df.to_csv(output_weather_path, index=False)
+print("saved:", output_weather_path)
+
+source_df = weather_df.dropna(subset=["降水確率"]).copy()
+summary_rows = []
+
+keys_df = source_df[["発表区域名", "地域名"]].drop_duplicates()
+
+for _, key_row in keys_df.iterrows():
+    office_name = key_row["発表区域名"]
+    area_name = key_row["地域名"]
+
+    area_df = source_df[
+        (source_df["発表区域名"] == office_name)
+        & (source_df["地域名"] == area_name)
+    ]
+
+    summary_rows.append({
+        "発表区域名": office_name,
+        "地域名": area_name,
+        "予報日数": len(area_df),
+        "平均降水確率": round(area_df["降水確率"].mean(), 1),
+        "最大降水確率": area_df["降水確率"].max(),
+        "信頼度A件数": (area_df["信頼度"] == "A").sum(),
+    })
+
+summary_df = pd.DataFrame(summary_rows)
+
+map_df = pd.merge(
+    summary_df,
+    point_df,
+    on=["発表区域名", "地域名"],
+    how="left",
+)
+
+missing_df = map_df[map_df["緯度"].isna()]
+
+if len(missing_df) > 0:
+    print("結合できなかった行があります")
+    print(missing_df[["発表区域名", "地域名"]])
+
+map_df["標高表示サイズ"] = map_df["標高"].clip(upper=800)
+map_df.to_csv(output_data_path, index=False)
+print("saved:", output_data_path)
+
+m = folium.Map(location=[36.3, 138.7], zoom_start=6)
+
+for _, row in map_df.dropna(subset=["緯度", "経度"]).iterrows():
     popup_text = (
         f"{row['発表区域名']}：{row['地域名']}<br>"
+        f"細分地域：{row['細分地域名']}<br>"
+        f"アメダス地点：{row['アメダス地点名']}<br>"
         f"平均降水確率：{row['平均降水確率']}%<br>"
-        f"最大降水確率：{row['最大降水確率']}%"
+        f"最大降水確率：{row['最大降水確率']}%<br>"
+        f"標高：{row['標高']}m"
     )
+
+    radius = 6 + row["標高表示サイズ"] / 100
 
     folium.CircleMarker(
         location=[row["緯度"], row["経度"]],
-        radius=8 + row["平均降水確率"] / 10,
+        radius=radius,
         popup=popup_text,
         color=pop_color(row["平均降水確率"]),
         fill=True,
@@ -832,35 +1398,21 @@ for _, row in map_df.iterrows():
     ).add_to(m)
 
 m.save(output_map_path)
-
-print("saved:", output_data_path)
 print("saved:", output_map_path)
 ```
-
-```{tip} 座標表を増やす
-選んだ地域の`地域名`が`AREA_POINTS`にない場合，地図に表示されない．
-その場合は，自分で代表点の緯度・経度を調べて`AREA_POINTS`に追加する．
-地図に載せるには，データの値だけでなく，場所を表す情報が必要である．
-```
-
-実行後，次の点を確認せよ．
-
-1. `data/processed/selected_forecast_map_data.csv`が作成されたか
-2. 選んだ地域が3つ以上，CSVに含まれているか
-3. `reports/figures/selected_forecast_map.html`が作成されたか
-4. 地図上の色や大きさが，選んだ予報値に対応しているか
-5. その地図から読み取れる傾向を，1〜2文で説明できるか
 ````
+
 
 ---
 
 ## まとめ
 
 - 地図上への可視化では，値だけでなく**緯度・経度**が必要である
-- 予報データに緯度・経度がない場合は，地点名・地域名と座標の対応表を作成する
-- 地域を1点で表す場合，その点は地域全体ではなく**代表点**である
-- `plotly`はNotebook上で試験的に地図を眺めるのに向いている
-- `folium`はHTMLとして保存し，提出・共有する地図を作るのに向いている
+- 気象庁の天気予報JSONには緯度・経度・標高がないため，別のCSVを結合する必要がある
+- 同じ`地域名`が複数都道府県に出てくることがあるため，`発表区域名`と`地域名`の2つをキーにして結合する
+- 標高だけの地図と，降水確率に標高を重ねた地図では，見えてくることが異なる
+- `plotly`はNotebook上で試験的に眺める地図に向いている
+- `folium`はHTMLとして保存し，提出・共有する地図に向いている
 - 最終レポートでは，データ取得，前処理，可視化，考察までの流れを自分で組み立てる
 
 次回はデータ分析実践Iとして行政統計を扱う．
@@ -868,7 +1420,7 @@ print("saved:", output_map_path)
 
 ### 課題の提出期限
 
-<span style="color: red; ">6月16日(火)23:59まで</span>
+6月16日(火)23:59まで
 
 ---
 
@@ -877,33 +1429,32 @@ print("saved:", output_map_path)
 課題を全てこなし時間が余った場合に取り組んでください．
 WebClassの提出場所から提出したものについて加点対象とします．
 
-````{note} 課題3：気温を使って複数地域の地図を作成する
+````{note} 課題2：別の予報値を地図上に表示する
 
-課題2では降水確率を例にした．
-同じように，複数地域の週間気温データを取得し，平均最高気温を日本地図上に表示せよ．
+課題1では平均降水確率を使った．
+同じJSONから別の値を取り出し，地図上に表示せよ．
 
-`src/build_selected_temperature_map.py`を作成し，WebClass「第9回課題」問5から提出せよ．
+候補：
 
+- 最大降水確率
+- 信頼度Aの件数
+- 信頼度Cの件数
+- 天気コードの出現回数
+
+`src/build_my_forecast_other_value_map.py`を作成し，WebClass「第9回課題」問3から提出せよ．
 提出するのは作成したPythonファイルのみである．作成されるHTMLファイルは提出しなくてよい．
-
-実行後，次の点を確認し，必要に応じてPythonファイル内のコメントに残すこと．
-
-1. 選んだ地域の中で平均最高気温が高い地域はどこか
-2. 気温を予報する`地点名`と，天気を予報する`地域名`はどのように違うか
-3. 降水確率の地図と気温の地図では，見え方がどのように違うか
 ````
 
-````{note} 課題4：点の色分けを工夫する
+````{note} 課題3：標高と降水確率の関係を散布図で確認する
 
-課題2で作成した地図について，色分けの区切りを自分で変更し，より見やすい地図にせよ．
+地図だけでなく，横軸を標高，縦軸を平均降水確率とした散布図を作成せよ．
 
-`src/build_selected_forecast_map_color.py`を作成し，WebClass「第9回課題」問6から提出せよ．
-
-提出するのは作成したPythonファイルのみである．作成されるHTMLファイルは提出しなくてよい．
+`src/plot_elevation_pop_scatter.py`を作成し，WebClass「第9回課題」問4から提出せよ．
+提出するのは作成したPythonファイルのみである．作成される画像ファイルは提出しなくてよい．
 
 実行後，次の点を確認し，必要に応じてPythonファイル内のコメントに残すこと．
 
-1. 変更前の色分けでは何が見にくかったか
-2. 変更後の色分けでは何が見やすくなったか
-3. 値の範囲を確認してから色分けを決めたか
+1. 標高が高いほど平均降水確率が高いように見えるか
+2. 都道府県ごとに傾向は違うか
+3. 地図と散布図では，どちらが何を読み取りやすいか
 ````
