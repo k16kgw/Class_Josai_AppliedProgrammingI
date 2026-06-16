@@ -24,7 +24,7 @@
 - 気象庁の天気予報JSONから，地図上に表示するための表を作成する
 - 位置情報を持たない表に，緯度・経度・標高を持つCSVを結合する
 - `plotly`を使い，Notebook上でインタラクティブな地図を作成する
-- `folium`を使い，HTMLファイルとして保存できる地図を作成する
+- `plotly`の`write_html`を使い，HTMLファイルとして保存できる地図を作成する
 - 位置情報に関連する情報を付加して可視化する
 
 ```{tip} 地図上に可視化する意味
@@ -182,8 +182,7 @@ git commit -m "first commit"
 | `json` | JSONファイルの読み込み | 第5回で取得したJSONを読み込む |
 | `requests` | Web上のデータ取得 | 複数都道府県の天気予報JSONを取得する |
 | `pandas` | 表形式データの作成・確認・前処理 | JSONから表を作り，アメダス地点情報を結合する |
-| `plotly` | Notebook上のインタラクティブな地図 | 試験的に地図を眺める |
-| `folium` | HTMLとして保存できる地図 | 提出用・共有用の地図を作る |
+| `plotly` | インタラクティブな地図の作成・保存 | Notebook上で地図を眺め，HTMLとして保存する |
 
 ---
 
@@ -305,13 +304,13 @@ data/processed/forecast_area_points.csv
 2. ターミナルで後で必要になるライブラリをインストールする
 
     ```bash
-    python -m pip install pandas plotly folium requests
+    python -m pip install pandas plotly requests
     ```
 
     `python`コマンドが動かない場合は，次の`python3`で実行する．
 
     ```bash
-    python3 -m pip install pandas plotly folium requests
+    python3 -m pip install pandas plotly requests
     ```
 
 3. Pythonファイルをダウンロードする
@@ -363,7 +362,7 @@ data/processed/forecast_area_points.csv
 このNotebookで実行しているPythonに必要なライブラリをインストールする．
 
 ```bash
-%pip install pandas plotly folium requests
+%pip install pandas plotly requests
 ```
 
 **セル2：ライブラリを読み込む**
@@ -372,7 +371,6 @@ data/processed/forecast_area_points.csv
 import json
 from pathlib import Path
 
-import folium
 import pandas as pd
 import plotly.express as px
 import requests
@@ -744,7 +742,7 @@ fig = px.scatter_map(
     size="最大降水確率",
     hover_name="地域名",
     hover_data=["発表区域名", "細分地域名", "アメダス地点名", "平均降水確率", "最大降水確率", "標高"],
-    color_continuous_scale="Blues",
+    color_continuous_scale="viridis",
     zoom=4,
     height=600,
 )
@@ -769,50 +767,11 @@ fig.write_html("../reports/figures/tokyo_pop_map_check.html")
 
 print("saved: ../reports/figures/tokyo_pop_map_check.html")
 ```
-<!-- 
-```python
-Path("../reports/figures").mkdir(parents=True, exist_ok=True)
-
-def pop_color(value):
-    if value < 40:
-        return "green"
-    elif value < 60:
-        return "orange"
-    else:
-        return "red"
-
-
-m = folium.Map(location=[33.5, 139.8], zoom_start=5)
-
-for _, row in tokyo_map_df.iterrows():
-    popup_text = (
-        f"{row['発表区域名']}：{row['地域名']}<br>"
-        f"細分地域：{row['細分地域名']}<br>"
-        f"アメダス地点：{row['アメダス地点名']}<br>"
-        f"平均降水確率：{row['平均降水確率']}%<br>"
-        f"最大降水確率：{row['最大降水確率']}%<br>"
-        f"標高：{row['標高']}m"
-    )
-
-    folium.CircleMarker(
-        location=[row["緯度"], row["経度"]],
-        radius=8 + row["平均降水確率"] / 10,
-        popup=popup_text,
-        color=pop_color(row["平均降水確率"]),
-        fill=True,
-        fill_opacity=0.7,
-    ).add_to(m)
-
-m.save("../reports/figures/tokyo_pop_map_check.html")
-
-print("saved: ../reports/figures/tokyo_pop_map_check.html")
-```
- -->
 
 実行後，次を確認せよ．
 
 1. 東京地方，伊豆諸島，小笠原諸島が地図上に表示されているか
-2. 平均降水確率が高い地域ほど濃い青で表示されているか
+2. 平均降水確率が高い地域ほど色が変化して表示されているか
 3. 最大降水確率が高い地域ほど点が大きく表示されているか
 4. 点にマウスを重ねると，アメダス地点名，降水確率，標高が表示されるか
 ````
@@ -1051,7 +1010,7 @@ fig = px.scatter_map(
     size="最大降水確率",
     hover_name="地域名",
     hover_data=["発表区域名", "細分地域名", "アメダス地点名", "平均降水確率", "最大降水確率", "標高"],
-    color_continuous_scale="Blues",
+    color_continuous_scale="viridis",
     zoom=5,
     height=650,
 )
@@ -1170,6 +1129,8 @@ multi_map_df[["発表区域名", "地域名", "標高", "標高表示サイズ"]
 ```python
 Path("../reports/figures").mkdir(parents=True, exist_ok=True)
 
+multi_map_df["標高表示サイズ"] = multi_map_df["標高"].clip(upper=800)
+
 fig = px.scatter_map(
     multi_map_df,
     lat="緯度",
@@ -1178,7 +1139,7 @@ fig = px.scatter_map(
     size="標高表示サイズ",
     hover_name="地域名",
     hover_data=["発表区域名", "細分地域名", "アメダス地点名", "平均降水確率", "最大降水確率", "標高"],
-    color_continuous_scale="Blues",
+    color_continuous_scale="viridis",
     size_max=25,
     zoom=5,
     height=650,
@@ -1263,8 +1224,8 @@ python src/build_my_forecast_map.py
 import json
 from pathlib import Path
 
-import folium
 import pandas as pd
+import plotly.express as px
 import requests
 
 
@@ -1364,15 +1325,6 @@ def build_weekly_weather_rows(data, office_name, office_code):
             })
 
     return rows
-
-
-def pop_color(value):
-    if value < 40:
-        return "green"
-    elif value < 60:
-        return "orange"
-    else:
-        return "red"
 
 
 area_data = fetch_json(area_url)
@@ -1489,30 +1441,33 @@ map_df["標高表示サイズ"] = map_df["標高"].clip(upper=800)
 map_df.to_csv(output_data_path, index=False)
 print("saved:", output_data_path)
 
-m = folium.Map(location=[36.3, 138.7], zoom_start=6)
+fig = px.scatter_map(
+    map_df.dropna(subset=["緯度", "経度"]),
+    lat="緯度",
+    lon="経度",
+    color="平均降水確率",
+    size="標高表示サイズ",
+    hover_name="地域名",
+    hover_data=[
+        "発表区域名",
+        "細分地域名",
+        "アメダス地点名",
+        "平均降水確率",
+        "最大降水確率",
+        "標高",
+    ],
+    color_continuous_scale="viridis",
+    size_max=25,
+    zoom=6,
+    height=650,
+)
 
-for _, row in map_df.dropna(subset=["緯度", "経度"]).iterrows():
-    popup_text = (
-        f"{row['発表区域名']}：{row['地域名']}<br>"
-        f"細分地域：{row['細分地域名']}<br>"
-        f"アメダス地点：{row['アメダス地点名']}<br>"
-        f"平均降水確率：{row['平均降水確率']}%<br>"
-        f"最大降水確率：{row['最大降水確率']}%<br>"
-        f"標高：{row['標高']}m"
-    )
+fig.update_layout(
+    title="選択した都道府県の週間予報：平均降水確率と標高",
+    map_style="open-street-map",
+)
 
-    radius = 6 + row["標高表示サイズ"] / 100
-
-    folium.CircleMarker(
-        location=[row["緯度"], row["経度"]],
-        radius=radius,
-        popup=popup_text,
-        color=pop_color(row["平均降水確率"]),
-        fill=True,
-        fill_opacity=0.7,
-    ).add_to(m)
-
-m.save(output_map_path)
+fig.write_html(output_map_path)
 print("saved:", output_map_path)
 ```
 ````
@@ -1525,7 +1480,7 @@ print("saved:", output_map_path)
 - 気象庁の天気予報JSONには緯度・経度・標高がないため，別のCSVを結合する必要がある
 - 標高と降水確率といった複数のデータを同時に可視化することで新しいものが見えてくることがある
 - `plotly`はNotebook上で試験的に眺める地図の出力に有効である
-- `folium`はHTMLとして地図の保存が可能であり，地図を提出・共有する場合に有効である
+- `plotly`の`write_html`を使うと，作成した地図をHTMLファイルとして提出・共有できる
 
 次回はデータ分析実践Iとして行政統計を扱う．
 気象データ以外のオープンデータを使い，テーマ設定，データ取得，前処理，可視化までを一通り行う．
