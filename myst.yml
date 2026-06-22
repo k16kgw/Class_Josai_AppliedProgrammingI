@@ -8,7 +8,12 @@ project:
     - name: Keiichiro Kagawa
     - email: kkagawa@josai.ac.jp
     # - affiliation: 3号棟3階3306
-  github: https://github.com/k16kgw/Class_Josai_AppliedProgrammingI
+  # 公開ページからGitHub・編集・ソース表示へのリンクを出さない
+  # github: https://github.com/k16kgw/Class_Josai_AppliedProgrammingI
+  edit_url: null
+  source_url: null
+  # 既定のMarkdownソースのダウンロードを無効にする
+  downloads: []
   # To autogenerate a Table of Contents, run "jupyter book init --write-toc"
   bibliography:
     - references.bib
@@ -30,7 +35,7 @@ project:
     - file: contents/7_preprocessing2.md
     - file: contents/8_visualization.md
     - file: contents/9_map_visualization.md
-    # - file: contents/10_administrative_statistics.md
+    - file: contents/10_administrative_statistics.md
     # - file: contents/11_economic_data.md
     # - file: contents/12_sports_data.md
     # - file: contents/13_report_writing.md
