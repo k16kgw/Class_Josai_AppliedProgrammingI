@@ -1215,7 +1215,7 @@ python src/build_my_forecast_map.py
 5. 地図から読み取れることを，README.mdに1〜2文で記録したか
 ````
 
-```{note} 課題3で`weekly_area_lookup`を使う理由
+````{note} 課題3でweekly_area_lookupを使う理由
 演習3では，`forecast_area.json`の`class10`を週間予報の地域へ対応させた．
 東京都では「伊豆諸島北部」と「伊豆諸島南部」を，週間予報の「伊豆諸島」へ対応させている．
 
@@ -1246,7 +1246,7 @@ python src/build_my_forecast_map.py
 
 この辞書を使って`class10`を実際の週間予報地域へ対応させることで，集計表とアメダス地点表を`発表区域名`と`地域名`で結合できるようにする．
 この処理がないと，地域名が一致しない行では`緯度`，`経度`，`標高`が空欄になる．
-```
+````
 
 ````{dropdown} <span style="color:red">解答例</span>
 神奈川県を追加し，平均降水確率と標高を重ねた地図を作成する例である．
