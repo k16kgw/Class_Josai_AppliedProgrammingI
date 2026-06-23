@@ -1214,12 +1214,46 @@ python src/build_my_forecast_map.py
 4. 結合できずに`緯度`や`標高`が空欄になっている行はないか
 5. 地図から読み取れることを，README.mdに1〜2文で記録したか
 ````
-<!-- 
-````{dropdown} 解答例
+
+```{note} 課題3で`weekly_area_lookup`を使う理由
+演習3では，`forecast_area.json`の`class10`を週間予報の地域へ対応させた．
+東京都では「伊豆諸島北部」と「伊豆諸島南部」を，週間予報の「伊豆諸島」へ対応させている．
+
+課題3では学生ごとに異なる発表区域を追加するため，東京都だけを対象とした条件分岐では対応できない．
+2026年6月23日時点では，次の5都県で`class10`の地域を複数の週間予報地域へ対応させる必要がある．
+
+| 都道府県 | 発表区域コード | 週間予報の地域 |
+| --- | --- | --- |
+| 青森県 | `020000` | 津軽，下北・三八上北 |
+| 岩手県 | `030000` | 内陸，沿岸 |
+| 宮城県 | `040000` | 東部，西部 |
+| 福島県 | `070000` | 中通り・浜通り，会津 |
+| 東京都 | `130000` | 東京地方，伊豆諸島，小笠原諸島 |
+
+この都道府県を使用する場合には`weekly_area_lookup`の処理を追加すること．
+
+例えば，青森県では`class10`の「下北」と「三八上北」を週間予報の「下北・三八上北」へ，東京都では「伊豆諸島北部」と「伊豆諸島南部」を「伊豆諸島」へ対応させる．
+
+`build_weekly_area_lookup`は，取得した週間予報JSONから，次のような「地域コードから地域名を調べる辞書」を作る関数である．
+
+```python
+{
+    "130010": "東京地方",
+    "130100": "伊豆諸島",
+    "130040": "小笠原諸島",
+}
+```
+
+この辞書を使って`class10`を実際の週間予報地域へ対応させることで，集計表とアメダス地点表を`発表区域名`と`地域名`で結合できるようにする．
+この処理がないと，地域名が一致しない行では`緯度`，`経度`，`標高`が空欄になる．
+```
+
+````{dropdown} <span style="color:red">解答例</span>
 神奈川県を追加し，平均降水確率と標高を重ねた地図を作成する例である．
 `src/build_my_forecast_map.py`として保存し，`9`フォルダ内で実行する．
 
 ```python
+# 演習1・セル2：ライブラリを読み込む
 import json
 from pathlib import Path
 
@@ -1228,6 +1262,7 @@ import plotly.express as px
 import requests
 
 
+# 3.2節-1：取得する発表区域を定義する
 FORECAST_OFFICES = {
     "東京都": "130000",
     "埼玉県": "110000",
@@ -1236,6 +1271,7 @@ FORECAST_OFFICES = {
     "神奈川県": "140000",
 }
 
+# 3.2節-2：予報地域・アメダス地点に関するJSONを取得する
 area_url = "https://www.jma.go.jp/bosai/common/const/area.json"
 forecast_area_url = "https://www.jma.go.jp/bosai/forecast/const/forecast_area.json"
 amedas_url = "https://www.jma.go.jp/bosai/amedas/const/amedastable.json"
@@ -1250,16 +1286,19 @@ Path("data/processed").mkdir(parents=True, exist_ok=True)
 Path("reports/figures").mkdir(parents=True, exist_ok=True)
 
 
+# 演習5・セル2：APIからJSONを取得する処理を関数にする
 def fetch_json(url):
     response = requests.get(url)
     response.raise_for_status()
     return response.json()
 
 
+# 3.2節-4：前処理（度分形式を小数の緯度・経度に変換する関数を作る）
 def degree_minute_to_decimal(value):
     return value[0] + value[1] / 60
 
 
+# 課題3補足：週間予報の地域コードから地域名を調べる辞書を作る
 def build_weekly_area_lookup(forecast_json):
     weekly_forecast = forecast_json[1]
     weather_series = weekly_forecast["timeSeries"][0]
@@ -1271,6 +1310,7 @@ def build_weekly_area_lookup(forecast_json):
     return lookup
 
 
+# 課題3補足：細分地域を実際の週間予報地域へ対応させる
 def to_weekly_forecast_area(
     office_name,
     office_code,
@@ -1281,8 +1321,12 @@ def to_weekly_forecast_area(
     if class10_code in weekly_area_lookup:
         return class10_code, weekly_area_lookup[class10_code]
 
-    if office_code == "130000" and class10_code in {"130020", "130030"}:
-        return "130100", "伊豆諸島"
+    for weekly_code, weekly_name in weekly_area_lookup.items():
+        if class10_name in weekly_name or weekly_name in class10_name:
+            return weekly_code, weekly_name
+
+    if office_code in weekly_area_lookup:
+        return office_code, weekly_area_lookup[office_code]
 
     if len(weekly_area_lookup) == 1:
         area_code = list(weekly_area_lookup.keys())[0]
@@ -1292,6 +1336,7 @@ def to_weekly_forecast_area(
     return class10_code, class10_name
 
 
+# 演習6・セル1：JSONから週間予報の行を作る
 def build_weekly_weather_rows(data, office_name, office_code):
     weekly_forecast = data[1]
     weather_series = weekly_forecast["timeSeries"][0]
@@ -1326,10 +1371,12 @@ def build_weekly_weather_rows(data, office_name, office_code):
     return rows
 
 
+# 演習3・セル1：予報地域とアメダス地点に関するJSONを取得する
 area_data = fetch_json(area_url)
 forecast_area_data = fetch_json(forecast_area_url)
 amedas_data = fetch_json(amedas_url)
 
+# 演習5・セル2：各発表区域の天気予報JSONを取得して保存する
 forecast_jsons = {}
 
 for office_name, office_code in FORECAST_OFFICES.items():
@@ -1342,6 +1389,7 @@ for office_name, office_code in FORECAST_OFFICES.items():
         json.dump(data, f, ensure_ascii=False, indent=2)
     print("saved:", output_path)
 
+# 演習3・セル1：予報地域とアメダス地点を対応させた表を作る
 point_rows = []
 
 for office_name, office_code in FORECAST_OFFICES.items():
@@ -1379,10 +1427,12 @@ for office_name, office_code in FORECAST_OFFICES.items():
                 "座標標高取得元": "気象庁 amedastable.json",
             })
 
+# 演習3・セル2：予報地域・アメダス対応CSVを保存する
 point_df = pd.DataFrame(point_rows)
 point_df.to_csv(output_point_path, index=False)
 print("saved:", output_point_path)
 
+# 演習6・セル2：複数都道府県の週間予報を1つの表にまとめる
 weather_rows = []
 
 for office_name, office_code in FORECAST_OFFICES.items():
@@ -1394,10 +1444,12 @@ for office_name, office_code in FORECAST_OFFICES.items():
         )
     )
 
+# 演習6・セル3：週間予報をCSVとして保存する
 weather_df = pd.DataFrame(weather_rows)
 weather_df.to_csv(output_weather_path, index=False)
 print("saved:", output_weather_path)
 
+# 演習7・セル1：地域ごとに降水確率を集計する
 source_df = weather_df.dropna(subset=["降水確率"]).copy()
 summary_rows = []
 
@@ -1423,6 +1475,7 @@ for _, key_row in keys_df.iterrows():
 
 summary_df = pd.DataFrame(summary_rows)
 
+# 演習7・セル2：集計結果にアメダス地点情報を結合する
 map_df = pd.merge(
     summary_df,
     point_df,
@@ -1430,16 +1483,21 @@ map_df = pd.merge(
     how="left",
 )
 
+# 演習7・セル3：結合できなかった地域を確認する
 missing_df = map_df[map_df["緯度"].isna()]
 
 if len(missing_df) > 0:
     print("結合できなかった行があります")
     print(missing_df[["発表区域名", "地域名"]])
 
+# 演習10・セル1：標高から点の表示サイズを作る
 map_df["標高表示サイズ"] = map_df["標高"].clip(upper=800)
+
+# 演習7・セル4：地図用データをCSVとして保存する
 map_df.to_csv(output_data_path, index=False)
 print("saved:", output_data_path)
 
+# 演習10・セル2：平均降水確率と標高を重ねた地図を作る
 fig = px.scatter_map(
     map_df.dropna(subset=["緯度", "経度"]),
     lat="緯度",
@@ -1466,11 +1524,12 @@ fig.update_layout(
     map_style="open-street-map",
 )
 
+# 演習10・セル2：地図をHTMLファイルとして保存する
 fig.write_html(output_map_path)
 print("saved:", output_map_path)
 ```
 ````
- -->
+
 ````{dropdown} 都道府県コード一覧
 
 **47都道府県の発表区域コード一覧**

@@ -35,17 +35,13 @@ project:
     - file: contents/7_preprocessing2.md
     - file: contents/8_visualization.md
     - file: contents/9_map_visualization.md
-    - file: contents/10_administrative_statistics.md
+    # - file: contents/10_administrative_statistics.md
     # - file: contents/11_economic_data.md
     # - file: contents/12_sports_data.md
     # - file: contents/13_report_writing.md
 
 site:
-  template: book-theme
-  # template: article-theme
   options:
     folders: true
-    # style: ./assets/custom.css
-    # logo: logo.png
-    # css:
-    #   - assets/custom.css
+    style: styles/site.css
+  template: book-theme
