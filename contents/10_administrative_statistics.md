@@ -514,17 +514,12 @@ edge_df.nlargest(10, "移動者数")
 
 ## 重み付き有向グラフを作成する
 
-### ノード・エッジ・重み
-
-- $V$：ノードの集合
-- $E$：エッジの集合
-- $G=(V,E)$：ネットワーク
-
 今回のデータでは
 - ノード：都道府県
 - エッジ：人口移動
   - 転出元から転入先への向き
   - 移動者数の重み
+と対応する．
 
 ### ネットワーク密度
 
@@ -831,6 +826,7 @@ plt.show()
 地図とネットワーク図は，表している位置の意味が異なる．
 ```
 
+<!-- 
 ---
 
 ## マウスで操作できるネットワーク図を作る
@@ -981,13 +977,13 @@ print("saved:", interactive_path)
 6. `reports/figures/interactive_migration_network.html`が作成されたか
 ````
 
-```{important} ノードの位置の解釈
+```{tip} ノードの位置の解釈
 ノードは物理シミュレーションによって動くため，HTMLを開くたびに位置が少し変わることがある．
 
 画面上の上下左右や距離そのものに地理的な意味はない．
 エッジの向き・太さと，マウスオーバーで表示される値を確認すること．
 ```
-
+ -->
 ---
 
 ## 1つの都道府県を中心に詳しく見る
@@ -997,7 +993,7 @@ print("saved:", interactive_path)
 特定のノードと，その周辺のノード・エッジを取り出した部分ネットワークを**ego network**という．
 ここでは，埼玉県への流入上位5件と，埼玉県からの流出上位5件を表示する．
 
-````{note} 演習8：埼玉県の人口移動ネットワークを描く
+````{note} 演習7：埼玉県の人口移動ネットワークを描く
 「埼玉県の人口移動」という見出しを作り，次のセルを順番に実行せよ．
 
 **セル1：埼玉県に関係する上位の移動を取り出す**
@@ -1139,13 +1135,7 @@ plt.show()
 
 演習8のコードをPythonスクリプトにまとめ，`src/plot_my_prefecture_migration_network.py`を作成すること．
 
-次は千葉県を選択する例である．
 `target_prefecture`は自分が選択した都道府県に変更すること．
-
-```python
-target_prefecture = "千葉県"
-top_n = 7
-```
 
 ### 条件
 
@@ -1176,203 +1166,6 @@ python3 src/plot_my_prefecture_migration_network.py
 
 ---
 
-## PageRankで移動先としての中心性を見る
-
-### 中心性
-
-中心性は，ネットワークの中でノードがどのような意味で中心的かを数値化する方法である．
-
-| 指標 | 着目すること | 人口移動での解釈 |
-| --- | --- | --- |
-| 重み付き入次数 | 入るエッジの重みの合計 | 流入者数が多い |
-| 重み付き出次数 | 出るエッジの重みの合計 | 流出者数が多い |
-| PageRank | 中心的なノードからの流入 | 移動先として中心的である |
-
-PageRankは，単に流入量を合計するだけでなく，**どのノードから流入しているか**も考慮する．
-
-```{tip} PageRankの定義
-PageRankは，「中心的なノードから多くの重みを受け取るノードも中心的である」という考え方に基づく中心性指標である．
-
-ノード$i$のPageRankを$PR(i)$とすると，重み付き有向ネットワークでは次のように表せる．
-
-$$
-PR(i)
-=
-\frac{1-\alpha}{N}
-+
-\alpha
-\sum_{j \rightarrow i}
-PR(j)
-\frac{w_{ji}}{\sum_k w_{jk}}
-$$
-
-ここに，$N$はノード数，$w_{ji}$はノード$j$からノード$i$へのエッジの重み，$\alpha$はエッジをたどる割合である．
-
-今回の人口移動ネットワークでは，移動先が中心的な都道府県であり，中心的な都道府県から多くの人が移動してくるほどPageRankが高くなりやすい．
-
-`alpha=0.85`の場合，85%の確率で移動者数に比例してエッジをたどり，15%の確率でいずれかのノードへ移ると考える．
-すべてのノードのPageRankを合計すると1になる．
-```
-
-```{note} PageRankと対数正規分布
-PageRankベクトルは，ランダムにネットワークを移動する主体が各ノードに存在する長期的な確率を表す離散確率分布である．
-一方，対数正規分布は，対数を取ると正規分布になる正の連続量に対する確率分布である．
-
-したがって，PageRankの計算では対数正規分布を仮定しておらず，両者に必然的な関係はない．
-ネットワークによってはPageRank値が右に裾の長い分布になり，対数正規分布に似て見える場合もあるが，Webなどのスケールフリー・ネットワークではべき乗分布との関係が研究されることが多い．
-
-今回のデータは47都道府県だけであり，PageRank値の形だけから特定の確率分布に従うと判断することは適切ではない．
-```
-
-```{tip} 注意：PageRankの解釈
-PageRankが高いことは，その都道府県が優れていることや住みやすいことを意味しない．
-
-今回作成した人口移動ネットワークにおいて，移動先として中心的な位置にあることを表す指標の1つである．
-```
-
-````{note} 演習9：重み付きPageRankを計算して可視化する
-「人口移動ネットワークのPageRank」という見出しを作り，次のセルを順番に実行せよ．
-
-**セル1：PageRankを計算する**
-
-```python
-pagerank = nx.pagerank(
-    G,
-    alpha=0.85,
-    weight="移動者数",
-)
-
-node_df["PageRank"] = node_df["都道府県"].map(pagerank)
-
-node_df.sort_values("PageRank", ascending=False).head(10)
-```
-
-**セル2：PageRank上位10都道府県を取り出す**
-
-```python
-pagerank_top10_df = (
-    node_df
-    .sort_values("PageRank", ascending=False)
-    .head(10)
-)
-
-pagerank_top10_df[
-    ["都道府県", "流入者数", "流出者数", "都道府県間純移動", "PageRank"]
-]
-```
-
-**セル3：棒グラフで可視化する**
-
-```python
-fig, ax = plt.subplots(figsize=(7, 5))
-
-sns.barplot(
-    data=pagerank_top10_df,
-    x="PageRank",
-    y="都道府県",
-    color="steelblue",
-    ax=ax,
-)
-
-ax.set_title("人口移動ネットワークのPageRank上位10都道府県（2025年）")
-ax.set_xlabel("PageRank")
-ax.set_ylabel("都道府県")
-
-plt.tight_layout()
-plt.show()
-```
-
-実行後，次を確認せよ．
-
-1. PageRank上位にはどの都道府県が入っているか
-2. 流入者数の上位とPageRankの上位は同じか
-3. 人口規模が結果に影響している可能性はあるか
-````
-
-````{warning} 課題2：PageRank上位10都道府県をPythonファイルで可視化する
-
-以下のコードを使ってPythonスクリプト`src/plot_migration_pagerank.py`を作成せよ．
-
-```python
-from pathlib import Path
-
-import matplotlib.pyplot as plt
-import networkx as nx
-import pandas as pd
-import seaborn as sns
-
-
-input_path = "data/processed/prefecture_migration_edges_2025.csv"
-output_path = "reports/figures/migration_pagerank.png"
-
-plt.rcParams["font.family"] = "Hiragino Sans"
-sns.set_theme(style="whitegrid", font="Hiragino Sans")
-Path("reports/figures").mkdir(parents=True, exist_ok=True)
-
-edge_df = pd.read_csv(input_path)
-
-G = nx.from_pandas_edgelist(
-    edge_df,
-    source="転出元",
-    target="転入先",
-    edge_attr="移動者数",
-    create_using=nx.DiGraph,
-)
-
-pagerank = nx.pagerank(
-    G,
-    weight="移動者数",
-)
-
-pagerank_df = pd.DataFrame({
-    "都道府県": list(pagerank.keys()),
-    "PageRank": list(pagerank.values()),
-})
-
-top10_df = pagerank_df.nlargest(10, "PageRank")
-
-fig, ax = plt.subplots(figsize=(7, 5))
-
-sns.barplot(
-    data=top10_df,
-    x="PageRank",
-    y="都道府県",
-    color="steelblue",
-    ax=ax,
-)
-
-ax.set_title("人口移動ネットワークのPageRank上位10都道府県（2025年）")
-ax.set_xlabel("PageRank")
-ax.set_ylabel("都道府県")
-
-plt.tight_layout()
-plt.savefig(output_path, dpi=150)
-
-print("saved:", output_path)
-```
-
-作成したPythonファイルを`10`フォルダ内で実行すること．
-
-```bash
-python3 src/plot_migration_pagerank.py
-```
-
-作成したPythonスクリプト`src/plot_migration_pagerank.py`と画像ファイル`reports/figures/migration_pagerank.png`を<span style="color:red">WebClass「第10回課題」問3・問4</span>から提出せよ．
-````
-
-<!--
-````{dropdown} 課題2 解答例
-
-- `source`：`"転出元"`
-- `target`：`"転入先"`
-- `edge_attr`：`"移動者数"`
-- `create_using`：`nx.DiGraph`
-- `weight`：`"移動者数"`
-````
--->
-
----
-
 ## 人口移動ネットワークのクラスターを探す
 
 ### コミュニティ検出
@@ -1390,14 +1183,14 @@ w_{ij}^{\mathrm{undirected}}
 w_{ij}+w_{ji}
 $$
 
-```{important} 有向グラフから無向グラフへの変換
-方向を取り除くと，「どちらからどちらへの移動が多いか」という情報は失われる．
+```{tip} 有向グラフから無向グラフへの変換
+方向を取り除くと，どちらからどちらへの移動が多いかという情報は失われる．
 
 今回は地域間の結び付きの強さからクラスターを探すために無向化する．
 分析目的が異なれば，有向ネットワークに対応した別のコミュニティ検出法を選ぶ必要がある．
 ```
 
-````{note} 演習10：人口移動ネットワークのコミュニティを検出する
+````{note} 演習9：人口移動ネットワークのコミュニティを検出する
 「人口移動ネットワークのコミュニティ」という見出しを作り，次のセルを順番に実行せよ．
 
 **セル1：往復の移動者数を合計する**
@@ -1582,56 +1375,236 @@ plt.show()
 5. エッジの表示を80本に絞っても，コミュニティの計算には全エッジを使用していることを説明できるか
 ````
 
-```{tip} コミュニティは唯一の正解ではない
-検出結果は，使用するデータ，重み，方向の扱い，アルゴリズムによって変わる．
+```{tip} 注意：コミュニティは唯一の正解ではない
+検出結果は使用するデータ・重み・方向の扱い・アルゴリズムによって変わる．
 
 検出されたクラスターをそのまま正解と考えるのではなく，どのような結び付きによってそのグループになったのかを元データと照らして考えることが重要である．
 ```
 
 ---
 
-## 考察
+## まとめ
 
-````{note} 演習11：README.mdに分析結果を整理する
-
-README.mdの「第10回 分析記録」に次の内容を記入せよ．
-
-1. 全国の主要な人口移動はどの地域に集中していたか
-2. 埼玉県と結び付きの強い都道府県はどこか
-3. 流入者数，流出者数，純移動，PageRankはそれぞれ何を表すか
-4. 全国図とego networkでは，読み取りやすいことがどのように違ったか
-5. 検出されたコミュニティにはどのような地域的特徴があったか
-6. 今回のデータだけでは説明できないことは何か
-
-図から観察した事実と，理由についての推測を分けて書くこと．
-````
-
-```{note} この分析だけでは原因は分からない
+```{tip} 注意：因果はわからない
 人口移動には，就職，進学，住宅事情，家族，交通，災害など多くの要因が関係する．
 
 人口移動ネットワークだけから，移動が生じた原因を断定することはできない．
 ```
 
----
-
-## まとめ
-
 - 行政統計では，出典，調査年，単位，行と列の意味を最初に確認する
-- 都道府県間人口移動は，重み付き有向ネットワークとして表現できる
+- 都道府県間人口移動を重み付き有向ネットワークとして表現した
 - 隣接行列形式 (wide format)は，エッジリスト形式 (long format)へ変換するとネットワークを作りやすい
-- すべての異なる都道府県間に移動があるため，エッジの有無より重みが重要である
+- すべての異なる都道府県間に移動があるため，エッジの有無より重みが重要となる
 - 流入者数と流出者数は，重み付き入次数・出次数として計算できる
 - 全国図では全体構造，ego networkでは特定地域の関係を詳しく確認できる
 - 表示用にエッジを絞る場合は，表示していない関係があることに注意する
-- PageRankはネットワーク上の中心性の1つであり，価値や住みやすさを直接表すものではない
 - コミュニティ検出を使うと，人口移動によって強く結び付いた地域のクラスターを探すことができる
 - 可視化から傾向は読み取れるが，人口移動の原因を断定することはできない
 
-次回はデータ分析実践IIとして経済データを扱う．
+次回は時系列データの解析として経済データを扱う．
 
 ### 課題の提出期限
 
-<span style="color:red">6月23日(火)23:59まで</span>
+<span style="color:red">6月27日(土)23:59まで</span>
+
+---
+
+以降の発展問題は特に提出期限を設けない．メールなどでの提出を受け付ける．
+
+## おまけ：PageRankで移動先としての中心性を見る
+
+### 中心性
+
+中心性は，ネットワークの中でノードがどのような意味で中心的かを数値化する方法である．
+
+| 指標 | 着目すること | 人口移動での解釈 |
+| --- | --- | --- |
+| 重み付き入次数 | 入るエッジの重みの合計 | 流入者数が多い |
+| 重み付き出次数 | 出るエッジの重みの合計 | 流出者数が多い |
+| PageRank | 中心的なノードからの流入 | 移動先として中心的である |
+
+PageRankは，単に流入量を合計するだけでなく，**どのノードから流入しているか**も考慮する．
+
+```{tip} PageRankの定義
+PageRankは，「中心的なノードから多くの重みを受け取るノードも中心的である」という考え方に基づく中心性指標である．
+
+ノード$i$のPageRankを$PR(i)$とすると，重み付き有向ネットワークでは次のように表せる．
+
+$$
+PR(i)
+=
+\frac{1-\alpha}{N}
++
+\alpha
+\sum_{j \rightarrow i}
+PR(j)
+\frac{w_{ji}}{\sum_k w_{jk}}
+$$
+
+ここに，$N$はノード数，$w_{ji}$はノード$j$からノード$i$へのエッジの重み，$\alpha$はエッジをたどる割合である．
+
+今回の人口移動ネットワークでは，移動先が中心的な都道府県であり，中心的な都道府県から多くの人が移動してくるほどPageRankが高くなりやすい．
+
+`alpha=0.85`の場合，85%の確率で移動者数に比例してエッジをたどり，15%の確率でいずれかのノードへ移ると考える．
+すべてのノードのPageRankを合計すると1になる．
+```
+
+```{note} PageRankと対数正規分布
+PageRankベクトルは，ランダムにネットワークを移動する主体が各ノードに存在する長期的な確率を表す離散確率分布である．
+一方，対数正規分布は，対数を取ると正規分布になる正の連続量に対する確率分布である．
+
+したがって，PageRankの計算では対数正規分布を仮定しておらず，両者に必然的な関係はない．
+ネットワークによってはPageRank値が右に裾の長い分布になり，対数正規分布に似て見える場合もあるが，Webなどのスケールフリー・ネットワークではべき乗分布との関係が研究されることが多い．
+
+今回のデータは47都道府県だけであり，PageRank値の形だけから特定の確率分布に従うと判断することは適切ではない．
+```
+
+```{tip} 注意：PageRankの解釈
+PageRankが高いことは，その都道府県が優れていることや住みやすいことを意味しない．
+
+今回作成した人口移動ネットワークにおいて，移動先として中心的な位置にあることを表す指標の1つである．
+```
+
+````{note} 演習9：重み付きPageRankを計算して可視化する
+「人口移動ネットワークのPageRank」という見出しを作り，次のセルを順番に実行せよ．
+
+**セル1：PageRankを計算する**
+
+```python
+pagerank = nx.pagerank(
+    G,
+    alpha=0.85,
+    weight="移動者数",
+)
+
+node_df["PageRank"] = node_df["都道府県"].map(pagerank)
+
+node_df.sort_values("PageRank", ascending=False).head(10)
+```
+
+**セル2：PageRank上位10都道府県を取り出す**
+
+```python
+pagerank_top10_df = (
+    node_df
+    .sort_values("PageRank", ascending=False)
+    .head(10)
+)
+
+pagerank_top10_df[
+    ["都道府県", "流入者数", "流出者数", "都道府県間純移動", "PageRank"]
+]
+```
+
+**セル3：棒グラフで可視化する**
+
+```python
+fig, ax = plt.subplots(figsize=(7, 5))
+
+sns.barplot(
+    data=pagerank_top10_df,
+    x="PageRank",
+    y="都道府県",
+    color="steelblue",
+    ax=ax,
+)
+
+ax.set_title("人口移動ネットワークのPageRank上位10都道府県（2025年）")
+ax.set_xlabel("PageRank")
+ax.set_ylabel("都道府県")
+
+plt.tight_layout()
+plt.show()
+```
+
+実行後，次を確認せよ．
+
+1. PageRank上位にはどの都道府県が入っているか
+2. 流入者数の上位とPageRankの上位は同じか
+3. 人口規模が結果に影響している可能性はあるか
+````
+
+````{note} 発展問題1：PageRank上位10都道府県をPythonファイルで可視化する
+
+以下のコードを使ってPythonスクリプト`src/plot_migration_pagerank.py`を作成せよ．
+
+```python
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import networkx as nx
+import pandas as pd
+import seaborn as sns
+
+
+input_path = "data/processed/prefecture_migration_edges_2025.csv"
+output_path = "reports/figures/migration_pagerank.png"
+
+plt.rcParams["font.family"] = "Hiragino Sans"
+sns.set_theme(style="whitegrid", font="Hiragino Sans")
+Path("reports/figures").mkdir(parents=True, exist_ok=True)
+
+edge_df = pd.read_csv(input_path)
+
+G = nx.from_pandas_edgelist(
+    edge_df,
+    source="転出元",
+    target="転入先",
+    edge_attr="移動者数",
+    create_using=nx.DiGraph,
+)
+
+pagerank = nx.pagerank(
+    G,
+    weight="移動者数",
+)
+
+pagerank_df = pd.DataFrame({
+    "都道府県": list(pagerank.keys()),
+    "PageRank": list(pagerank.values()),
+})
+
+top10_df = pagerank_df.nlargest(10, "PageRank")
+
+fig, ax = plt.subplots(figsize=(7, 5))
+
+sns.barplot(
+    data=top10_df,
+    x="PageRank",
+    y="都道府県",
+    color="steelblue",
+    ax=ax,
+)
+
+ax.set_title("人口移動ネットワークのPageRank上位10都道府県（2025年）")
+ax.set_xlabel("PageRank")
+ax.set_ylabel("都道府県")
+
+plt.tight_layout()
+plt.savefig(output_path, dpi=150)
+
+print("saved:", output_path)
+```
+
+作成したPythonファイルを`10`フォルダ内で実行すること．
+
+```bash
+python3 src/plot_migration_pagerank.py
+```
+
+作成したPythonスクリプト`src/plot_migration_pagerank.py`と画像ファイル`reports/figures/migration_pagerank.png`を<span style="color:red">WebClass「第10回課題」問3・問4</span>から提出せよ．
+````
+
+<!--
+````{dropdown} 課題2 解答例
+
+- `source`：`"転出元"`
+- `target`：`"転入先"`
+- `edge_attr`：`"移動者数"`
+- `create_using`：`nx.DiGraph`
+- `weight`：`"移動者数"`
+````
+-->
 
 ---
 
@@ -1640,7 +1613,7 @@ README.mdの「第10回 分析記録」に次の内容を記入せよ．
 課題を全てこなし時間が余った場合に取り組んでください．
 WebClassの提出場所から提出したものについて加点対象とします．
 
-````{note} 発展問題1：人口規模で標準化した移動率を考える
+````{note} 発展問題2：人口規模で標準化した移動率を考える
 
 移動者数が多い都道府県は，もともとの人口も多い可能性がある．
 都道府県人口のデータを追加し，次の転出率を計算して上位10都道府県を可視化せよ．
@@ -1765,7 +1738,7 @@ print("saved:", output_path)
 ```
 ````
 
-````{note} 発展問題2：双方向移動の非対称性を調べる
+````{note} 発展問題3：双方向移動の非対称性を調べる
 
 同じ2都道府県間でも，方向によって移動者数は異なる．
 
@@ -1860,7 +1833,7 @@ print("saved:", output_path)
 ````
 
 
-````{note} 発展問題3：日本地図上に人口移動ネットワークを表示する
+````{note} 発展問題4：日本地図上に人口移動ネットワークを表示する
 
 通常のネットワーク図では，ノードの位置は結び付きの強さによって決まる．
 第9回で学んだ地図可視化を応用し，都道府県を日本地図上の位置に配置して人口移動ネットワークを表示せよ．
