@@ -104,6 +104,7 @@ git init
 - 観察用ノートブック：notebooks/statistics.ipynb（Gitでは管理しない）
 - 作成するスクリプト：
   - src/plot_my_prefecture_migration_network.py
+  - src/plot_bidirectional_migration_network.py
   - src/plot_migration_pagerank.py
 - 出力する図：
   - reports/figures/top60_migration_network.png
@@ -111,6 +112,7 @@ git init
   - reports/figures/saitama_migration_network.png
   - reports/figures/migration_communities.png
   - reports/figures/my_prefecture_migration_network.png
+  - reports/figures/bidirectional_migration_network.png
   - reports/figures/migration_pagerank.png
 ```
 
@@ -1482,24 +1484,163 @@ plt.show()
 
 ## 課題2
 
-````{warning} 課題2：双方向移動の非対称性を調べる
+````{warning} 課題2：双方向移動の強さを無向グラフで調べる
 
-同じ2都道府県間でも，方向によって移動者数は異なる．
+演習9では，2都道府県間の往復移動者数を合計して重み付き無向グラフを作成した．
+この課題では，双方向移動者数が多い上位20組を取り出し，矢印のないネットワーク図として可視化する．
 
-各都道府県ペアについて，次の値を計算せよ．
+都道府県$i$と$j$の双方向移動者数は，次のように求める．
 
 $$
-\text{移動差}_{ij}=w_{ij}-w_{ji}
+w_{ij}^{\mathrm{undirected}}
+=
+w_{ij}+w_{ji}
 $$
 
-双方向の移動者数の差が大きい上位10組を取り出し，どちらの方向への移動が多いか分かる棒グラフを作成すること．
+### 条件
 
-`src/plot_migration_asymmetry.py`を作成し，WebClass「第10回発展問題」問2から提出せよ．
+1. 往路と復路の移動者数を合計して`双方向移動者数`を求める
+2. 双方向移動者数が多い上位20組を使う
+3. `nx.Graph`を使って無向グラフを作る
+4. エッジの太さを双方向移動者数に対応させる
+5. エッジラベルに双方向移動者数を表示する
+6. 矢印のないネットワーク図として表示する
+7. `reports/figures/bidirectional_migration_network.png`として保存する
 
-提出するのは作成したPythonファイルのみである．
+```{tip} この課題で失われる情報
+往路と復路を合計するため，どちらの方向への移動が多いかは分からなくなる．
+この課題では方向を比較せず，2都道府県間の結び付きの総量だけを可視化する．
+```
+
+Pythonスクリプト`src/plot_bidirectional_migration_network.py`を作成し，`10`フォルダ内で実行すること．
+
+```bash
+python3 src/plot_bidirectional_migration_network.py
+```
+
+作成したPythonスクリプト`src/plot_bidirectional_migration_network.py`と画像ファイル`reports/figures/bidirectional_migration_network.png`を<span style="color:red">WebClass「第10回課題」問3・問4</span>から提出せよ．
 ````
 
+<!--
+````{dropdown} 課題2 解答例
+
+```python
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import networkx as nx
+import pandas as pd
+import seaborn as sns
+
+
+input_path = "data/processed/prefecture_migration_edges_2025.csv"
+output_path = "reports/figures/bidirectional_migration_network.png"
+
+plt.rcParams["font.family"] = "Hiragino Sans"
+sns.set_theme(style="white", font="Hiragino Sans")
+Path("reports/figures").mkdir(parents=True, exist_ok=True)
+
+edge_df = pd.read_csv(input_path)
+
+pair_df = edge_df.copy()
+
+pair_names = pair_df.apply(
+    lambda row: sorted([row["転出元"], row["転入先"]]),
+    axis=1,
+    result_type="expand",
+)
+
+pair_df[["都道府県1", "都道府県2"]] = pair_names
+
+undirected_edge_df = (
+    pair_df
+    .groupby(["都道府県1", "都道府県2"], as_index=False)["移動者数"]
+    .sum()
+    .rename(columns={"移動者数": "双方向移動者数"})
+)
+
+top_df = undirected_edge_df.nlargest(
+    20,
+    "双方向移動者数",
+)
+
+bidirectional_G = nx.from_pandas_edgelist(
+    top_df,
+    source="都道府県1",
+    target="都道府県2",
+    edge_attr="双方向移動者数",
+    create_using=nx.Graph,
+)
+
+pos = nx.spring_layout(
+    bidirectional_G,
+    weight="双方向移動者数",
+    seed=42,
+    k=1.2,
+)
+
+max_movers = top_df["双方向移動者数"].max()
+edge_widths = [
+    1 + 6 * data["双方向移動者数"] / max_movers
+    for _, _, data in bidirectional_G.edges(data=True)
+]
+
+edge_labels = {
+    (source, target): f"{data['双方向移動者数']:,}人"
+    for source, target, data in bidirectional_G.edges(data=True)
+}
+
+fig, ax = plt.subplots(figsize=(14, 11))
+
+nx.draw_networkx_nodes(
+    bidirectional_G,
+    pos,
+    node_color="#66c2a5",
+    node_size=1200,
+    edgecolors="black",
+    ax=ax,
+)
+
+nx.draw_networkx_edges(
+    bidirectional_G,
+    pos,
+    width=edge_widths,
+    edge_color="#d95f02",
+    alpha=0.55,
+    ax=ax,
+)
+
+nx.draw_networkx_labels(
+    bidirectional_G,
+    pos,
+    font_family="Hiragino Sans",
+    font_size=9,
+    ax=ax,
+)
+
+nx.draw_networkx_edge_labels(
+    bidirectional_G,
+    pos,
+    edge_labels=edge_labels,
+    font_family="Hiragino Sans",
+    font_size=6,
+    rotate=False,
+    ax=ax,
+)
+
+ax.set_title(
+    "都道府県間の双方向人口移動ネットワーク"
+    "：往復移動者数上位20組（2025年）"
+)
+ax.axis("off")
+
+plt.tight_layout()
+plt.savefig(output_path, dpi=150)
+
+print("saved:", output_path)
+```
 ````
+-->
 
 ---
 
@@ -1530,14 +1671,15 @@ $$
 ---
 
 以降の発展問題は特に提出期限を設けない．
-作成したファイルは，WebClass「第10回課題」の問4以降から提出すること．
+各発展問題で作成したPythonファイルと出力ファイルをzip形式にまとめ，WebClass「第10回課題」の問5以降から提出すること．
 
 | 発展問題 | 提出先 | 提出物 |
 | --- | --- | --- |
-| 発展問題1 | 問4・問5 | Pythonファイル・画像ファイル |
-| 発展問題2 | 問6 | Pythonファイル |
-| 発展問題3 | 問7 | Pythonファイル |
-| 発展問題4 | 問8 | Pythonファイル |
+| 発展問題1 | 問5 | Pythonファイルと画像ファイルをまとめたzipファイル |
+| 発展問題2 | 問6 | Pythonファイルと画像ファイルをまとめたzipファイル |
+| 発展問題3 | 問7 | PythonファイルとHTMLファイルをまとめたzipファイル |
+
+zipファイル名は，`<学籍番号>_<氏名>_第10回発展問題1.zip`のようにすること．
 
 ## おまけ：PageRankで移動先としての中心性を見る
 
@@ -1720,7 +1862,7 @@ print("saved:", output_path)
 python3 src/plot_migration_pagerank.py
 ```
 
-作成したPythonスクリプト`src/plot_migration_pagerank.py`と画像ファイル`reports/figures/migration_pagerank.png`を<span style="color:red">WebClass「第10回課題」問4・問5</span>から提出せよ．
+作成したPythonスクリプト`src/plot_migration_pagerank.py`と画像ファイル`reports/figures/migration_pagerank.png`をzip形式にまとめ，<span style="color:red">WebClass「第10回課題」問5</span>から提出せよ．
 ````
 
 <!--
@@ -1761,9 +1903,7 @@ $$
 人口データは2020年国勢調査，人口移動データは2025年であり，厳密な同年比較ではない．
 この違いを明記した上で，人数で見た順位と率で見た順位を比較すること．
 
-`src/plot_prefecture_migration_rate.py`を作成し，WebClass「第10回課題」問6から提出せよ．
-
-提出するのは作成したPythonファイルのみである．
+`src/plot_prefecture_migration_rate.py`を作成し，実行して得られる画像ファイル`reports/figures/prefecture_migration_rate.png`とともにzip形式にまとめ，WebClass「第10回課題」問6から提出せよ．
 ````
 <!--
 ````{dropdown} <span style="color:red">発展問題2 解答例</span>
@@ -1866,102 +2006,7 @@ print("saved:", output_path)
 ```
 ````
  -->
-````{note} 発展問題3：双方向移動の非対称性を調べる
-
-同じ2都道府県間でも，方向によって移動者数は異なる．
-
-各都道府県ペアについて，次の値を計算せよ．
-
-$$
-\text{移動差}_{ij}=w_{ij}-w_{ji}
-$$
-
-双方向の移動者数の差が大きい上位10組を取り出し，どちらの方向への移動が多いか分かる棒グラフを作成すること．
-
-`src/plot_migration_asymmetry.py`を作成し，WebClass「第10回課題」問7から提出せよ．
-
-提出するのは作成したPythonファイルのみである．
-````
-<!--
-
-````{dropdown} <span style="color:red">発展問題3 解答例</span>
-
-```python
-from pathlib import Path
-
-import matplotlib.pyplot as plt
-import pandas as pd
-import seaborn as sns
-
-
-input_path = "data/processed/prefecture_migration_edges_2025.csv"
-output_path = "reports/figures/migration_asymmetry.png"
-
-plt.rcParams["font.family"] = "Hiragino Sans"
-sns.set_theme(style="whitegrid", font="Hiragino Sans")
-Path("reports/figures").mkdir(parents=True, exist_ok=True)
-
-edge_df = pd.read_csv(input_path)
-
-reverse_df = edge_df.rename(columns={
-    "転出元": "転入先",
-    "転入先": "転出元",
-    "移動者数": "逆方向移動者数",
-})
-
-comparison_df = edge_df.merge(
-    reverse_df[["転出元", "転入先", "逆方向移動者数"]],
-    on=["転出元", "転入先"],
-)
-
-# 同じ都道府県ペアを1回だけ残す．
-comparison_df = comparison_df[
-    comparison_df["転出元"] < comparison_df["転入先"]
-].copy()
-
-comparison_df["移動差"] = (
-    comparison_df["移動者数"]
-    - comparison_df["逆方向移動者数"]
-)
-comparison_df["差の絶対値"] = comparison_df["移動差"].abs()
-
-
-def make_direction_label(row):
-    if row["移動差"] >= 0:
-        return f"{row['転出元']}→{row['転入先']}"
-    return f"{row['転入先']}→{row['転出元']}"
-
-
-comparison_df["多い方向"] = comparison_df.apply(
-    make_direction_label,
-    axis=1,
-)
-
-top10_df = comparison_df.nlargest(10, "差の絶対値")
-
-fig, ax = plt.subplots(figsize=(9, 6))
-
-sns.barplot(
-    data=top10_df,
-    x="差の絶対値",
-    y="多い方向",
-    color="darkorange",
-    ax=ax,
-)
-
-ax.set_title("都道府県間人口移動の方向差が大きい組合せ（2025年）")
-ax.set_xlabel("双方向の移動者数の差（人）")
-ax.set_ylabel("移動者数が多い方向")
-
-plt.tight_layout()
-plt.savefig(output_path, dpi=150)
-
-print("saved:", output_path)
-```
-```` -->
-
-
-````{note} 発展問題4：日本地図上に人口移動ネットワークを表示する
+````{note} 発展問題3：日本地図上に人口移動ネットワークを表示する
 
 通常のネットワーク図では，ノードの位置は結び付きの強さによって決まる．
 第9回で学んだ地図可視化を応用し，都道府県を日本地図上の位置に配置して人口移動ネットワークを表示せよ．
@@ -1997,9 +2042,7 @@ python3 -m pip install plotly
 6. マウスを重ねると都道府県名と値が表示されるようにする
 7. `reports/figures/migration_network_map.html`として保存する
 
-`src/plot_migration_network_map.py`を作成し，WebClass「第10回課題」問8から提出せよ．
-
-提出するのは作成したPythonファイルのみである．
+`src/plot_migration_network_map.py`を作成し，実行して得られるHTMLファイル`reports/figures/migration_network_map.html`とともにzip形式にまとめ，WebClass「第10回課題」問7から提出せよ．
 
 ```{tip} 地図上の線の意味
 地図上の直線は，実際の移動経路や交通経路を表しているわけではない．
@@ -2008,7 +2051,7 @@ python3 -m pip install plotly
 ````
 
 <!--
-````{dropdown} <span style="color:red">発展問題4 解答例</span>
+````{dropdown} <span style="color:red">発展問題3 解答例</span>
 
 ```python
 import json
