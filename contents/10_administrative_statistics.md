@@ -348,7 +348,7 @@ python3 -m pip install pandas openpyxl networkx matplotlib seaborn pyvis
 curl -L "https://www.e-stat.go.jp/stat-search/file-download?statInfId=000040407039&fileKind=0" -o data/raw/prefecture_migration_2025.xlsx
 ```
 
-`data/raw/prefecture_migration_2025.xlsx` があればデータの取得に成功している．
+`data/raw/prefecture_migration_2025.xlsx`があればデータの取得に成功している．
 
 取得できなかった場合は，次のファイルをダウンロードして`data/raw`に配置すること．
 
@@ -1154,13 +1154,145 @@ python3 src/plot_my_prefecture_migration_network.py
 作成したPythonスクリプト`src/plot_my_prefecture_migration_network.py`と画像ファイル`reports/figures/my_prefecture_migration_network.png`を<span style="color:red">WebClass「第10回課題」問1・問2</span>から提出せよ．
 ````
 
-<!--
-````{dropdown} 課題1 解答例
+````{dropdown} <span style="color:red">課題1 解答例</span>
+神奈川県を選択し，流入上位7件と流出上位7件のego networkを作成する例である．
+神奈川県からの流出を橙色，神奈川県への流入を青色で表示する．
+`src/plot_my_prefecture_migration_network.py`として保存し，`10`フォルダ内で実行する．
 
-- `target_prefecture`：選択した都道府県名を文字列で指定する
-- `top_n`：`7`
+```python
+# 課題1：選択した都道府県の人口移動ego networkを作成する
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import networkx as nx
+import pandas as pd
+import seaborn as sns
+
+
+# 入出力ファイルと分析条件を指定する
+input_path = "data/processed/prefecture_migration_edges_2025.csv"
+output_path = "reports/figures/my_prefecture_migration_network.png"
+target_prefecture = "神奈川県"
+top_n = 7
+
+plt.rcParams["font.family"] = "Hiragino Sans"
+sns.set_theme(style="white", font="Hiragino Sans")
+Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+
+
+# 演習7・セル1：選択した都道府県の流出・流入上位7件を取り出す
+edge_df = pd.read_csv(input_path)
+
+outgoing_df = (
+    edge_df[edge_df["転出元"] == target_prefecture]
+    .nlargest(top_n, "移動者数")
+)
+
+incoming_df = (
+    edge_df[edge_df["転入先"] == target_prefecture]
+    .nlargest(top_n, "移動者数")
+)
+
+ego_edges_df = (
+    pd.concat([outgoing_df, incoming_df])
+    .drop_duplicates(["転出元", "転入先"])
+)
+
+
+# 演習7・セル2：向きと移動者数を持つego networkを作る
+ego_G = nx.from_pandas_edgelist(
+    ego_edges_df,
+    source="転出元",
+    target="転入先",
+    edge_attr="移動者数",
+    create_using=nx.DiGraph,
+)
+
+pos = nx.spring_layout(
+    ego_G,
+    weight="移動者数",
+    seed=42,
+    k=1.5,
+)
+
+
+# 演習7・セル3：流入・流出の色と移動者数に対応する太さを作る
+edge_colors = [
+    "darkorange" if source == target_prefecture else "steelblue"
+    for source, target in ego_G.edges()
+]
+
+edge_widths = [
+    1
+    + 5
+    * ego_G[source][target]["移動者数"]
+    / ego_edges_df["移動者数"].max()
+    for source, target in ego_G.edges()
+]
+
+node_colors = [
+    "crimson" if node == target_prefecture else "lightgray"
+    for node in ego_G.nodes()
+]
+
+edge_labels = {
+    (source, target): f"{data['移動者数']:,}"
+    for source, target, data in ego_G.edges(data=True)
+}
+
+
+# 演習7・セル4：ネットワーク図を作成してPNGファイルへ保存する
+fig, ax = plt.subplots(figsize=(9, 7))
+
+nx.draw_networkx_nodes(
+    ego_G,
+    pos,
+    node_color=node_colors,
+    node_size=1600,
+    edgecolors="black",
+    ax=ax,
+)
+
+nx.draw_networkx_edges(
+    ego_G,
+    pos,
+    edge_color=edge_colors,
+    width=edge_widths,
+    arrows=True,
+    arrowsize=20,
+    connectionstyle="arc3,rad=0.08",
+    ax=ax,
+)
+
+nx.draw_networkx_labels(
+    ego_G,
+    pos,
+    font_family="Hiragino Sans",
+    font_size=10,
+    ax=ax,
+)
+
+nx.draw_networkx_edge_labels(
+    ego_G,
+    pos,
+    edge_labels=edge_labels,
+    font_size=8,
+    rotate=False,
+    ax=ax,
+)
+
+ax.set_title(
+    f"{target_prefecture}の人口移動ego network（2025年）"
+)
+ax.axis("off")
+
+plt.tight_layout()
+plt.savefig(output_path, dpi=150)
+plt.show()
+
+print("saved:", output_path)
+```
 ````
--->
 
 ---
 
@@ -1517,10 +1649,12 @@ python3 src/plot_bidirectional_migration_network.py
 作成したPythonスクリプト`src/plot_bidirectional_migration_network.py`と画像ファイル`reports/figures/bidirectional_migration_network.png`を<span style="color:red">WebClass「第10回課題」問3・問4</span>から提出せよ．
 ````
 
-<!--
-````{dropdown} 課題2 解答例
+````{dropdown} <span style="color:red">課題2 解答例</span>
+往路と復路の移動者数を合計し，双方向移動者数が多い上位20組を無向グラフとして描く例である．
+`src/plot_bidirectional_migration_network.py`として保存し，`10`フォルダ内で実行する．
 
 ```python
+# 課題2：双方向移動者数が多い都道府県ペアを無向グラフで描く
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -1529,6 +1663,7 @@ import pandas as pd
 import seaborn as sns
 
 
+# 入出力ファイルを指定して描画の準備をする
 input_path = "data/processed/prefecture_migration_edges_2025.csv"
 output_path = "reports/figures/bidirectional_migration_network.png"
 
@@ -1536,6 +1671,7 @@ plt.rcParams["font.family"] = "Hiragino Sans"
 sns.set_theme(style="white", font="Hiragino Sans")
 Path("reports/figures").mkdir(parents=True, exist_ok=True)
 
+# 演習8・セル1：往路と復路を同じ都道府県ペアとして合計する
 edge_df = pd.read_csv(input_path)
 
 pair_df = edge_df.copy()
@@ -1555,11 +1691,13 @@ undirected_edge_df = (
     .rename(columns={"移動者数": "双方向移動者数"})
 )
 
+# 双方向移動者数が多い上位20組を表示対象にする
 top_df = undirected_edge_df.nlargest(
     20,
     "双方向移動者数",
 )
 
+# 演習8・セル2：矢印のない重み付き無向グラフを作る
 bidirectional_G = nx.from_pandas_edgelist(
     top_df,
     source="都道府県1",
@@ -1575,6 +1713,7 @@ pos = nx.spring_layout(
     k=1.2,
 )
 
+# 双方向移動者数をエッジの太さとラベルへ対応させる
 max_movers = top_df["双方向移動者数"].max()
 edge_widths = [
     1 + 6 * data["双方向移動者数"] / max_movers
@@ -1586,6 +1725,7 @@ edge_labels = {
     for source, target, data in bidirectional_G.edges(data=True)
 }
 
+# 上位20組の無向ネットワーク図を作成する
 fig, ax = plt.subplots(figsize=(14, 11))
 
 nx.draw_networkx_nodes(
@@ -1632,11 +1772,11 @@ ax.axis("off")
 
 plt.tight_layout()
 plt.savefig(output_path, dpi=150)
+plt.show()
 
 print("saved:", output_path)
 ```
 ````
--->
 
 ---
 
