@@ -21,8 +21,6 @@
 - 比較用データ：data/processed/cpi_unemployment_monthly.csv
 - 観察用ノートブック：notebooks/time_series.ipynb（Gitでは管理しない）
 - 作成するスクリプト：
-  - src/plot_cpi_recent.py
   - src/plot_cpi_yoy.py
 - 出力する図：
-  - reports/figures/cpi_recent.png
   - reports/figures/cpi_yoy.png
