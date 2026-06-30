@@ -159,6 +159,6 @@ report/
 
 ### 提出期限
 
-<span style="color: red; ">7月14日(火)23:59まで</span>
+<span style="color: red; ">7月31日(金)23:59まで</span>
 
 質問がある場合は，メールまたはWebClassのメッセージで連絡すること．
