@@ -22,7 +22,7 @@
 
 使用するオープンデータは総務省統計局の**消費者物価指数** (CPI: Consumer Price Index)を使う．
 統計ダッシュボードAPIから月次データを取得し，長期推移・2015年以降の推移・前年同月比を可視化する．
-さらに，完全失業率を追加で取得し，2つの時系列データの相関を調べる．
+さらに，配布された完全失業率のCSVを読み込み，2つの時系列データの相関を調べる．
 
 ```{tip} データ分析の肝
 ある１種類のデータを取得して分析するだけで面白い結果が得られることは稀である．
@@ -41,7 +41,7 @@
 - 指数データの基準年を確認して解釈する
 - 原数値と季節調整値を目的に応じて使い分ける
 - 2つの時系列データを年月で対応付け，相関係数を計算する
-- 見せかけの相関と因果関係に注意して結果を解釈する
+- 擬似相関と因果関係に注意して結果を解釈する
 - 時系列グラフから読み取れることと注意点を説明する
 
 **今回の流れ**
@@ -50,14 +50,16 @@
 | --- | --- | --- |
 | 1 | 時系列データの基本概念を学ぶ | 時間順序と変動の構造を理解する |
 | 2 | CPIと指数データを理解する | 基準年，系列，メタ情報を確認する |
-| 3 | APIから月次データを取得する | 分析対象となるデータを準備する |
-| 4 | 日付型へ変換して時間順に並べる | 時系列演算ができる表を作る |
-| 5 | 長期推移と2015年以降を描く | 表示期間による見え方の違いを確認する |
-| 6 | ラグ，差分，移動平均を計算する | 水準以外の見方を身につける |
-| 7 | 原数値と季節調整値を比較する | 季節性の扱いを理解する |
-| 8 | 前年同月比を計算する | 物価上昇率として変化を読む |
-| 9 | 相関分析の注意点を学ぶ | 2つの時系列を比較する準備をする |
-| 10 | CPIと完全失業率を比較する | 結合，散布図，相関係数を組み合わせる |
+| 3 | データの取得 | APIから分析対象を準備する |
+| 4 | 前処理 | 日付型へ変換し，時間順に並べる |
+| 5 | 可視化I | 長期的なトレンドを確認する |
+| 6 | 可視化II | ラグ，差分，移動平均から変化を捉える |
+| 7 | 可視化III | 原数値と季節調整値を比較する |
+| 8 | 可視化IV | 前年同月比から物価上昇率を読む |
+| 9 | 相関分析 | 2つの時系列を比較する注意点を学ぶ |
+| 10 | 可視化V | CPIと完全失業率の関係を調べる |
+
+可視化の例（消費者物価指数の長期推移）
 
 ![fig](./analysis/11/reports/figures/cpi1.png)
 
@@ -98,13 +100,14 @@ git init
 - 周期：月次
 - 基準年：2020年（2020年平均=100）
 - 元データ：data/raw/dashboard_cpi.json
-- 比較用元データ：data/raw/dashboard_unemployment.json
+- 比較用データ：data/processed/unemployment_monthly.csv
 - 前処理済みデータ：data/processed/cpi_monthly.csv
-- 比較用データ：data/processed/cpi_unemployment_monthly.csv
+- 結合後データ：data/processed/cpi_unemployment_monthly.csv
 - 観察用ノートブック：notebooks/time_series.ipynb（Gitでは管理しない）
 - 作成するスクリプト：
   - src/plot_cpi_yoy.py
 - 出力する図：
+  - reports/figures/cpi_core_recent.png
   - reports/figures/cpi_yoy.png
 ```
 
@@ -511,7 +514,7 @@ for key, count in sorted(series_counts.items()):
 
 ---
 
-## 時系列の表の作成
+## 前処理：時系列の表を作成する
 
 JSONを次のような列を持つ表へ変換する．
 
@@ -833,11 +836,9 @@ plt.show()
 
 ---
 
-## ラグと差分
+## 可視化II：ラグ・差分・移動平均で変化を捉える（課題1）
 
-### ラグ
-
-**ラグ**とは，ある時点から一定期間前の値である．
+**ラグ**：ある時点から一定期間前の値
 $k$期前の値を$y_{t-k}$と表す．
 
 - 1か月前の値：1期ラグ
@@ -845,9 +846,7 @@ $k$期前の値を$y_{t-k}$と表す．
 
 `pandas`では`shift(k)`を使う．
 
-### 差分
-
-**差分**は，現在の値から1期前の値を引いたものである．
+**差分**：現在の値から1期前の値を引いたもの
 
 $$
 \Delta y_t=y_t-y_{t-1}
@@ -882,31 +881,30 @@ total_raw_df["1か月前指数"] = total_raw_df["指数"].shift(1)
 total_raw_df["前月差"] = total_raw_df["指数"].diff(1)
 total_raw_df["12か月前指数"] = total_raw_df["指数"].shift(12)
 
-total_raw_df[
-    ["年月", "指数", "1か月前指数", "前月差", "12か月前指数"]
-].tail(15)
+total_raw_df.head(15)
 ```
 
-実行後，次を確認せよ．
+1行目には比較できる1か月前の行がないため，`1か月前指数`と`前月差`は欠損値になる．
+同様に，先頭12か月には12か月前の行がないため，`12か月前指数`は欠損値になる．
 
-1. 1行目の1か月前指数と前月差が欠損になるのはなぜか
-2. 先頭12か月の12か月前指数が欠損になるのはなぜか
-3. 前月差が正，負，0のとき，それぞれ何を意味するか
+`前月差`は，現在の指数から1か月前の指数を引いた値である．
+
+| 前月差 | 意味 |
+| ---: | --- |
+| 正 | 前月より指数が上昇した |
+| 負 | 前月より指数が低下した |
+| 0 | 前月と指数が同じである |
 ````
 
----
+### 移動平均で短期変動をならす
 
-## 移動平均で短期変動をならす
-
-**移動平均**は，直近の一定期間の平均を順番に計算したものである．
+**移動平均**：直近の一定期間の平均を順番に計算したもの
 
 12か月移動平均は次のように表せる．
 
 $$
-MA_{12,t}
-=
-\frac{1}{12}
-\sum_{i=0}^{11}y_{t-i}
+{MA}_{12,t} =
+\frac{1}{12} \sum_{i=0}^{11}y_{t-i}
 $$
 
 短期的な上下動をならしてトレンドを見やすくできる一方，変化への反応が遅れる．
@@ -987,36 +985,38 @@ plt.show()
 2. 大きな変化が移動平均へ現れるまでに遅れはあるか
 3. 先頭11か月の移動平均が欠損になるのはなぜか
 ````
-
+<!-- 
 ```{tip} 移動平均は元データを置き換えるものではない
 移動平均によってノイズや季節変動を見えにくくできるが，急な変化や転換点も弱めてしまう．
 原数値と移動平均を併記し，何が平滑化されたか確認すること．
 ```
+ -->
 
----
+````{warning} 課題1：コアCPIと移動平均の可視化
 
-## 課題1
-
-````{warning} 課題1：CPIと移動平均の可視化を完成させる
-
-演習7を参考に，次のコードの`<HOGEHOGE1>`〜`<HOGEHOGE4>`，`<FUGAFUGA>`，`<PIYOPIYO1>`，`<PIYOPIYO2>`を適切に書き換え，総合CPIの原数値と12か月移動平均を2015年以降について可視化せよ．
+演習7を参考に，次のコードの`<HOGEHOGE1>`〜`<HOGEHOGE5>`，`<FUGAFUGA>`，`<PIYOPIYO1>`，`<PIYOPIYO2>`を適切に書き換え，**生鮮食品を除く総合**の原数値と12か月移動平均を2015年以降について可視化せよ．
 
 `notebooks/time_series.ipynb`に「課題1」という見出しを作り，書き換えたコードを実行すること．
 
 ```python
-# CSVを読み込み，総合CPIと12か月移動平均を可視化する．
+# CSVを読み込み，コアCPIと12か月移動平均を可視化する．
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import pandas as pd
 
 
 plt.rcParams["font.family"] = "Hiragino Sans"
 
+output_path = "../reports/figures/cpi_core_recent.png"
+Path("../reports/figures").mkdir(parents=True, exist_ok=True)
+
 cpi_df = pd.read_csv(
     "../data/processed/cpi_monthly.csv",
     parse_dates=["年月"],
 )
 
-total_raw_df = (
+core_raw_df = (
     cpi_df[
         (cpi_df["指標名"] == <HOGEHOGE1>)
         & (cpi_df["系列種別"] == <HOGEHOGE2>)
@@ -1025,59 +1025,139 @@ total_raw_df = (
     .reset_index(drop=True)
 )
 
-total_raw_df["12か月移動平均"] = (
-    total_raw_df["指数"]
+core_raw_df["12か月移動平均"] = (
+    core_raw_df["指数"]
     .rolling(
         window=<HOGEHOGE4>,
-        min_periods=<HOGEHOGE4>,
+        min_periods=<HOGEHOGE5>,
     )
     .mean()
 )
 
-recent_total_df = total_raw_df[
-    total_raw_df["年月"] >= <FUGAFUGA>
+recent_core_df = core_raw_df[
+    core_raw_df["年月"] >= <FUGAFUGA>
 ]
 
 fig, ax = plt.subplots(figsize=(10, 5))
 
 ax.plot(
-    recent_total_df["年月"],
-    recent_total_df[<PIYOPIYO1>],
+    recent_core_df["年月"],
+    recent_core_df[<PIYOPIYO1>],
     label="原数値",
     alpha=0.55,
 )
 ax.plot(
-    recent_total_df["年月"],
-    recent_total_df[<PIYOPIYO2>],
+    recent_core_df["年月"],
+    recent_core_df[<PIYOPIYO2>],
     label="12か月移動平均",
     linewidth=2.5,
 )
 
 ax.set_title(
-    "総合CPIの原数値と12か月移動平均（2015年以降）"
+    "生鮮食品を除く総合と12か月移動平均（2015年以降）"
 )
 ax.set_xlabel("年")
 ax.set_ylabel("指数（2020年平均=100）")
 ax.legend()
 
 plt.tight_layout()
+plt.savefig(output_path, dpi=150)
 plt.show()
+
+print("saved:", output_path)
 ```
 
 実行後，次を確認せよ．
 
-1. 2015年以降の原数値と12か月移動平均が表示されているか
+1. 生鮮食品を除く総合について，2015年以降の原数値と12か月移動平均が表示されているか
 2. 移動平均の方が原数値より滑らかな線になっているか
+3. `reports/figures/cpi_core_recent.png`が作成されているか
 
-最後に，書き換えて実行したコードをコピーし，<span style="color:red">WebClass「第11回課題」問1</span>のtext解答欄にペーストして提出せよ．
+最後に，上を書き換えて実行したコード全体（セル1つ分）をコピーし，<span style="color:red">WebClass「第11回課題」問1</span>の記述式解答欄にペーストして提出せよ．
+また，作成した画像ファイル`reports/figures/cpi_core_recent.png`を<span style="color:red">問2</span>から提出せよ．
 ````
+<!--
+````{dropdown} <span style="color:red">課題1 解答例</span>
+
+```python
+# CSVを読み込み，コアCPIと12か月移動平均を可視化する．
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import pandas as pd
+
+
+plt.rcParams["font.family"] = "Hiragino Sans"
+
+output_path = "../reports/figures/cpi_core_recent.png"
+Path("../reports/figures").mkdir(parents=True, exist_ok=True)
+
+cpi_df = pd.read_csv(
+    "../data/processed/cpi_monthly.csv",
+    parse_dates=["年月"],
+)
+
+core_raw_df = (
+    cpi_df[
+        (cpi_df["指標名"] == "生鮮食品を除く総合")
+        & (cpi_df["系列種別"] == "原数値")
+    ]
+    .sort_values("年月")
+    .reset_index(drop=True)
+)
+
+core_raw_df["12か月移動平均"] = (
+    core_raw_df["指数"]
+    .rolling(
+        window=12,
+        min_periods=12,
+    )
+    .mean()
+)
+
+recent_core_df = core_raw_df[
+    core_raw_df["年月"] >= "2015-01-01"
+]
+
+fig, ax = plt.subplots(figsize=(10, 5))
+
+ax.plot(
+    recent_core_df["年月"],
+    recent_core_df["指数"],
+    label="原数値",
+    alpha=0.55,
+)
+ax.plot(
+    recent_core_df["年月"],
+    recent_core_df["12か月移動平均"],
+    label="12か月移動平均",
+    linewidth=2.5,
+)
+
+ax.set_title(
+    "生鮮食品を除く総合と12か月移動平均（2015年以降）"
+)
+ax.set_xlabel("年")
+ax.set_ylabel("指数（2020年平均=100）")
+ax.legend()
+
+plt.tight_layout()
+plt.savefig(output_path, dpi=150)
+plt.show()
+
+print("saved:", output_path)
+```
+````
+-->
 
 ---
 
-## 原数値と季節調整値を比較する
+## 可視化III：原数値と季節調整値を比較する
 
-季節調整値は，移動平均とは異なる．
-移動平均は周辺の観測値を単純に平均するのに対し，季節調整では統計的な方法で季節パターンを推定して取り除く．
+季節調整値は移動平均とは異なる．
+
+- **移動平均**：周辺の観測値を単純に平均する
+- **季節調整**：統計的な方法で季節パターンを推定して取り除く
 
 ````{note} 演習8：原数値と季節調整値を可視化する
 次のセルを実行せよ．
@@ -1130,62 +1210,7 @@ plt.show()
 
 ---
 
-## 表示期間と系列を変えて見る
-
-長期の図では大きなトレンドを確認できるが，直近の小さな違いは圧縮される．
-2015年以降に期間を絞り，総合と生鮮食品を除く総合を比較する．
-
-````{note} 演習9：2015年以降の2系列を比較する
-次のセルを実行せよ．
-
-```python
-# CSVを読み込み，2015年以降の2つのCPI系列を比較する．
-import matplotlib.pyplot as plt
-import pandas as pd
-import seaborn as sns
-
-
-plt.rcParams["font.family"] = "Hiragino Sans"
-sns.set_theme(style="whitegrid", font="Hiragino Sans")
-
-cpi_df = pd.read_csv(
-    "../data/processed/cpi_monthly.csv",
-    parse_dates=["年月"],
-)
-
-recent_df = cpi_df[
-    (cpi_df["系列種別"] == "原数値")
-    & (cpi_df["年月"] >= "2015-01-01")
-]
-
-fig, ax = plt.subplots(figsize=(10, 5))
-
-sns.lineplot(
-    data=recent_df,
-    x="年月",
-    y="指数",
-    hue="指標名",
-    ax=ax,
-)
-
-ax.set_title("消費者物価指数の推移（2015年以降・原数値）")
-ax.set_xlabel("年")
-ax.set_ylabel("指数（2020年平均=100）")
-
-plt.tight_layout()
-plt.show()
-```
-
-実行後，次を確認せよ．
-
-1. 2系列の動きが大きく異なる時期はあるか
-2. 生鮮食品を除くと変動の見え方はどのように変わるか
-3. 長期グラフと比べて新たに読み取れることは何か
-````
-
----
-
-## 前年同月比で変化率を見る
+## 可視化IV：前年同月比で変化率を見る（課題2）
 
 前年同月比は，現在の値を12か月前の同じ月と比較した変化率である．
 
@@ -1201,7 +1226,7 @@ $$
 同じ月を比較するため，季節による規則的な違いの影響を受けにくい．
 ニュースで「物価が前年同月から3%上昇した」と報道されるときの見方に対応する．
 
-````{note} 演習10：前年同月比を計算して可視化する
+````{note} 演習9：前年同月比を計算して可視化する
 次のセルを順番に実行せよ．
 
 **セル1：12か月前の指数から前年同月比を計算する**
@@ -1294,13 +1319,9 @@ plt.show()
 | 12か月移動平均 | 指数 | 短期変動をならしてトレンドを見る | 変化への反応が遅れる |
 | 前年同月比 | % | 1年前の同じ月からの変化率を見る | ベース効果に注意する |
 
----
-
-## 課題2
-
 ````{warning} 課題2：2系列の前年同月比を比較する
 
-演習9・10を参考に，総合と生鮮食品を除く総合の前年同月比を計算し，2000年以降について同じ図に描け．
+演習8・9を参考に，総合と生鮮食品を除く総合の前年同月比を計算し，2000年以降について同じ図に描け．
 
 ### 条件
 
@@ -1322,18 +1343,103 @@ python3 src/plot_cpi_yoy.py
 
 作成したPythonスクリプト`src/plot_cpi_yoy.py`と画像ファイル`reports/figures/cpi_yoy.png`を<span style="color:red">WebClass「第11回課題」問3・問4</span>から提出せよ．
 ````
+<!--
+````{dropdown} <span style="color:red">課題2 解答例</span>
+
+```python
+# 2つのCPI系列について前年同月比を計算して可視化する．
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+
+
+input_path = "data/processed/cpi_monthly.csv"
+output_path = "reports/figures/cpi_yoy.png"
+
+plt.rcParams["font.family"] = "Hiragino Sans"
+sns.set_theme(style="whitegrid", font="Hiragino Sans")
+Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+
+# 前処理済みCSVから2つのCPI系列の原数値を取り出す．
+cpi_df = pd.read_csv(
+    input_path,
+    parse_dates=["年月"],
+)
+
+raw_df = (
+    cpi_df[
+        (cpi_df["系列種別"] == "原数値")
+        & cpi_df["指標名"].isin([
+            "総合",
+            "生鮮食品を除く総合",
+        ])
+    ]
+    .sort_values(["指標名", "年月"])
+    .reset_index(drop=True)
+)
+
+# 指標ごとに12か月前の指数と前年同月比を計算する．
+raw_df["12か月前指数"] = (
+    raw_df
+    .groupby("指標名")["指数"]
+    .shift(12)
+)
+
+raw_df["前年同月比"] = (
+    raw_df["指数"]
+    / raw_df["12か月前指数"]
+    - 1
+) * 100
+
+plot_df = raw_df[
+    (raw_df["年月"] >= "2000-01-01")
+    & raw_df["前年同月比"].notna()
+]
+
+# 2系列の前年同月比を同じ図に描いて保存する．
+fig, ax = plt.subplots(figsize=(10, 5))
+
+sns.lineplot(
+    data=plot_df,
+    x="年月",
+    y="前年同月比",
+    hue="指標名",
+    ax=ax,
+)
+
+ax.axhline(0, color="gray", linewidth=1)
+ax.set_title("消費者物価指数の前年同月比（2000年以降）")
+ax.set_xlabel("年")
+ax.set_ylabel("前年同月比（%）")
+
+plt.tight_layout()
+plt.savefig(output_path, dpi=150)
+plt.show()
+
+print("saved:", output_path)
+```
+````
+-->
 
 ---
 
-## 2つの時系列データの相関を調べる
+## 相関分析：2つの時系列データの関係
 
 2つの時系列データを比較すると，一方が大きい時期にもう一方も大きいか，反対方向に動くかを調べることができる．
 ただし，時系列データでは時間の順序や共通のトレンドがあるため，通常の表データ以上に注意が必要である．
 
+```{tip} 注意：時系列データを比較する前に確認すること
+2つの時系列の関係を調べる前に，それぞれを <span style="color:red">比較可能な形へ揃える</span> 必要がある．  
+例えば，年月の異なる2行を行番号だけで並べると，実際には別の月の値を比較することになる．  
+`pd.merge()`で年月をキーにして結合し，対応関係を明示する．
+```
+
 ### Pearsonの相関係数
 
-**相関係数**は，2つの変数の線形な関係の向きと強さを$-1$から$1$の範囲で表す指標である．
-本講義では，Pearsonの積率相関係数を使用する．
+**相関係数**：2つの変数の線形な関係の向きと強さを$-1$から$1$の範囲で表す指標  
+ここでは**Pearsonの積率相関係数**を使用する．
 
 同じ年月に観測された値を$(x_t,y_t)$とすると，相関係数$r$は次のように計算される．
 
@@ -1362,73 +1468,56 @@ $$
 correlation = df["変数X"].corr(df["変数Y"])
 ```
 
-```{tip} 相関係数が0でも無関係とは限らない
+```{tip} 注意：相関係数が0でも無関係とは限らない
 Pearsonの相関係数が捉えるのは直線的な関係である．
 U字型のような曲線的関係では，明確な規則性があっても相関係数が0に近くなることがある．
 必ず散布図も確認すること．
 ```
 
-### 時系列データを比較する前の確認
-
-相関係数を計算する前に，2つの時系列を比較可能な形へそろえる．
-
-| 確認事項 | 確認する理由 |
-| --- | --- |
-| 指標の定義 | 名称が似ていても対象や計算方法が異なる場合がある |
-| 単位 | 水準，指数，割合，変化率を区別する |
-| 周期 | 月次と年次をそのまま対応させることはできない |
-| 系列種別 | 原数値と季節調整値を目的に応じて選ぶ |
-| 年月 | 同じ年月の値どうしを1行に結合する |
-| 欠損 | 一方だけ観測されている年月を確認する |
-| 対象期間 | 共通して観測されている期間にそろえる |
-| 変換方法 | 水準，差分，前年同月比のどれを比較するか決める |
-
-例えば，年月の異なる2行を行番号だけで並べると，実際には別の月の値を比較することになる．
-`pd.merge()`で年月をキーにして結合し，対応関係を明示する．
-
-### 見せかけの相関
+### 擬似相関
 
 互いに直接関係がない2つの時系列でも，両方が長期的に上昇しているだけで高い正の相関が得られることがある．
-これを**見せかけの相関**という．
+これを**擬似相関**という．
 
 例えば，長期的に増加する2つの指数について水準どうしの相関を計算すると，共通のトレンドを関係として拾う可能性がある．
-次のような比較を行い，結果が安定しているか確認する．
+次のような比較を行い，結果が安定しているか（傾向が変わらないか）を確認する．
 
 1. 水準ではなく差分や変化率を比較する
 2. 季節性を取り除くか，同じ月どうしを比較する
 3. 対象期間を変えて相関係数を計算する
 4. 時系列グラフと散布図の両方を見る
 
-```{tip} 時系列の観測値は互いに独立とは限らない
-ある月の値は前月の値と似やすく，この性質を自己相関という．
-そのため，通常の独立な標本を前提とした相関係数の検定を，時系列データへそのまま適用できるとは限らない．
-本講義では相関係数を記述的な指標として使い，散布図や期間別の結果と併せて読む．
+```{tip} 注意：異なる時点の観測値は統計的に独立とは限らない
+時系列データではある時点の値と過去の時点の値に統計的な関連が生じることがある．
+このような同一系列の異なる時点間の相関を**自己相関**という．
+ここでは同じ年月の2変数を対応させ，年月の順序を表示しない通常の散布図を作成することとし，時点間の独立性を前提とする統計的検定は行わずに，時間順序を加えた散布図の作成は後述の発展問題3で扱う．
+<!-- 相関係数は，観測した期間内における2変数の直線的な関係の向きと強さを要約する数値として使う． -->
+<!-- この値は，別の期間にも同じ関係が成り立つことや，因果関係があることを示すものではない． -->
 ```
 
-### ラグを考えた相関
+### ラグを考慮した相関
 
-2つの指標は，同じ月に同時に変化するとは限らない．
+2つの指標は同じ月に同時に変化するとは限らない．
 一方の変化が数か月後にもう一方へ現れると考えられる場合は，`shift()`で時点をずらして相関を調べる．
 
 $$
 \operatorname{corr}(x_t,y_{t-k})
 $$
 
-ただし，多数のラグを試して最も大きい相関だけを採用すると，偶然の関係を選びやすい．
-どちらが先に変化すると考えるのかを，分析前に指標の仕組みから検討することが必要である．
+ただし，多数のラグを試して最も大きい相関だけを採用すると偶然の関係を選んでしまうことがあるため，どちらが先に変化すると考えるのかは分析前に指標の仕組みから検討しておくことが求められる．
 
-```{tip} 相関関係は因果関係を意味しない
+```{tip} 注意：相関関係は因果関係を意味しない
 相関係数が大きくても，XがYの原因であるとは限らない．
 YがXへ影響している可能性，第三の要因が両方へ影響している可能性，共通トレンドによる可能性がある．
-相関分析から述べられるのは，対象期間に2つの値がどのように対応していたかまでである．
+相関分析から述べられるのは対象期間に2つの値がどのように対応していたかまでである．
 ```
 
 ---
 
-## CPIと完全失業率の相関を調べる
+## 可視化V：CPIと完全失業率の相関を調べる
 
 CPI以外の時系列として，総務省統計局「労働力調査」の**完全失業率**を使用する．
-完全失業率は，労働力人口に占める完全失業者の割合であり，単位は%である．
+完全失業率は労働力人口に占める完全失業者の割合であり単位は%である．
 
 今回は次の2列を比較する．
 
@@ -1437,220 +1526,69 @@ CPI以外の時系列として，総務省統計局「労働力調査」の**完
 | CPI前年同月比 | 総合CPIの原数値から計算 | 物価水準ではなく物価の変化率を見る |
 | 完全失業率 | 男女計の季節調整値 | 月ごとの雇用状況を季節変動の影響を抑えて見る |
 
-CPIは前年同月比，完全失業率は水準である．
-したがって，ここで調べるのは「物価上昇率が高い月ほど，完全失業率は高いか低いか」という関係である．
+CPIは前年同月比，完全失業率は水準であるから，物価上昇率が高い月ほど完全失業率は高いか低いかという関係を調べる．
 
-```{tip} 物価上昇率と失業率
-物価上昇率と失業率の関係は，経済学ではフィリップス曲線として議論される．
+```{tip} 補足：物価上昇率と失業率
+物価上昇率と失業率の関係は経済学ではフィリップス曲線として議論される．
 ただし，関係は時期や経済状況によって変化し，今回の単純な相関分析だけで理論を検証できるわけではない．
-ここでは，異なる時系列を適切に結合して比較する練習として扱う．
+ここではあくまで異なる時系列を適切に結合して比較する練習として扱う．
 ```
 
-````{note} 演習11：比較する指標のメタ情報を確認する
-「完全失業率のメタ情報」という見出しを作り，次のセルを順番に実行せよ．
+完全失業率は前処理をすでに終えている男女計・全国・月次の季節調整値を表にしたCSVを使用する．
+次のファイルをダウンロード・解凍し，`data/processed`に配置すること．
+
+[unemployment_monthly_csv.zip](./analysis/11/data/processed/unemployment_monthly_csv.zip)
+
+| 列 | 内容 |
+| --- | --- |
+| `年月` | 観測月 |
+| `完全失業率` | 男女計の完全失業率の季節調整値（%） |
+
+````{note} 演習10：完全失業率のCSVを読み込む
+「完全失業率の読み込み」という見出しを作り，次のセルを順番に実行せよ．
 
 **セル1：必要なライブラリを準備する**
 
 ```bash
-%pip install requests pandas seaborn matplotlib
+%pip install pandas seaborn matplotlib
 ```
 
-```python
-# この節で使うライブラリ，API URL，保存先を準備する．
-import json
-from pathlib import Path
+**セル2：CSVを読み込んで内容を確認する**
 
+```python
+# 配布CSVから完全失業率の季節調整値を読み込む．
 import matplotlib.pyplot as plt
 import pandas as pd
-import requests
 import seaborn as sns
 
 
 plt.rcParams["font.family"] = "Hiragino Sans"
 sns.set_theme(style="whitegrid", font="Hiragino Sans")
 
-get_data_url = (
-    "https://dashboard.e-stat.go.jp/"
-    "api/1.0/Json/getData"
-)
-
-Path("../data/raw").mkdir(parents=True, exist_ok=True)
-Path("../data/processed").mkdir(parents=True, exist_ok=True)
-```
-
-**セル2：指標名を使ってメタ情報を検索する**
-
-```python
-# 指標名を検索語として完全失業率のメタ情報を取得する．
-indicator_info_url = (
-    "https://dashboard.e-stat.go.jp/"
-    "api/1.0/Json/getIndicatorInfo"
-)
-
-search_params = {
-    "Lang": "JP",
-    "SearchIndicatorWord": "完全失業率（男女計）",
-}
-
-search_response = requests.get(
-    indicator_info_url,
-    params=search_params,
-    timeout=30,
-)
-search_response.raise_for_status()
-unemployment_info = search_response.json()
-
-indicator_objects = (
-    unemployment_info["GET_META_INDICATOR_INF"]
-    ["METADATA_INF"]["CLASS_INF"]["CLASS_OBJ"]
-)
-
-candidate_df = pd.DataFrame([
-    {
-        "指標コード": obj["@code"],
-        "指標名": obj["@name"],
-    }
-    for obj in indicator_objects
-])
-
-candidate_df
-```
-
-検索結果には，前年同月増減など，名称の似た指標が含まれる．
-今回は男女計の完全失業率そのものを表す指標コード`0301010000020020010`を使用する．
-
-**セル3：月次・全国系列のメタ情報を表示する**
-
-```python
-# 完全失業率の月次・全国系列について周期や単位を表にする．
-UNEMPLOYMENT_CODE = "0301010000020020010"
-
-unemployment_object = next(
-    obj
-    for obj in indicator_objects
-    if obj["@code"] == UNEMPLOYMENT_CODE
-)
-
-unemployment_series_df = pd.DataFrame([
-    {
-        "周期コード": series["cycle"]["@code"],
-        "周期": series["cycle"]["@name"],
-        "地域階級コード": series["RegionalRank"]["@code"],
-        "地域階級": series["RegionalRank"]["@name"],
-        "系列種別コード": series["IsSeasonal"]["@code"],
-        "系列種別": series["IsSeasonal"]["@name"],
-        "単位": series["@unit"],
-        "開始時点": series["@fromDate"],
-    }
-    for series in unemployment_object["CLASS"]
-    if series["cycle"]["@code"] == "1"
-    and series["RegionalRank"]["@code"] == "2"
-])
-
-unemployment_series_df
-```
-
-実行後，次を確認せよ．
-
-1. 完全失業率の指標コードは何か
-2. 月次・全国系列の単位は何か
-3. 原数値と季節調整値の両方が提供されているか
-4. 自分で別の指標を探す場合，指標名だけでなく何を確認すべきか
-````
-
-````{note} 演習12：完全失業率をAPIから取得する
-「完全失業率の取得」という見出しを作り，次のセルを順番に実行せよ．
-
-**セル1：月次データを取得して保存する**
-
-```python
-# 完全失業率の月次データをAPIから取得して保存する．
-unemployment_params = {
-    "Lang": "JP",
-    "IndicatorCode": UNEMPLOYMENT_CODE,
-    "RegionCode": "00000",
-    "Cycle": "1",
-}
-
-unemployment_response = requests.get(
-    get_data_url,
-    params=unemployment_params,
-    timeout=30,
-)
-unemployment_response.raise_for_status()
-unemployment_data = unemployment_response.json()
-
-with open(
-    "../data/raw/dashboard_unemployment.json",
-    "w",
-    encoding="utf-8",
-) as f:
-    json.dump(
-        unemployment_data,
-        f,
-        ensure_ascii=False,
-        indent=2,
-    )
-```
-
-**セル2：季節調整値を表に変換する**
-
-```python
-# 完全失業率の季節調整値だけを抽出して時系列の表を作る．
-unemployment_objects = (
-    unemployment_data["GET_STATS"]
-    ["STATISTICAL_DATA"]["DATA_INF"]["DATA_OBJ"]
-)
-
-unemployment_rows = []
-
-for obj in unemployment_objects:
-    value = obj["VALUE"]
-
-    if value["@isSeasonal"] != "2":
-        continue
-
-    unemployment_rows.append({
-        "年月": pd.to_datetime(
-            value["@time"][:6],
-            format="%Y%m",
-        ),
-        "完全失業率": float(value["$"]),
-    })
-
 unemployment_df = (
-    pd.DataFrame(unemployment_rows)
+    pd.read_csv(
+        "../data/processed/unemployment_monthly.csv",
+        parse_dates=["年月"],
+    )
     .sort_values("年月")
     .reset_index(drop=True)
 )
 
 print("行数・列数:", unemployment_df.shape)
-unemployment_df.tail()
+print(
+    "期間:",
+    unemployment_df["年月"].min(),
+    "〜",
+    unemployment_df["年月"].max(),
+)
+
+unemployment_df.head()
 ```
 
-実行後，次を確認せよ．
-
-1. `data/raw/dashboard_unemployment.json`が作成されたか
-2. `unemployment_df`は年月の昇順になっているか
-3. 完全失業率の値は%として解釈できるか
+実行後，`年月`と`完全失業率`の2列があり，年月の昇順に並んでいることを確認せよ．
 ````
 
-データを取得できない場合は，次のファイルをダウンロード・解凍し，`data/raw`に配置すること．
-
-[dashboard_unemployment_json.zip](./analysis/11/data/raw/dashboard_unemployment_json.zip)
-
-APIから取得できなかった場合は，JSONを配置した後に次のセルを実行し，演習12のセル2から再開すること．
-
-```python
-# 配布JSONを読み込み，API取得時と同じ変数へ格納する．
-with open(
-    "../data/raw/dashboard_unemployment.json",
-    encoding="utf-8",
-) as f:
-    unemployment_data = json.load(f)
-```
-
-````{note} 演習13：CPIと完全失業率を年月で結合する
+````{note} 演習11：CPIと完全失業率を年月で結合する
 「CPIと完全失業率の結合」という見出しを作り，次のセルを順番に実行せよ．
 
 **セル1：CPI前年同月比を作る**
@@ -1741,13 +1679,25 @@ print("saved:", comparison_path)
 3. `validate="one_to_one"`でエラーが出た場合，元の表の何を調べるべきか
 ````
 
-````{note} 演習14：時系列図と散布図で相関を調べる
+````{note} 演習12：時系列図と散布図で相関を調べる
 「CPIと完全失業率の相関」という見出しを作り，次のセルを順番に実行せよ．
 
 **セル1：2つの時系列を上下に並べる**
 
 ```python
-# CPI前年同月比と完全失業率の時系列を上下に並べて描く．
+# CPI前年同月比と完全失業率の時系列を上下に描いて保存する．
+from pathlib import Path
+
+
+time_series_path = Path(
+    "../reports/figures/"
+    "cpi_unemployment_time_series.png"
+)
+time_series_path.parent.mkdir(
+    parents=True,
+    exist_ok=True,
+)
+
 fig, axes = plt.subplots(
     2,
     1,
@@ -1775,15 +1725,36 @@ fig.suptitle(
     "CPI前年同月比と完全失業率の推移（2000年以降）"
 )
 plt.tight_layout()
+plt.savefig(
+    time_series_path,
+    dpi=150,
+    bbox_inches="tight",
+)
 plt.show()
+
+print("saved:", time_series_path)
 ```
 
 単位と縦軸の範囲が異なるため，2本の線を1つの縦軸へ無理に重ねず，上下の図で同じ年月を共有する．
 
+![fig](./analysis/11/reports/figures/cpi_unemployment_time_series.png)
+
 **セル2：散布図を描いて相関係数を計算する**
 
 ```python
-# 散布図を描き，2系列のPearson相関係数を計算する．
+# 散布図を保存し，2系列のPearson相関係数を計算する．
+from pathlib import Path
+
+
+scatter_path = Path(
+    "../reports/figures/"
+    "cpi_unemployment_monthly.png"
+)
+scatter_path.parent.mkdir(
+    parents=True,
+    exist_ok=True,
+)
+
 correlation = comparison_df[
     "CPI前年同月比"
 ].corr(comparison_df["完全失業率"])
@@ -1806,13 +1777,21 @@ ax.set_xlabel("完全失業率（%・季節調整値）")
 ax.set_ylabel("CPI前年同月比（%）")
 
 plt.tight_layout()
+plt.savefig(
+    scatter_path,
+    dpi=150,
+    bbox_inches="tight",
+)
 plt.show()
 
+print("saved:", scatter_path)
 print("相関係数:", round(correlation, 3))
 ```
 
 回帰直線は点の全体的な傾きを見やすくするために表示している．
 この直線や相関係数だけから因果関係を結論づけてはいけない．
+
+![corr](./analysis/11/reports/figures/cpi_unemployment_monthly.png)
 
 **セル3：対象期間を変えて相関係数を比較する**
 
@@ -1839,6 +1818,12 @@ period_correlation_df = pd.DataFrame({
 
 period_correlation_df
 ```
+出力
+```text
+	期間	相関係数
+0	2000年〜2014年	-0.729851
+1	2015年以降	-0.432704
+```
 
 実行後，次を確認せよ．
 
@@ -1846,64 +1831,80 @@ period_correlation_df
 2. 散布図は1本の直線で十分に表せる形か
 3. 外れた位置にある点や，点が集まる範囲はあるか
 4. 対象期間を変えると相関係数は変化するか
-5. 負の相関が得られた場合，「完全失業率を下げればCPIが上がる」と断定できないのはなぜか
-````
+<!-- 
+```{tip} 出力の考察例
+セル1の時系列図を見ると，2000年代前半には完全失業率が比較的高く，CPI前年同月比は0%前後または負の時期が多い．
+その後，完全失業率は長期的に低下し，2022年以降には完全失業率が低い状態でCPI前年同月比が大きく上昇している．
+このように，全期間を通して見ると，完全失業率が低い時期ほどCPI前年同月比が高いという組合せが見られる．
 
+セル2で計算した全期間の相関係数は$r=-0.65$である．
+散布図の回帰直線も右下がりであるため，観測期間内では2変数に比較的明瞭な負の線形関係があると要約できる．
+一方，同じ程度の完全失業率でもCPI前年同月比には幅があり，すべての点が回帰直線の近くに並んでいるわけではない．
+
+セル3では，2000年から2014年までの相関係数が$r=-0.73$，2015年以降が$r=-0.43$となった．
+どちらの期間も負の相関であるが，2015年以降は負の関係が弱くなっている．
+したがって，2変数の関係が全期間を通して一定であったとはいえず，全期間の$r=-0.65$だけで関係を説明することは適切ではない．
+
+また，通常の散布図では，各点がどの年月に対応するかや，点が時間とともにどのように移動したかは分からない．
+全期間の負の相関には，時期ごとに異なる点のまとまりや長期的な変化が影響している可能性がある．
+以上の結果は，観測期間内の関係を要約したものであり，完全失業率の変化がCPIの変化を直接引き起こしたことを意味しない．
+```
+ -->
+````
+<!-- 
 ```{tip} 相関分析の結果に必ず書くこと
 「相関があった」だけではなく，比較した系列，変換方法，対象期間，相関係数，散布図から分かる特徴を記録する．
 
 今回であれば，「2000年以降の総合CPI前年同月比と，完全失業率の季節調整値を月次で対応させて比較した」と明記する．
 ```
+ -->
 
+<!-- 
 ---
-
 ## 時系列グラフの読み取りと注意点
 
-時系列グラフは，線の形だけを眺めるのではなく，次の順序で読む．
+時系列グラフは線の形だけでなく，**定義，データ加工，変動，系列間の関係**の順に読む．
+この順序を守ると異なる意味の数値を誤って比較することを防ぎやすい．
 
-1. 指標名，単位，基準年，周期，期間を確認する
-2. 原数値か季節調整値かを確認する
-3. 長期的なトレンドを確認する
-4. 繰り返す季節性があるか確認する
-5. 一時的な変動や外れ値を確認する
-6. 水準，差分，移動平均，変化率のどれを描いた図か確認する
-7. 2系列の比較では，年月，周期，変換方法がそろっているか確認する
-
-| 注意点 | 誤った読み方 | 確認すること |
+| 読み取りの段階 | 確認すること | 今回の例 |
 | --- | --- | --- |
-| 縦軸の範囲 | 小さな変化を極端に大きく見せる | 0を含むか，範囲は適切か |
-| 表示期間 | 一部期間だけで長期傾向を判断する | 長期図と拡大図を併用する |
-| 基準年 | 指数100を通常の価格と考える | どの年平均を100とするか |
-| 系列種別 | 原数値と季節調整値を混ぜる | 同じ定義の系列か |
-| 欠損 | 線で結ばれたため連続観測と思う | 観測されていない月はないか |
-| 移動平均 | 平滑化した線を実測値と考える | 何か月を平均したか |
-| 前年同月比 | 上昇率が低下したので価格が下落したと考える | 上昇率と水準を区別する |
-| 相関係数 | 数値だけで2系列の関係を判断する | 散布図，対象期間，変換方法も確認する |
-| 共通トレンド | ともに上昇するので直接関係があると考える | 差分や変化率でも比較する |
-| 因果関係 | 同じ時期の出来事を原因と断定する | グラフだけでは原因を確定できない |
+| 1．定義を確認する | 指標名，単位，基準年，周期，対象期間，系列種別，欠損 | 全国の月次CPI，2020年平均を100とする指数，原数値または季節調整値 |
+| 2．加工方法を確認する | 水準，ラグ，差分，移動平均，前年同月比のどれか | 指数水準と前年同月比は異なる問いに答える |
+| 3．変動を読む | トレンド，季節性，短期的なノイズ，外れた動き | 長期的な物価の推移と月ごとの変化を分けて見る |
+| 4．系列を比較する | 年月，周期，加工方法をそろえ，時系列図と散布図を併用する | CPI前年同月比と完全失業率を年月で結合し，期間別の相関も調べる |
 
+### 読み違いを防ぐ確認事項
+
+| 観点 | 注意すること |
+| --- | --- |
+| 軸と表示期間 | 縦軸の範囲や切り取った期間によって変化の印象が変わるため，長期図と拡大図を併用する |
+| 指数と変化率 | 指数100は基準年平均との比較を表す．前年同月比は12か月前からの変化率であり，指数水準とは区別する |
+| 原数値と加工値 | 原数値，季節調整値，移動平均にはそれぞれ異なる目的がある．平滑化した値を実測値と考えない |
+| 欠損と時間間隔 | 観測されていない月や不規則な時間間隔がないかを確認してから，ラグや差分を計算する |
+| 2系列の関係 | 相関係数だけで判断せず，散布図，時系列図，対象期間，変換方法を確認する．共通トレンドや自己相関にも注意する |
+ -->
+<!-- 
 ```{tip} 上昇率の低下と物価の下落は異なる
 前年同月比が4%から2%へ低下しても，指数水準が上昇していれば物価は上がり続けている．
 これは「上昇する速さが遅くなった」状態であり，「物価が下がった」こととは異なる．
 ```
-
+ -->
 ---
 
 ## まとめ
 
-- 時系列データでは観測の時間順序に意味がある
-- 日付型へ変換し，系列ごとに並べ替えてから時系列演算を行う
-- 時系列の変動はトレンド，季節性，ノイズに分けて考えられる
-- ラグは過去の値，差分は前期からの変化量を表す
-- 移動平均は短期変動をならすが，変化への反応が遅れる
-- 前年同月比は12か月前からの変化率であり，指数水準とは異なる
-- 指数データでは基準年と品目範囲を確認する
-- 原数値と季節調整値は分析目的に応じて使い分ける
-- 2つの時系列は年月をキーに結合し，比較可能な観測値を対応させる
-- 相関係数は線形な関係の向きと強さを表すため，散布図と併用する
-- 共通トレンド，自己相関，対象期間によって見せかけの相関が生じることがある
-- 相関関係だけから因果関係を結論づけることはできない
-- 時系列グラフでは期間，軸，欠損，変換方法を確認する
+第11回ではCPIの取得・前処理・可視化，完全失業率との比較を一つの流れとして実施した．
+
+| 工程 | 実施したこと | 身につけるべき判断 |
+| --- | --- | --- |
+| データ取得と確認 | 統計ダッシュボードAPIからCPIを取得し，メタ情報とJSONの内容を確認した | 指標の意味，単位，基準年，周期，原数値・季節調整値を確認してから使う |
+| 前処理 | 年月を日付型へ変換し，系列ごとに時間順へ並べた | 時間順序と時間間隔を整えてから時系列演算を行う |
+| 変換と可視化 | ラグ，差分，移動平均，前年同月比を作り，長期図と拡大図で比較した | 目的に応じて水準と変化を使い分け，トレンド，季節性，ノイズを読み分ける |
+| 2系列の比較 | CPIと完全失業率を年月で結合し，時系列図，散布図，全期間・期間別の相関を確認した | 相関は対象期間の関係を要約する値であり，共通トレンド，自己相関，擬似相関，因果関係に注意する |
+
+時系列分析で最も重要なのは，計算方法を選ぶ前に，何を比較したいのかを明確にすることである．
+水準を見たいのか，前月からの変化を見たいのか，季節性を除いた動きを見たいのかによって，使用する系列と加工方法は変わる．
+結果を解釈するときは，単一の数値やグラフだけに頼らず，定義，期間，加工方法を明記し，複数の切り口から確認する．
 
 次回はスポーツデータを扱う．
 
@@ -1927,6 +1928,97 @@ period_correlation_df
 `src/plot_cpi_monthly_change.py`を作成し，図を`reports/figures/cpi_monthly_change.png`として保存すること．
 ````
 
+<!--
+````{dropdown} <span style="color:red">発展問題1 解答例</span>
+
+`src/plot_cpi_monthly_change.py`として保存し，`11`フォルダ内で実行する．
+
+```python
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+
+
+# 入出力ファイルとグラフの表示を準備する．
+data_path = Path("data/processed/cpi_monthly.csv")
+output_path = Path(
+    "reports/figures/cpi_monthly_change.png"
+)
+
+plt.rcParams["font.family"] = "Hiragino Sans"
+sns.set_theme(
+    style="whitegrid",
+    font="Hiragino Sans",
+)
+
+# 総合CPIの原数値と季節調整値を読み込む．
+cpi_df = pd.read_csv(
+    data_path,
+    parse_dates=["年月"],
+)
+
+monthly_change_df = (
+    cpi_df[
+        (cpi_df["指標名"] == "総合")
+        & (
+            cpi_df["系列種別"]
+            .isin(["原数値", "季節調整値"])
+        )
+    ]
+    .sort_values(["系列種別", "年月"])
+    .copy()
+)
+
+# 系列ごとに前月比を計算し，2015年以降へ絞る．
+monthly_change_df["前月比"] = (
+    monthly_change_df
+    .groupby("系列種別")["指数"]
+    .pct_change(fill_method=None)
+    * 100
+)
+
+recent_df = (
+    monthly_change_df[
+        monthly_change_df["年月"] >= "2015-01-01"
+    ]
+    .dropna(subset=["前月比"])
+    .copy()
+)
+
+# 原数値と季節調整値の前月比を折れ線で比較する．
+fig, ax = plt.subplots(figsize=(11, 5))
+
+sns.lineplot(
+    data=recent_df,
+    x="年月",
+    y="前月比",
+    hue="系列種別",
+    ax=ax,
+)
+
+ax.axhline(0, color="gray", linewidth=1)
+ax.set_title(
+    "総合CPIの前月比：原数値と季節調整値"
+)
+ax.set_xlabel("年")
+ax.set_ylabel("前月比（%）")
+
+output_path.parent.mkdir(parents=True, exist_ok=True)
+plt.tight_layout()
+plt.savefig(output_path, dpi=150)
+plt.close()
+
+print("saved:", output_path)
+```
+
+原数値の前月比には，季節ごとに繰り返す変動も含まれる．
+季節調整値ではその影響が抑えられるため，短期的な基調を比較しやすい．
+ただし，季節性以外の大きな変化まで消えるわけではない．
+````
+-->
+
 ````{note} 発展問題2：3つのCPI系列を比較する
 
 指標コード`0703010501010090020`を追加で取得し，2015年以降について3系列の原数値を可視化せよ．
@@ -1934,6 +2026,270 @@ period_correlation_df
 
 `src/plot_cpi_three_series.py`を作成し，図を`reports/figures/cpi_three_series.png`として保存すること．
 ````
+
+<!--
+````{dropdown} <span style="color:red">発展問題2 解答例</span>
+
+`src/plot_cpi_three_series.py`として保存し，`11`フォルダ内で実行する．
+
+```python
+import json
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import requests
+import seaborn as sns
+
+
+# 取得する3系列と入出力ファイルを定義する．
+indicator_names = {
+    "0703010501010090000": "総合",
+    "0703010501010090010": "生鮮食品を除く総合",
+    "0703010501010090020": (
+        "食料（酒類を除く）及び"
+        "エネルギーを除く総合"
+    ),
+}
+
+raw_path = Path(
+    "data/raw/dashboard_cpi_three_series.json"
+)
+output_path = Path(
+    "reports/figures/cpi_three_series.png"
+)
+
+plt.rcParams["font.family"] = "Hiragino Sans"
+sns.set_theme(
+    style="whitegrid",
+    font="Hiragino Sans",
+)
+
+# 統計ダッシュボードAPIから3系列を取得する．
+get_data_url = (
+    "https://dashboard.e-stat.go.jp/"
+    "api/1.0/Json/getData"
+)
+
+params = {
+    "Lang": "JP",
+    "IndicatorCode": ",".join(indicator_names),
+    "RegionCode": "00000",
+    "Cycle": "1",
+}
+
+response = requests.get(
+    get_data_url,
+    params=params,
+    timeout=30,
+)
+response.raise_for_status()
+cpi_data = response.json()
+
+raw_path.parent.mkdir(parents=True, exist_ok=True)
+with open(raw_path, "w", encoding="utf-8") as f:
+    json.dump(
+        cpi_data,
+        f,
+        ensure_ascii=False,
+        indent=2,
+    )
+
+# JSONから3系列の原数値だけを表へ変換する．
+data_obj = (
+    cpi_data["GET_STATS"]
+    ["STATISTICAL_DATA"]["DATA_INF"]["DATA_OBJ"]
+)
+
+rows = []
+
+for obj in data_obj:
+    value = obj["VALUE"]
+    indicator_code = value["@indicator"]
+
+    if value["@isSeasonal"] != "1":
+        continue
+    if indicator_code not in indicator_names:
+        continue
+
+    rows.append({
+        "指標名": indicator_names[indicator_code],
+        "年月": pd.to_datetime(
+            value["@time"][:6],
+            format="%Y%m",
+        ),
+        "指数": float(value["$"]),
+    })
+
+three_series_df = (
+    pd.DataFrame(rows)
+    .query("年月 >= '2015-01-01'")
+    .sort_values(["指標名", "年月"])
+)
+
+# 2015年以降の3系列を折れ線で比較する．
+fig, ax = plt.subplots(figsize=(11, 5))
+
+sns.lineplot(
+    data=three_series_df,
+    x="年月",
+    y="指数",
+    hue="指標名",
+    ax=ax,
+)
+
+ax.set_title("CPIの3系列の推移（2015年以降）")
+ax.set_xlabel("年")
+ax.set_ylabel("指数（2020年平均=100）")
+
+output_path.parent.mkdir(parents=True, exist_ok=True)
+plt.tight_layout()
+plt.savefig(output_path, dpi=150)
+plt.close()
+
+print("saved:", raw_path)
+print("saved:", output_path)
+```
+
+3系列の差が広がる時期では，生鮮食品，エネルギー，酒類を含めるかどうかが指数の動きに影響していると考えられる．
+ただし，この図だけではどの品目が差を生んだかを特定できないため，品目別指数の確認が必要である．
+````
+-->
+
+````{note} 発展問題3：散布図に時間情報を加える
+
+通常の散布図では，同じ年月のCPI前年同月比と完全失業率を1つの点として配置するが，点がどの年月に対応するか，どのような順序で移動したかは分からない．
+
+[cpi_unemployment_monthly.csv](./analysis/11/data/processed/cpi_unemployment_monthly.csv)を読み込み，次の2つの散布図を横に並べて比較せよ．
+
+1. すべての点を同じ色で表示した通常の散布図
+2. 点を年月順に線で結び，点の色を観測年によって変えた散布図
+
+どちらの図も横軸を完全失業率，縦軸をCPI前年同月比とすること．
+2つ目の図には，色と観測年の対応が分かるカラーバーを付けること．
+
+作成した図から，通常の散布図では読み取れなかった時期による点の集まりや，時間とともに変化する経路があるかを確認せよ．
+また，全期間を1本の直線的な関係だけで説明することが適切か考察すること．
+
+`src/plot_cpi_unemployment_time_order.py`を作成し，図を`reports/figures/cpi_unemployment_time_order.png`として保存すること．
+
+作成例
+
+![fig](./analysis/11/reports/figures/cpi_unemployment_time_order.png)
+
+````
+
+<!--
+````{dropdown} <span style="color:red">発展問題3 解答例</span>
+
+`src/plot_cpi_unemployment_time_order.py`として保存し，`11`フォルダ内で実行する．
+
+```python
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+
+
+# 比較用データと出力先を準備する．
+data_path = Path(
+    "data/processed/cpi_unemployment_monthly.csv"
+)
+output_path = Path(
+    "reports/figures/"
+    "cpi_unemployment_time_order.png"
+)
+
+plt.rcParams["font.family"] = "Hiragino Sans"
+sns.set_theme(
+    style="whitegrid",
+    font="Hiragino Sans",
+)
+
+# 同じ年月で対応付けた2系列を時間順に並べる．
+comparison_df = (
+    pd.read_csv(
+        data_path,
+        parse_dates=["年月"],
+    )
+    .dropna()
+    .sort_values("年月")
+    .reset_index(drop=True)
+)
+
+comparison_df["観測年"] = (
+    comparison_df["年月"].dt.year
+)
+
+correlation = comparison_df[
+    "CPI前年同月比"
+].corr(comparison_df["完全失業率"])
+
+# 通常の散布図と時間情報を加えた散布図を比較する．
+fig, axes = plt.subplots(
+    1,
+    2,
+    figsize=(13, 5),
+    sharex=True,
+    sharey=True,
+)
+
+sns.scatterplot(
+    data=comparison_df,
+    x="完全失業率",
+    y="CPI前年同月比",
+    color="tab:blue",
+    alpha=0.65,
+    ax=axes[0],
+)
+axes[0].set_title(
+    f"通常の散布図（r = {correlation:.2f}）"
+)
+
+axes[1].plot(
+    comparison_df["完全失業率"],
+    comparison_df["CPI前年同月比"],
+    color="gray",
+    linewidth=0.7,
+    alpha=0.55,
+    zorder=1,
+)
+
+points = axes[1].scatter(
+    comparison_df["完全失業率"],
+    comparison_df["CPI前年同月比"],
+    c=comparison_df["観測年"],
+    cmap="viridis",
+    alpha=0.8,
+    zorder=2,
+)
+axes[1].set_title("年月順の経路と観測年")
+
+colorbar = fig.colorbar(
+    points,
+    ax=axes[1],
+    pad=0.02,
+)
+colorbar.set_label("観測年")
+
+for ax in axes:
+    ax.set_xlabel("完全失業率（%・季節調整値）")
+    ax.set_ylabel("CPI前年同月比（%）")
+
+output_path.parent.mkdir(parents=True, exist_ok=True)
+plt.tight_layout()
+plt.savefig(output_path, dpi=150)
+plt.close()
+
+print("saved:", output_path)
+```
+
+通常の散布図からは，全期間をまとめた負の関係を読み取れるが，点がどの順序で移動したかは分からない．
+時間情報を加えると，異なる時期の点が別の範囲に集まり，同じ場所を単純に往復しているわけではないことが分かる．
+したがって，全期間の$r=-0.65$だけでは関係の時間的な変化を十分に表せず，期間別の相関や時系列グラフも確認する必要がある．
+````
+-->
 
 ### さらに学ぶための手法
 
@@ -1944,5 +2300,4 @@ period_correlation_df
 | フーリエ解析 | 時系列を異なる周期の波へ分解し，強い周期を調べる |
 | ARIMA | 自己相関や差分を使って時系列をモデル化し，将来値を予測する |
 
-これらは前処理，パラメタ選択，モデル診断が必要であるため，本講義の本編では扱わない．
-今回学んだ時間順の確認，ラグ，差分，季節性の理解が，これらの手法を学ぶ基礎になる．
+これらは前処理・パラメタ選択・モデル診断が必要であり，本講義では扱わない．

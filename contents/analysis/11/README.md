@@ -16,11 +16,12 @@
 - 周期：月次
 - 基準年：2020年（2020年平均=100）
 - 元データ：data/raw/dashboard_cpi.json
-- 比較用元データ：data/raw/dashboard_unemployment.json
+- 比較用データ：data/processed/unemployment_monthly.csv
 - 前処理済みデータ：data/processed/cpi_monthly.csv
-- 比較用データ：data/processed/cpi_unemployment_monthly.csv
+- 結合後データ：data/processed/cpi_unemployment_monthly.csv
 - 観察用ノートブック：notebooks/time_series.ipynb（Gitでは管理しない）
 - 作成するスクリプト：
   - src/plot_cpi_yoy.py
 - 出力する図：
+  - reports/figures/cpi_core_recent.png
   - reports/figures/cpi_yoy.png

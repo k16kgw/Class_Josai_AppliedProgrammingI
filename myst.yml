@@ -3,7 +3,7 @@ version: 1
 project:
   id: a2b3c4d5-e6f7-4a8b-9c0d-1e2f3a4b5c6d
   title: 応用プログラミングI
-  description: 城西大学理学部情報数理学科対象科目
+  description: 城西大学理学部数学科対象科目
   authors:
     - name: Keiichiro Kagawa
     - email: kkagawa@josai.ac.jp
@@ -36,7 +36,7 @@ project:
     - file: contents/8_visualization.md
     - file: contents/9_map_visualization.md
     - file: contents/10_administrative_statistics.md
-    # - file: contents/11_economic_data.md
+    - file: contents/11_economic_data.md
     # - file: contents/12_sports_data.md
     # - file: contents/13_report_writing.md
 
