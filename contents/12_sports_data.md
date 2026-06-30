@@ -1,45 +1,71 @@
-# 第12回　データ分析実践III：スポーツデータ
+# 第12回　データ分析実践III：スポーツトラッキングデータ
 
 ### 前回の復習
 
-- 経済データでは，単位に加えて基準年を確認する
-- 時系列データは，日付型に変換し，時間順に並べてから可視化する
-- 同じ時点の行が重複していないかを確認する
-- 水準（指数）と変化率（前年同月比）は同じデータの別の見方である
+第11回は，CPIと完全失業率を使って時系列データを分析した．
+
+| 観点 | 第11回に行ったこと |
+| --- | --- |
+| 時間 | 年月を日付型へ変換し，時間順に並べた |
+| 変換 | ラグ，差分，移動平均，前年同月比を計算した |
+| 可視化 | 時系列グラフと散布図を使った |
+| 比較 | 同じ年月の2系列を結合し，相関を調べた |
+
+今回も時間順序を持つデータを扱うが，1つの時刻に複数の選手の2次元座標が記録されている点が異なる．
 
 ### 今回の位置づけ
 
-第12回では**スポーツデータ**を扱う．
-スポーツデータは，試合結果，チーム成績，選手成績など，**集計や比較に向いた**データが多い．
+第12回では，サッカーの**トラッキングデータ**を扱う．
+トラッキングデータは，試合中の選手やボールの位置を短い時間間隔で繰り返し記録したデータである．
 
-データ分析実践の最終回として，テーマ設定からデータ取得・前処理・集計・可視化・考察までを扱い，最終レポートで必要になる「図表と文章で説明する」力を確認する．
+参考資料[「2次元運動計測とその処理」](../documents/12/text_soccer.pdf)で扱われている位置ベクトル，速さ，チームの重心をPythonで確認する．
+最後に，選手の位置をサッカーピッチ上へ描き，時間とともに更新するGIF形式の動画を作成する．
 
 ### 到達目標
 
-GitHub上で公開されている国際サッカー試合結果のデータを使い，日本代表の成績の変化とホームアドバンテージを分析する．
+- 公開データの出典と利用条件を確認できる
+- 時刻，選手ID，2次元座標からなるトラッキングデータの形を説明できる
+- 高頻度データから必要な時間帯を抽出し，フレーム数を減らせる
+- 選手の位置とチームの重心をピッチ上へ可視化できる
+- `matplotlib.animation`を使って時間変化を動画として保存できる
+- 動画から読み取れることと，データの制約を区別して説明できる
 
-- スポーツデータを使った分析テーマを設定できる
-- GitHub上で公開されているオープンデータを取得し，ライセンスを確認できる
-- 条件を組み合わせた行の抽出（日本代表の試合の抽出）ができる
-- 行ごとの条件から新しい列（勝ち・負け・引き分け）を作成できる
-- グループ別集計を使って，年代別・条件別の成績を比較できる
-- 分析結果を，図表と文章を組み合わせて説明できる
+**今回の流れ**
 
-### 準備
+| 段階 | 内容 | 目的 |
+| --- | --- | --- |
+| 1 | トラッキングデータを理解する | 1行と1フレームの意味を知る |
+| 2 | 公開条件を確認する | データを適切に利用する |
+| 3 | データを取得・前処理する | 20Hzの元データから30秒間を5fpsで抽出する |
+| 4 | 1フレームを可視化する | 座標とチーム重心を確認する |
+| 5 | 動画を作成する | 選手の動きを時間順に見る |
+| 6 | 表現方法を変える | 速さを色で表して情報を加える |
+
+---
+
+## 準備
 
 ````{note} 演習0：作業フォルダを作成する
 
 1. ターミナルで次のコマンドを順に実行する．
 
 ```bash
-cd /User/<ユーザ名>/applied_programming_i
+cd /Users/<ユーザ名>/applied_programming_i
 mkdir 12
 cd 12
 mkdir -p notebooks data/raw data/processed src reports/figures
 git init
 ```
 
-2. `README.md`を作成し，次の内容を記入する．
+2. 必要なライブラリをインストールする．
+
+```bash
+python3 -m pip install --upgrade requests pandas numpy matplotlib pillow
+```
+
+3. JupyterLabまたはVS Codeで`notebooks/tracking.ipynb`を新規作成する．
+
+4. `README.md`を作成し，次の内容を記入する．
 
 ```markdown
 # 応用プログラミングI 第12回
@@ -49,549 +75,575 @@ git init
 
 ## 今日の目標
 
-国際サッカー試合結果のデータを使い，日本代表の成績の変化とホームアドバンテージを可視化する．
+サッカーのトラッキングデータを取得し，選手の動きを動画として可視化する．
 
 ## 第12回 分析記録
 
-- テーマ：日本代表は強くなったのか／ホームで戦うと有利なのか
-- 元データ：data/raw/international_results.csv（国際サッカー試合結果，1872年〜）
-- 出典：GitHub リポジトリ martj42/international_results
-- URL：https://github.com/martj42/international_results
-- ライセンス：CC0 1.0（パブリックドメイン）
-- 観察用ノートブック：notebooks/sports_data.ipynb（Gitでは管理しない）
-- 作成するスクリプト：
-  - src/plot_japan_decade_winrate.py
-  - src/plot_home_advantage.py
-- 作成するデータ：
-  - data/processed/japan_results.csv
-- 出力する図：
-  - reports/figures/japan_decade_winrate.png
-  - reports/figures/home_advantage.png
+- テーマ：サッカー選手の位置は時間とともにどのように変化するか
+- データ名：Soccer Video and Player Position Dataset
+- 提供者：Simula Research Laboratoryほか
+- 取得元：https://datasets.simula.no/alfheim/
+- 取得日：<データを取得した日>
+- 利用条件：非商用研究目的に限る．再識別や選手・クラブのプロファイル作成は禁止
+- 元データ：data/raw/alfheim_tracking_first.csv
+- 前処理済みデータ：data/processed/alfheim_tracking_5fps.csv
+- 観察用ノートブック：notebooks/tracking.ipynb（Gitでは管理しない）
+- 使用するスクリプト：
+  - src/prepare_alfheim_tracking.py
+  - src/animate_alfheim_tracking.py
+- 出力する図・動画：
+  - reports/figures/alfheim_frame.png
+  - reports/figures/tracking_speed_frame.png
+  - reports/figures/alfheim_tracking.gif
+  - reports/figures/alfheim_tracking_speed.gif
 ```
 
-3. `.gitignore`を作成し，次の内容を記入する（第9回と同じ）．
+5. `.gitignore`を作成する．
 
 ```gitignore
 .DS_Store
 *.swp
 *~
 .vscode/
-.ipynb_checkpoints
+.ipynb_checkpoints/
 *.ipynb
 data/raw/
 ```
 
-4. 作成したファイルをコミットする．
+6. 作成したファイルをコミットする．
 
 ```bash
 git add .
 git commit -m "first commit"
 ```
-
-5. JupyterLabまたはVS Codeで`notebooks/sports_data.ipynb`を新規作成する．
 ````
 
 ---
 
-## テーマ設定
+## トラッキングデータ
 
-スポーツデータでは，次のような問いを立てることができる．
+トラッキングデータでは，時刻$t$における選手$i$の位置を2次元の位置ベクトル
 
-| 観点 | 問いの例 |
-| --- | --- |
-| チーム比較 | 得点が多いチームと少ないチームにはどのような違いがあるか |
-| 時間変化 | チームの成績は年代とともにどのように変化したか |
-| 条件比較 | ホームとアウェイで成績に違いはあるか |
-| 分布 | 得点はどのような分布をしているか |
+$$
+\boldsymbol{r}_i(t)
+=
+[x_i(t),y_i(t)]
+$$
 
-ランキングを作るだけでなく，**分布や関係を見る**ことが重要である．
-上位だけに注目すると，全体の傾向を見落とすことがある．
+として表す．
 
-今回は次の2つの問いを扱う．
+時刻$t-\Delta t$から$t$までの変位は
 
-> **問い1：日本代表の成績は年代とともに良くなっているか．**  
-> **問い2：ホームで戦うチームは本当に有利なのか．**
+$$
+\Delta\boldsymbol{r}_i(t)
+=
+[x_i(t)-x_i(t-\Delta t),
+y_i(t)-y_i(t-\Delta t)]
+$$
 
-問い1は「時間変化」型，問い2は「条件比較」型の問いである．
+である．
+移動距離を時間間隔で割ると平均の速さが得られる．
+
+$$
+v_i(t)
+=
+\frac{
+\sqrt{
+[x_i(t)-x_i(t-\Delta t)]^2
++
+[y_i(t)-y_i(t-\Delta t)]^2
+}
+}{\Delta t}
+$$
+
+今回使用する元データには，位置座標に加えて計測システムが求めた`speed`も含まれている．
+
+### 1行と1フレーム
+
+元データはlong formatであり，1行が「1つの時刻における1人の選手」に対応する．
+
+| 列 | 内容 | 単位 |
+| --- | --- | --- |
+| `timestamp` | 計測時刻 | 日時 |
+| `tag_id` | 匿名化されたセンサーID | なし |
+| `x_pos` | ピッチ長辺方向の位置 | m |
+| `y_pos` | ピッチ短辺方向の位置 | m |
+| `speed` | 選手の速さ | m/s |
+
+同じ時刻に記録された複数選手の行をまとめたものが1フレームとなる．
+フレームを時間順に切り替えると動画になる．
+
+### チームの重心
+
+1つのフレームに$n$人の選手がいるとき，チームの重心は各座標の平均で表す．
+
+$$
+x_c(t)=\frac{1}{n}\sum_{i=1}^{n}x_i(t),
+\qquad
+y_c(t)=\frac{1}{n}\sum_{i=1}^{n}y_i(t)
+$$
+
+```python
+centroid_x = frame_df["x_pos"].mean()
+centroid_y = frame_df["y_pos"].mean()
+```
+
+```{tip} 重心を解釈するときの注意
+重心は選手の位置を1点に要約した値である．
+同じ重心でも選手の広がり方や配置は異なるため，重心だけでチームの状態を判断してはいけない．
+```
 
 ---
 
-## 使用するデータ：国際サッカー試合結果
+## 使用する公開研究データ
 
-今回は，GitHub上で公開されているオープンデータを使う．
+今回はSimulaが公開する[Alfheimデータセット](https://datasets.simula.no/alfheim/)を使用する．
+データの形式は[Pettersenほかのデータセット論文](https://home.simula.no/~paalh/publications/files/mmsys2014-dataset.pdf)で説明されている．
 
 | 項目 | 内容 |
 | --- | --- |
-| データ名 | International football results from 1872 to 2026 |
-| 公開場所 | GitHub リポジトリ `martj42/international_results` |
-| 内容 | 1872年以降の男子サッカー国際Aマッチ約49,000試合の結果 |
-| ライセンス | CC0 1.0（出典表記なしでも利用できるが，記載するのが望ましい） |
-| 形式 | CSV |
+| 試合 | 2013年11月3日 Tromsø IL対Strømsgodset IF |
+| 計測対象 | ホームチームのセンサー装着選手 |
+| 計測頻度 | 20Hz，1秒間に20回 |
+| ピッチ | $105\times68$ m |
+| 座標 | $0\leq x\leq105$，$0\leq y\leq68$がピッチ内 |
+| 元ファイル | 前半の補間済み位置CSV，約83MB |
 
-```{tip} GitHubで公開されるオープンデータ
-オープンデータは政府のポータルだけでなく，GitHub上でも数多く公開されている．
-GitHubで管理されているデータは，**変更履歴が残る**・**誰がいつ更新したか分かる**という利点がある．
-これはまさに本講義で学んできたGitの仕組みである．
-利用するときは，リポジトリの`README`と`LICENSE`を必ず確認すること．
+このデータにはアウェイチームとボールの位置は含まれていない．
+選手IDはプライバシー保護のために匿名化されており，背番号ではない．
+
+```{tip} 公開データでも利用条件を確認する
+AlfheimデータセットはWeb上で公開されているが，利用は非商用研究目的に限られる．
+選手を再識別することや，選手・クラブの能力を評価するプロファイルを作成することは禁止されている．
+
+この講義では，匿名化された座標データを可視化手法の学習だけに使用する．
 ```
 
-`results.csv`の列は次の通りである．
+---
 
-| 列名 | 内容 |
+## データを取得・前処理する
+
+20Hzの前半全データをそのまま動画にするとフレーム数が多く，処理にも時間がかかる．
+配布スクリプトを使い，次の前処理をまとめて行う．
+
+| 処理 | 内容 |
 | --- | --- |
-| `date` | 試合日 |
-| `home_team` | ホームチーム名 |
-| `away_team` | アウェイチーム名 |
-| `home_score` | ホームチームの得点（90分＋延長．PK戦は含まない） |
-| `away_score` | アウェイチームの得点 |
-| `tournament` | 大会名（`Friendly`は親善試合） |
-| `city` | 開催都市 |
-| `country` | 開催国 |
-| `neutral` | 中立地開催かどうか（`True`/`False`） |
+| ダウンロード | 公式サイトから約83MBの補間済み位置CSVを取得する |
+| 列の選択 | 時刻，選手ID，$x$座標，$y$座標，速さだけを読む |
+| 時間抽出 | 18時35分00秒から30秒間を残す |
+| 座標抽出 | ピッチ内の座標だけを残す |
+| 間引き | 20Hzから5fpsへ変換する |
+| 選手抽出 | 80%以上のフレームで記録された選手を残す |
 
-````{note} 演習1：データを取得する
-`notebooks/sports_data.ipynb`に「データの取得」という見出しを作り，次のセルを順番に実行せよ．
+````{note} 演習1：データを取得して授業用CSVを作る
 
-**セル1：作業中のディレクトリを確認する**
+1. 次のzipファイルをダウンロードし，`src`へ解凍する．
 
-```bash
-!pwd
-```
+[alfheim_tracking_scripts.zip](./analysis/12/src/alfheim_tracking_scripts.zip)
 
-**セル2：必要なライブラリをインストールする**
+ターミナルから解凍する場合は，ダウンロード先に合わせて次を実行する．
 
 ```bash
-!python -m pip install requests pandas seaborn matplotlib
+unzip ~/Downloads/alfheim_tracking_scripts.zip -d src
 ```
 
-**セル3：GitHubからCSVを取得して保存する**
+2. `12`フォルダ内で前処理スクリプトを実行する．
 
-GitHub上のファイルは，`raw.githubusercontent.com`から始まるURLで**ファイルそのもの**を取得できる．
-
-```python
-from pathlib import Path
-
-import requests
-
-csv_url = "https://raw.githubusercontent.com/martj42/international_results/master/results.csv"
-
-response = requests.get(csv_url)
-response.raise_for_status()
-
-Path("../data/raw").mkdir(parents=True, exist_ok=True)
-
-with open("../data/raw/international_results.csv", "w", encoding="utf-8") as f:
-    f.write(response.text)
-
-print("saved: ../data/raw/international_results.csv")
+```bash
+python3 src/prepare_alfheim_tracking.py
 ```
 
-実行後，次を確認せよ．
+初回は約83MBのファイルを取得するため，通信環境によって時間がかかる．
+正常に終了すると次のように表示される．
 
-1. `data/raw/international_results.csv`が作成されたか
-2. README.mdの分析記録に取得日をメモしたか
+```text
+rows: 1500
+frames: 150
+players: 10
+saved: data/processed/alfheim_tracking_5fps.csv
+```
+
+3. `data/processed/alfheim_tracking_5fps.csv`が作成されたことを確認する．
 ````
 
-データが取得できない場合は，次のリンクからダウンロード・解凍して`data/raw`に配置すること．
+データを作成できなかった場合は，次のファイルをダウンロード・解凍し，`data/processed`に配置すること．
 
-- [international_results_csv.zip](./analysis/12/data/raw/international_results_csv.zip)
+[alfheim_tracking_5fps_csv.zip](./analysis/12/data/processed/alfheim_tracking_5fps_csv.zip)
 
-````{note} 演習2：データの形を確認する
-「データの確認」という見出しを作り，次のセルを順番に実行せよ．
+```{tip} 元データをGitで管理しない
+約83MBの元データは再取得できるため，`data/raw/`を`.gitignore`へ登録する．
+一方，前処理の手順を記録したPythonスクリプトはGitで管理する．
+```
 
-**セル1：CSVを読み込んで先頭行を確認する**
+---
+
+## データの中身を確認する
+
+````{note} 演習2：前処理済みCSVをNotebookで確認する
+`notebooks/tracking.ipynb`に「データの確認」という見出しを作り，次のセルを順番に実行せよ．
+
+**セル1：CSVを読み込む**
 
 ```python
+# 前処理済みトラッキングデータを読み込む．
 import pandas as pd
 
-results_df = pd.read_csv("../data/raw/international_results.csv")
 
-print("行数・列数:", results_df.shape)
-results_df.head()
+tracking_df = pd.read_csv(
+    "../data/processed/alfheim_tracking_5fps.csv",
+    parse_dates=["timestamp"],
+)
+
+tracking_df.head()
 ```
 
-**セル2：列の型と欠損を確認する**
+**セル2：表の大きさと列を確認する**
 
 ```python
-results_df.info()
+print("行数・列数:", tracking_df.shape)
+print("選手数:", tracking_df["tag_id"].nunique())
+print("フレーム数:", tracking_df["frame"].nunique())
+print(
+    "経過時間:",
+    tracking_df["elapsed_seconds"].min(),
+    "〜",
+    tracking_df["elapsed_seconds"].max(),
+)
 ```
 
+**セル3：座標と速さの範囲を確認する**
+
 ```python
-results_df.isna().sum()
+tracking_df[
+    ["x_pos", "y_pos", "speed"]
+].describe()
 ```
 
-**セル3：大会名の内訳を確認する**
+**セル4：最初のフレームを確認する**
 
 ```python
-results_df["tournament"].value_counts().head(10)
+frame_df = tracking_df[
+    tracking_df["frame"] == 0
+]
+
+print("フレーム内の選手数:", len(frame_df))
+frame_df[
+    ["frame", "tag_id", "x_pos", "y_pos", "speed"]
+]
 ```
 
 実行後，次を確認せよ．
 
-1. 何試合分のデータが入っているか
-2. 得点（`home_score`，`away_score`）に欠損はあるか
-3. 欠損があるのはどのような試合か（`results_df[results_df["home_score"].isna()]`で確認せよ．
-   このデータには**開催予定でまだ結果が出ていない試合**も含まれている）
-4. 最も多い大会の種類は何か
+1. 1500行，150フレーム，10選手であるか
+2. 1フレームに各選手の行が1行ずつあるか
+3. `x_pos`と`y_pos`はピッチ内の範囲にあるか
+4. `tag_id`は連続した番号とは限らないか
 ````
 
 ---
 
-## 前処理
+## 1フレームをピッチ上に可視化する
 
-````{note} 演習3：分析に使う表を作る
-「前処理」という見出しを作り，次のセルを順番に実行せよ．
+最初に，動画の1コマに相当する静止画を作る．
+ピッチの大きさとデータの座標範囲を一致させることが重要である．
 
-**セル1：日付の変換と列の追加を行う**
+````{note} 演習3：選手位置とチーム重心を描く
+「1フレームの可視化」という見出しを作り，次のセルを順番に実行せよ．
 
-- 試合日を日付型に変換し，`年`列を作る
-- 得点が欠損している行（結果が出ていない試合）を除外する
-- 1試合の合計得点`総得点`列を作る
-
-```python
-results_df["date"] = pd.to_datetime(results_df["date"])
-results_df["年"] = results_df["date"].dt.year
-
-results_df = results_df.dropna(subset=["home_score", "away_score"]).copy()
-results_df["総得点"] = results_df["home_score"] + results_df["away_score"]
-
-print("前処理後の行数:", len(results_df))
-print("期間:", results_df["年"].min(), "〜", results_df["年"].max())
-```
-
-**セル2：日本代表の試合を取り出す**
-
-ホームまたはアウェイのどちらかが`Japan`の試合を取り出す．
-`|`は「または」を表す（第6回の復習）．
+**セル1：ピッチを描く関数を定義する**
 
 ```python
-japan_df = results_df[
-    (results_df["home_team"] == "Japan") | (results_df["away_team"] == "Japan")
-].copy()
-
-print("日本代表の試合数:", len(japan_df))
-japan_df.head()
-```
-
-**セル3：日本から見た勝敗の列を作る**
-
-日本がホームかアウェイかで得点差の向きが変わるため，行ごとに判定する関数を作って`apply()`で適用する．
-
-```python
-def japan_result(row):
-    """日本から見た勝敗を返す．"""
-    if row["home_team"] == "Japan":
-        diff = row["home_score"] - row["away_score"]
-    else:
-        diff = row["away_score"] - row["home_score"]
-
-    if diff > 0:
-        return "勝ち"
-    elif diff < 0:
-        return "負け"
-    else:
-        return "引き分け"
-
-
-japan_df["結果"] = japan_df.apply(japan_result, axis=1)
-
-japan_df[["date", "home_team", "away_team", "home_score", "away_score", "結果"]].head()
-```
-
-**セル4：CSVに保存する**
-
-```python
-output_path = "../data/processed/japan_results.csv"
-
-japan_df.to_csv(output_path, index=False)
-
-print("saved:", output_path)
-```
-
-実行後，次を確認せよ．
-
-1. 日本代表の試合は何試合あるか
-2. `結果`列の判定は正しいか（先頭の数行を手で確かめよ）
-3. `data/processed/japan_results.csv`が作成されたか
-````
-
----
-
-## 集計と可視化
-
-### 問い1：日本代表は強くなったのか
-
-````{note} 演習4：年代別の勝率を可視化する
-「集計と可視化」という見出しを作り，次のセルを順番に実行せよ．
-
-**セル1：ライブラリを読み込む**
-
-```python
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-plt.rcParams["font.family"] = "Hiragino Sans"
-sns.set_theme(style="whitegrid", font="Hiragino Sans")
-```
-
-**セル2：全期間の結果を集計する**
-
-```python
-japan_df["結果"].value_counts()
-```
-
-**セル3：年代別に勝率を集計する**
-
-10年区切りの`年代`列を作り（例：2014年 → 2010年代），年代ごとに試合数と勝利数を集計する．
-
-```python
-japan_df["年代"] = (japan_df["年"] // 10) * 10
-japan_df["勝利"] = (japan_df["結果"] == "勝ち").astype(int)
-
-decade_df = (
-    japan_df.groupby("年代", as_index=False)
-    .agg(
-        試合数=("勝利", "count"),
-        勝利数=("勝利", "sum"),
-    )
-)
-
-decade_df["勝率"] = decade_df["勝利数"] / decade_df["試合数"]
-
-decade_df
-```
-
-**セル4：年代別の勝率を折れ線グラフにする**
-
-```python
-fig, ax = plt.subplots(figsize=(8, 5))
-
-sns.lineplot(data=decade_df, x="年代", y="勝率", marker="o", ax=ax)
-
-ax.set_title("日本代表の年代別勝率")
-ax.set_xlabel("年代")
-ax.set_ylabel("勝率")
-ax.set_ylim(0, 1)
-
-plt.tight_layout()
-plt.show()
-```
-
-実行後，次を確認せよ．
-
-1. 勝率が最も低い年代・高い年代はいつか
-2. 年代によって試合数に大きな差はあるか（試合数が少ない年代の勝率は信頼できるか）
-3. 「勝率が上がった＝強くなった」と言い切ってよいか（対戦相手の強さはこの集計に含まれているか）
-````
-
-### 問い2：ホームは本当に有利なのか
-
-````{note} 演習5：ホームアドバンテージを可視化する
-次のセルを順番に実行せよ．
-
-**セル1：中立地開催を除いて平均得点を集計する**
-
-中立地（`neutral`が`True`）の試合では「ホーム」に意味がないため除外する．
-
-```python
-not_neutral_df = results_df[results_df["neutral"] == False]
-
-home_mean = not_neutral_df["home_score"].mean()
-away_mean = not_neutral_df["away_score"].mean()
-
-print("対象試合数:", len(not_neutral_df))
-print("ホームチームの平均得点:", round(home_mean, 2))
-print("アウェイチームの平均得点:", round(away_mean, 2))
-```
-
-**セル2：棒グラフで比較する**
-
-```python
-home_away_df = pd.DataFrame({
-    "種類": ["ホーム", "アウェイ"],
-    "平均得点": [home_mean, away_mean],
-})
-
-fig, ax = plt.subplots(figsize=(5, 5))
-
-sns.barplot(data=home_away_df, x="種類", y="平均得点", ax=ax)
-
-ax.set_title("ホームとアウェイの平均得点（中立地を除く全試合）")
-ax.set_xlabel("")
-ax.set_ylabel("平均得点")
-
-plt.tight_layout()
-plt.show()
-```
-
-**セル3：総得点の分布をヒストグラムで見る**
-
-```python
-fig, ax = plt.subplots(figsize=(7, 4))
-
-sns.histplot(data=results_df, x="総得点", bins=range(0, 15), ax=ax)
-
-ax.set_title("1試合の総得点の分布（全試合）")
-ax.set_xlabel("総得点")
-ax.set_ylabel("試合数")
-
-plt.tight_layout()
-plt.show()
-```
-
-実行後，次を確認せよ．
-
-1. ホームとアウェイの平均得点にどの程度の差があるか
-2. 1試合の総得点として最も多いのは何点か
-3. 平均得点の差だけから「ホームが有利」と結論してよいか（他にどのような確認があり得るか）
-````
-
-````{note} 演習6：考察を書く
-README.mdの分析記録に，図から読み取れることを次の形で整理して記入せよ．
-
-1. 問い1について：年代別勝率から何が読み取れるか．試合数や対戦相手を考えると，何がまだ言えないか
-2. 問い2について：ホームとアウェイの平均得点の差から何が読み取れるか
-3. このデータだけでは判断できないことは何か
-````
-
-````{warning} 課題1：年代別勝率をPythonファイルで可視化する
-演習4で確認した内容を応用する．
-以下のコードの`<FUGAFUGA>`，`<HOGEHOGE1>`，`<HOGEHOGE2>`を適切に書き換えてpythonスクリプト`src/plot_japan_decade_winrate.py`を作成し，コードを実行して画像ファイル`reports/figures/japan_decade_winrate.png`を作成せよ．  
-最後に，作成したpythonスクリプト`src/plot_japan_decade_winrate.py`と画像ファイル`reports/figures/japan_decade_winrate.png`を<span style="color:red">WebClass「第12回課題」問1・問2</span>から提出せよ．
-
-```python
+# サッカーピッチを105m×68mの座標で描く．
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
-import seaborn as sns
+from matplotlib.patches import Circle, Rectangle
 
-input_path = "data/processed/japan_results.csv"
-output_path = "reports/figures/japan_decade_winrate.png"
 
 plt.rcParams["font.family"] = "Hiragino Sans"
-sns.set_theme(style="whitegrid", font="Hiragino Sans")
-Path("reports/figures").mkdir(parents=True, exist_ok=True)
 
-japan_df = pd.read_csv(input_path)
-
-japan_df["年代"] = (japan_df["年"] // 10) * 10
-japan_df["勝利"] = (japan_df["結果"] == <FUGAFUGA>).astype(int)
-
-decade_df = (
-    japan_df.groupby("年代", as_index=False)
-    .agg(
-        試合数=("勝利", "count"),
-        勝利数=("勝利", "sum"),
-    )
+tracking_df = pd.read_csv(
+    "../data/processed/alfheim_tracking_5fps.csv",
+    parse_dates=["timestamp"],
 )
 
-decade_df["勝率"] = decade_df[<HOGEHOGE1>] / decade_df[<HOGEHOGE2>]
 
-print(decade_df)
+def draw_pitch(ax):
+    line_style = {
+        "fill": False,
+        "edgecolor": "white",
+        "linewidth": 1.5,
+    }
 
-fig, ax = plt.subplots(figsize=(8, 5))
+    ax.set_facecolor("#2f7d32")
+    ax.add_patch(
+        Rectangle((0, 0), 105, 68, **line_style)
+    )
+    ax.plot(
+        [52.5, 52.5],
+        [0, 68],
+        color="white",
+        linewidth=1.5,
+    )
+    ax.add_patch(
+        Circle((52.5, 34), 9.15, **line_style)
+    )
+    ax.add_patch(
+        Rectangle(
+            (0, 13.84), 16.5, 40.32, **line_style
+        )
+    )
+    ax.add_patch(
+        Rectangle(
+            (88.5, 13.84), 16.5, 40.32, **line_style
+        )
+    )
+    ax.add_patch(
+        Rectangle(
+            (0, 24.84), 5.5, 18.32, **line_style
+        )
+    )
+    ax.add_patch(
+        Rectangle(
+            (99.5, 24.84), 5.5, 18.32, **line_style
+        )
+    )
+    ax.scatter(
+        [52.5, 11, 94],
+        [34, 34, 34],
+        color="white",
+        s=12,
+    )
 
-sns.lineplot(data=decade_df, x="年代", y="勝率", marker="o", ax=ax)
+    ax.set_xlim(-2, 107)
+    ax.set_ylim(-2, 70)
+    ax.set_aspect("equal")
+    ax.set_xticks([])
+    ax.set_yticks([])
+```
 
-ax.set_title("日本代表の年代別勝率")
-ax.set_xlabel("年代")
-ax.set_ylabel("勝率")
-ax.set_ylim(0, 1)
+**セル2：最初のフレームを描いて保存する**
+
+```python
+# 選手位置と座標平均から求めたチーム重心を描く．
+frame_df = tracking_df[
+    tracking_df["frame"] == 0
+]
+
+fig, ax = plt.subplots(figsize=(10, 6.5))
+draw_pitch(ax)
+
+ax.scatter(
+    frame_df["x_pos"],
+    frame_df["y_pos"],
+    c=frame_df["tag_id"],
+    cmap="tab10",
+    s=100,
+    edgecolors="black",
+    zorder=3,
+)
+
+for row in frame_df.itertuples():
+    ax.text(
+        row.x_pos,
+        row.y_pos,
+        str(row.tag_id),
+        ha="center",
+        va="center",
+        fontsize=8,
+        color="white",
+        weight="bold",
+        zorder=4,
+    )
+
+centroid_x = frame_df["x_pos"].mean()
+centroid_y = frame_df["y_pos"].mean()
+
+ax.scatter(
+    [centroid_x],
+    [centroid_y],
+    color="#ffd54f",
+    marker="X",
+    s=170,
+    edgecolors="black",
+    label="チーム重心",
+    zorder=5,
+)
+
+ax.set_title(
+    "Alfheimトラッキングデータ：経過時間0.0秒"
+)
+ax.legend(loc="upper right")
+
+output_path = Path(
+    "../reports/figures/alfheim_frame.png"
+)
+output_path.parent.mkdir(parents=True, exist_ok=True)
 
 plt.tight_layout()
-plt.savefig(output_path, dpi=150)
+plt.savefig(output_path, dpi=150, bbox_inches="tight")
+plt.show()
+
+print("saved:", output_path)
+```
+````
+
+![Alfheimトラッキングデータの静止画](./analysis/12/reports/figures/alfheim_frame.png)
+
+図の番号は匿名化された`tag_id`であり，選手の背番号ではない．
+黄色のXは，そのフレームで観測された10人の座標平均である．
+
+---
+
+## 選手の動きを動画として可視化する
+
+`matplotlib.animation.FuncAnimation`は，フレーム番号ごとに描画内容を更新して動画を作る．
+
+```python
+animation = FuncAnimation(
+    fig,
+    update,
+    frames=frame_ids,
+    interval=1000 / fps,
+)
+```
+
+今回の`update()`関数では，フレームごとに次の処理を行う．
+
+1. 該当フレームの行を抽出する
+2. 選手マーカーの座標を更新する
+3. 選手IDの表示位置を更新する
+4. チーム重心を計算して更新する
+5. 経過時間を更新する
+
+GIFはPillowを使って保存するため，別途`ffmpeg`をインストールする必要はない．
+
+````{note} 演習4：動画を作成する
+
+1. 演習1で`src`へ解凍した`animate_alfheim_tracking.py`を確認する．
+
+2. `12`フォルダ内で次のコマンドを実行する．
+
+```bash
+python3 src/animate_alfheim_tracking.py
+```
+
+3. `reports/figures/alfheim_tracking.gif`が作成されたことを確認する．
+
+4. GIFを開き，次を確認する．
+
+   - 30秒間の動きが5fpsで再生されるか
+   - 同じ選手IDが時間とともに移動するか
+   - チーム重心も選手の配置に応じて移動するか
+````
+
+![Alfheimトラッキングデータの動画](./analysis/12/reports/figures/alfheim_tracking.gif)
+
+```{tip} 動画から分かることと分からないこと
+動画からは，選手の移動方向，配置，チーム重心の変化を確認できる．
+一方，アウェイチーム，ボール，試合中のイベントがないため，なぜ選手が移動したかまでは判断できない．
+```
+
+---
+
+## 課題
+
+````{warning} 課題1：速さを色で表した静止画を作る
+演習3の後に「課題1」という見出しを作り，次の`<HOGEHOGE1>`〜`<HOGEHOGE5>`を適切に書き換えて実行せよ．
+
+```python
+# 1フレームの選手位置を速さで色分けして保存する．
+speed_frame_df = tracking_df[
+    tracking_df["frame"] == <HOGEHOGE1>
+]
+
+fig, ax = plt.subplots(figsize=(10, 6.5))
+draw_pitch(ax)
+
+points = ax.scatter(
+    speed_frame_df[<HOGEHOGE2>],
+    speed_frame_df[<HOGEHOGE3>],
+    c=speed_frame_df[<HOGEHOGE4>],
+    cmap="viridis",
+    vmin=0,
+    vmax=7,
+    s=110,
+    edgecolors="black",
+    zorder=3,
+)
+
+colorbar = fig.colorbar(points, ax=ax, pad=0.02)
+colorbar.set_label(<HOGEHOGE5>)
+
+ax.set_title("選手位置と速さ：経過時間0.0秒")
+
+output_path = Path(
+    "../reports/figures/tracking_speed_frame.png"
+)
+output_path.parent.mkdir(parents=True, exist_ok=True)
+
+plt.tight_layout()
+plt.savefig(output_path, dpi=150, bbox_inches="tight")
+plt.show()
 
 print("saved:", output_path)
 ```
 
-作成したPythonファイルを`12`フォルダ内でターミナルから実行せよ．
+次を確認すること．
 
-```bash
-python src/plot_japan_decade_winrate.py
-```
+1. フレーム0を使用しているか
+2. 横軸方向に`x_pos`，縦軸方向に`y_pos`を使用しているか
+3. `speed`を`viridis`で色分けしているか
+4. カラーバーに「速さ（m/s）」と表示されているか
 
-実行後，`reports/figures/japan_decade_winrate.png`が作成されていることを確認せよ．
+実行したコード全体を<span style="color:red">WebClass「第12回課題」問1</span>へ貼り付け，画像ファイル`reports/figures/tracking_speed_frame.png`を<span style="color:red">問2</span>から提出せよ．
 ````
 
 <!--
-````{dropdown} 解答例
-- `<FUGAFUGA>`：`"勝ち"`
-- `<HOGEHOGE1>`：`"勝利数"`
-- `<HOGEHOGE2>`：`"試合数"`
+````{dropdown} <span style="color:red">課題1 解答例</span>
+
+- `<HOGEHOGE1>`：`0`
+- `<HOGEHOGE2>`：`"x_pos"`
+- `<HOGEHOGE3>`：`"y_pos"`
+- `<HOGEHOGE4>`：`"speed"`
+- `<HOGEHOGE5>`：`"速さ（m/s）"`
 ````
 -->
 
-````{warning} 課題2：ホームアドバンテージをPythonファイルで可視化する
-演習5で確認した内容を応用する．
-以下のコードの`<HOGEHOGE1>`〜`<HOGEHOGE3>`を適切に書き換えてpythonスクリプト`src/plot_home_advantage.py`を作成し，コードを実行して画像ファイル`reports/figures/home_advantage.png`を作成せよ．  
-最後に，作成したpythonスクリプト`src/plot_home_advantage.py`と画像ファイル`reports/figures/home_advantage.png`を<span style="color:red">WebClass「第12回課題」問3・問4</span>から提出せよ．
+````{warning} 課題2：速さを色で表した動画を作る
+`src/animate_alfheim_tracking.py`を`src/animate_alfheim_speed.py`として複製し，次の条件を満たすように変更せよ．
 
-本課題は，元データ`data/raw/international_results.csv`の全試合（中立地を除く）を対象とする．
+1. 選手を識別する色ではなく，`speed`を`viridis`で色分けする
+2. 色の範囲を0m/sから7m/sに固定する
+3. 「速さ（m/s）」と表示したカラーバーを付ける
+4. 選手IDとチーム重心は残す
+5. `reports/figures/alfheim_tracking_speed.gif`として保存する
+
+次の処理を参考にすること．
 
 ```python
-from pathlib import Path
+from matplotlib.colors import Normalize
 
-import matplotlib.pyplot as plt
-import pandas as pd
-import seaborn as sns
+speed_norm = Normalize(vmin=0, vmax=7)
 
-input_path = "data/raw/international_results.csv"
-output_path = "reports/figures/home_advantage.png"
+players = ax.scatter(
+    [],
+    [],
+    c=[],
+    cmap="viridis",
+    norm=speed_norm,
+)
 
-plt.rcParams["font.family"] = "Hiragino Sans"
-sns.set_theme(style="whitegrid", font="Hiragino Sans")
-Path("reports/figures").mkdir(parents=True, exist_ok=True)
-
-results_df = pd.read_csv(input_path)
-results_df = results_df.dropna(subset=["home_score", "away_score"])
-
-not_neutral_df = results_df[results_df["neutral"] == <HOGEHOGE1>]
-
-home_mean = not_neutral_df[<HOGEHOGE2>].mean()
-away_mean = not_neutral_df[<HOGEHOGE3>].mean()
-
-print("対象試合数:", len(not_neutral_df))
-print("ホーム平均得点:", round(home_mean, 2))
-print("アウェイ平均得点:", round(away_mean, 2))
-
-home_away_df = pd.DataFrame({
-    "種類": ["ホーム", "アウェイ"],
-    "平均得点": [home_mean, away_mean],
-})
-
-fig, ax = plt.subplots(figsize=(5, 5))
-
-sns.barplot(data=home_away_df, x="種類", y="平均得点", ax=ax)
-
-ax.set_title("ホームとアウェイの平均得点（中立地を除く全試合）")
-ax.set_xlabel("")
-ax.set_ylabel("平均得点")
-
-plt.tight_layout()
-plt.savefig(output_path, dpi=150)
-
-print("saved:", output_path)
+players.set_array(np.asarray(speeds))
 ```
 
-作成したPythonファイルを`12`フォルダ内でターミナルから実行せよ．
-
-```bash
-python src/plot_home_advantage.py
-```
-
-実行後，次の点を確認せよ．
-
-1. ホームとアウェイの平均得点の差はどの程度か
-2. この差の理由として，どのような仮説が考えられるか（応援，移動の疲れ，気候など）
-3. 仮説を確かめるには，さらにどのようなデータが必要か
+作成したPythonファイル`src/animate_alfheim_speed.py`を<span style="color:red">WebClass「第12回課題」問3</span>から，GIFファイル`reports/figures/alfheim_tracking_speed.gif`を<span style="color:red">問4</span>から提出せよ．
 ````
 
 <!--
-````{dropdown} 解答例
-- `<HOGEHOGE1>`：`False`
-- `<HOGEHOGE2>`：`"home_score"`
-- `<HOGEHOGE3>`：`"away_score"`
+````{dropdown} <span style="color:red">課題2 解答例</span>
+解答例は`contents/analysis/12/src/animate_alfheim_speed.py`にある．
 ````
 -->
 
@@ -599,90 +651,101 @@ python src/plot_home_advantage.py
 
 ## 最終レポートへの接続
 
-第13回は休講とし，各自で最終レポートを作成する（詳細は第13回のページを参照）．
-最終レポートでは，各自でデータを選び，**データ取得 → 前処理 → 集計 → 可視化 → 考察**を一気通貫で行う．
+最終レポートでも，次の順序を意識すること．
 
-第9回から第12回で扱った流れが，そのままレポートの雛形になる．
-
-| 項目 | レポートで書くこと | 講義での例 |
+| 段階 | 第12回の例 | レポートで記録すること |
 | --- | --- | --- |
-| テーマ | 何を明らかにしたいか（図にできる問い） | ホームは本当に有利なのか |
-| データ | 名称・出典・URL・取得日・ライセンス | GitHub `martj42/international_results`，CC0 |
-| 前処理 | どの列を使い，どのように整形したか | 日付変換，欠損の除外，勝敗列の作成 |
-| 可視化 | どの図を作り，何を比較したか | 年代別勝率の折れ線，平均得点の棒グラフ |
-| 考察 | 図から何が読み取れるか | ホームの平均得点はアウェイより高い |
-| 限界 | この分析だけでは何が言えないか | 差の**原因**までは分からない |
-| 再現性 | スクリプト・図・README・フォルダ構成 | `src/`，`reports/figures/`，README.md |
+| 問い | 選手の位置は時間とともにどう変化するか | 何を明らかにしたいか |
+| 出典確認 | Alfheim公式サイトと利用条件 | URL，提供者，取得日，利用条件 |
+| 前処理 | 時間帯抽出，座標範囲，5fpsへの間引き | どの行を残し，どのように加工したか |
+| 可視化 | 静止画，位置動画，速さ動画 | 軸，単位，色，時間の意味 |
+| 解釈 | 配置，移動，重心の変化 | 図から直接確認できる事実 |
+| 限界 | 相手，ボール，イベントがない | データだけでは判断できないこと |
 
-データのテーマは自由である（行政統計，気象，交通，経済，感染症，スポーツなど）．
-第13回のページに，これまで使ったデータソースの一覧と選び方の注意をまとめてある．
+動く図は情報量が多いが，レポートでは動画だけに頼らず，代表的な静止画や集計表も併用する．
 
 ---
 
 ## まとめ
 
-- スポーツデータでは，ランキングだけでなく，分布や時間変化を見ることが重要である
-- GitHub上のオープンデータは，`raw.githubusercontent.com`のURLでファイルを直接取得できる．`README`と`LICENSE`を必ず確認する
-- 結果が出ていない試合のように，**欠損には理由がある**．理由を確認してから除外する
-- 行ごとの条件判定で新しい列を作るときは，関数を定義して`apply()`を使う
-- グループ別集計（年代別・条件別）は`groupby()`と`agg()`で行う
-- 「勝率が上がった＝強くなった」のように，集計結果を**過度に一般化しない**．言えることと言えないことを分けて書く
-
-次回（第13回）は休講とし，各自で最終レポートを作成する．
+| 観点 | 今回学んだこと |
+| --- | --- |
+| データ | トラッキングデータは，時刻と対象IDを持つ多変量時系列データである |
+| 座標 | 位置は2次元ベクトルで表され，ピッチと同じ座標範囲で描く必要がある |
+| 前処理 | 高頻度データは，目的に応じて時間帯とフレーム数を減らす |
+| 可視化 | 同じ描画領域でマーカーを時間順に更新すると動画になる |
+| 要約 | チーム重心は配置を1点に要約するが，広がりまでは表さない |
+| 倫理 | 公開データでも利用条件を確認し，匿名化された個人の再識別を試みない |
+| 解釈 | 相手やボールがない場合，移動の理由や戦術まで断定できない |
 
 ### 課題の提出期限
 
-<span style="color: red; ">7月7日(火)23:59まで</span>
+<span style="color:red">7月11日(土)23:59まで</span>
 
 ---
 
 ## 自主学習用の発展問題
 
 課題を全てこなし時間が余った場合に取り組んでください．
-WebClassの提出場所から提出したものについて加点対象とします．
+以降の発展問題は特に提出期限を設けない．
+各発展問題で作成したPythonファイルと出力ファイルをzip形式にまとめ，WebClass「第12回課題」の問5からまとめて提出すること．
 
-````{note} 課題3：日本代表の対戦相手トップ10を可視化する
+````{note} 発展問題1：1人の選手の軌跡を描く
+任意の`tag_id`を1つ選び，30秒間の$x$座標と$y$座標を線で結んでピッチ上に描け．
+始点と終点を異なるマーカーで示すこと．
 
-`japan_results.csv`を使い，日本代表の対戦回数が多い相手チーム上位10を棒グラフで表示せよ．
-日本がホームの試合では`away_team`が，アウェイの試合では`home_team`が対戦相手であることに注意すること．
-
-`src/plot_japan_opponents.py`を作成し，WebClass「第12回課題」問5から提出せよ．
-
-提出するのは作成したPythonファイルのみである．作成されるPNGファイルは提出しなくてよい．
-
-実行後，次の点を確認し，必要に応じてPythonファイル内のコメントに残すこと．
-
-1. 対戦回数が多いのはどの国・地域か
-2. 地理的にどのような傾向があるか
-3. 2つの列から対戦相手の一覧をどのように作ったか
+`src/plot_player_trajectory.py`を作成し，図を`reports/figures/player_trajectory.png`として保存すること．
 ````
 
-````{note} 課題4：ワールドカップ本大会の得点の変化を可視化する
+````{note} 発展問題2：チームの広がりを計算する
+各フレームについて，選手とチーム重心との距離を求め，その二乗平均平方根をチームの広がりとして計算せよ．
 
-`tournament`が`FIFA World Cup`の試合だけを取り出し，大会年ごとの1試合平均総得点を折れ線グラフで表示せよ．
+$$
+s(t)
+=
+\sqrt{
+\frac{1}{n}
+\sum_{i=1}^{n}
+\left\{
+[x_i(t)-x_c(t)]^2
++
+[y_i(t)-y_c(t)]^2
+\right\}
+}
+$$
 
-`src/plot_worldcup_goals.py`を作成し，WebClass「第12回課題」問6から提出せよ．
+横軸を経過時間，縦軸をチームの広がりとして折れ線グラフを作成すること．
 
-提出するのは作成したPythonファイルのみである．作成されるPNGファイルは提出しなくてよい．
-
-実行後，次の点を確認し，必要に応じてPythonファイル内のコメントに残すこと．
-
-1. 平均総得点が最も高かった大会はいつか
-2. 長期的に得点は増えているか減っているか
-3. その理由としてどのような仮説が考えられるか
+`src/plot_team_spread.py`を作成し，図を`reports/figures/team_spread.png`として保存すること．
 ````
 
-````{note} 課題5：好きな国で同じ分析を行う
+````{note} 発展問題3：標本化頻度を変えて動画を比較する
+前処理スクリプトの`--fps`を1，2，10のいずれかに変更してCSVと動画を作成せよ．
+フレーム数，ファイルサイズ，動きの滑らかさが5fpsの場合とどのように変化するか考察すること．
 
-日本以外の好きな国を1つ選び，演習3・演習4と同じ流れで年代別勝率の図を作成せよ．
-チーム名はデータ内の英語表記（例：`Brazil`，`Germany`，`South Korea`）を使うこと．
+元のファイルを上書きしないよう，`--output-path`と動画の保存先を変更すること．
 
-`src/plot_other_team_winrate.py`を作成し，WebClass「第12回課題」問7から提出せよ．
+例えば2fpsの場合は次のように実行する．
 
-提出するのは作成したPythonファイルのみである．作成されるPNGファイルは提出しなくてよい．
+```bash
+python3 src/prepare_alfheim_tracking.py \
+  --fps 2 \
+  --output-path data/processed/alfheim_tracking_2fps.csv
 
-実行後，次の点を確認し，必要に応じてPythonファイル内のコメントに残すこと．
-
-1. 選んだ国の勝率は日本とどう違うか
-2. 国名を変えるだけで再分析できるように，コードをどのように書いたか
+python3 src/animate_alfheim_tracking.py \
+  --fps 2 \
+  --input-path data/processed/alfheim_tracking_2fps.csv \
+  --output-path reports/figures/alfheim_tracking_2fps.gif
+```
 ````
+
+### さらに学ぶための手法
+
+| 手法 | 概要 |
+| --- | --- |
+| 選手間距離 | 選手同士がどの程度近いかを時系列で調べる |
+| 速度ベクトル | 速さだけでなく移動方向も可視化する |
+| チーム形状 | 重心，広がり，選手配置を組み合わせて見る |
+| イベントデータ結合 | パスやシュートの時刻と位置を対応させる |
+
+これらを適切に解釈するには，両チーム，ボール，試合イベントなどを含むデータが必要となる．
