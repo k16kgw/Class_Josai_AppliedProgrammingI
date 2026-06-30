@@ -6,7 +6,7 @@ project:
   description: 城西大学理学部数学科対象科目
   authors:
     - name: Keiichiro Kagawa
-    - email: kkagawa@josai.ac.jp
+      email: kkagawa@josai.ac.jp
     # - affiliation: 3号棟3階3306
   # 公開ページからGitHub・編集・ソース表示へのリンクを出さない
   # github: https://github.com/k16kgw/Class_Josai_AppliedProgrammingI
