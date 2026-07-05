@@ -37,8 +37,8 @@ project:
     - file: contents/9_map_visualization.md
     - file: contents/10_administrative_statistics.md
     - file: contents/11_economic_data.md
-    # - file: contents/12_sports_data.md
-    # - file: contents/13_report_writing.md
+    - file: contents/12_sports_data.md
+    - file: contents/13_report_writing.md
 
 site:
   options:

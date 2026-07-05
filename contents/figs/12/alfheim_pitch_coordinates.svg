@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="590" viewBox="0 0 900 590" role="img" aria-labelledby="title desc">
+  <title id="title">Football pitch coordinate system</title>
+  <desc id="desc">A 105 by 68 metre football pitch. The origin is at the lower left, x increases to the right, and y increases upward.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#263238"/>
+    </marker>
+  </defs>
+
+  <rect width="900" height="590" fill="#f7f8f5"/>
+
+  <!-- The pitch keeps the 105:68 aspect ratio. -->
+  <rect x="135" y="70" width="630" height="408" fill="#78b978" stroke="#ffffff" stroke-width="4"/>
+  <line x1="450" y1="70" x2="450" y2="478" stroke="#ffffff" stroke-width="3"/>
+  <circle cx="450" cy="274" r="55" fill="none" stroke="#ffffff" stroke-width="3"/>
+  <circle cx="450" cy="274" r="4" fill="#ffffff"/>
+
+  <!-- Penalty areas and goals. -->
+  <rect x="135" y="165" width="100" height="218" fill="none" stroke="#ffffff" stroke-width="3"/>
+  <rect x="135" y="215" width="42" height="118" fill="none" stroke="#ffffff" stroke-width="3"/>
+  <rect x="115" y="242" width="20" height="64" fill="none" stroke="#263238" stroke-width="3"/>
+  <circle cx="205" cy="274" r="4" fill="#ffffff"/>
+  <path d="M235 225 A60 60 0 0 1 235 323" fill="none" stroke="#ffffff" stroke-width="3"/>
+
+  <rect x="665" y="165" width="100" height="218" fill="none" stroke="#ffffff" stroke-width="3"/>
+  <rect x="723" y="215" width="42" height="118" fill="none" stroke="#ffffff" stroke-width="3"/>
+  <rect x="765" y="242" width="20" height="64" fill="none" stroke="#263238" stroke-width="3"/>
+  <circle cx="695" cy="274" r="4" fill="#ffffff"/>
+  <path d="M665 225 A60 60 0 0 0 665 323" fill="none" stroke="#ffffff" stroke-width="3"/>
+
+  <!-- Coordinate axes. -->
+  <line x1="135" y1="478" x2="810" y2="478" stroke="#263238" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="135" y1="478" x2="135" y2="40" stroke="#263238" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <g fill="#1f2933" font-family="Arial, Helvetica, sans-serif" font-size="18">
+    <text x="815" y="484" font-weight="700">x_pos (m)</text>
+    <text x="62" y="35" font-weight="700">y_pos (m)</text>
+
+    <text x="126" y="510">0</text>
+    <text x="742" y="510">105</text>
+    <text x="108" y="484">0</text>
+    <text x="100" y="78">68</text>
+
+    <text x="149" y="466" fill="#ffffff" font-weight="700">(0, 0)</text>
+    <text x="672" y="466" fill="#ffffff" font-weight="700">(105, 0)</text>
+    <text x="149" y="97" fill="#ffffff" font-weight="700">(0, 68)</text>
+    <text x="656" y="97" fill="#ffffff" font-weight="700">(105, 68)</text>
+  </g>
+
+  <text x="450" y="565" text-anchor="middle" fill="#455a64" font-family="Arial, Helvetica, sans-serif" font-size="17">
+    Pitch size: 105 m x 68 m
+  </text>
+</svg>
