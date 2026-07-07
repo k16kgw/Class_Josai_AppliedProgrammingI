@@ -89,12 +89,14 @@ python3 -m pip install --upgrade requests pandas numpy matplotlib pillow
 - 前処理済みデータ：data/processed/alfheim_tracking_5fps.csv
 - 観察用ノートブック：notebooks/tracking.ipynb（Gitでは管理しない）
 - 使用するスクリプト：src/prepare_alfheim_tracking.py
+- 課題で作成するスクリプト：src/animate_alfheim_voronoi.py
 - 出力する図・動画：
   - reports/figures/alfheim_frame.png
   - reports/figures/tracking_speed_frame.png
   - reports/figures/alfheim_tracking.gif
   - reports/figures/alfheim_tracking_speed.gif
   - reports/figures/team_voronoi_frame.png
+  - reports/figures/alfheim_voronoi.gif
 ```
 
 5. `.gitignore`を作成する．
@@ -938,8 +940,7 @@ players.set_array(np.asarray(speeds))
 4. カラーバーに「速さ（m/s）」と表示されているか
 5. 動画でも色の範囲が0m/sから7m/sに固定されているか
 
-Notebookを保存し，`notebooks/tracking.ipynb`を<span style="color:red">WebClass「第12回課題」問1</span>から提出すること．
-画像ファイル`reports/figures/tracking_speed_frame.png`を<span style="color:red">問2</span>から，GIFファイル`reports/figures/alfheim_tracking_speed.gif`を<span style="color:red">問3</span>から提出せよ．
+Notebookを保存し，画像ファイル`reports/figures/tracking_speed_frame.png`を<span style="color:red">WebClass「第12回課題」問1</span>から，GIFファイル`reports/figures/alfheim_tracking_speed.gif`を<span style="color:red">問2</span>から提出せよ．
 ````
 
 <!--
@@ -1026,8 +1027,8 @@ V_i
 \mid
 \lVert \boldsymbol{x}-\boldsymbol{p}_i \rVert
 \leq
-\lVert \boldsymbol{x}-\boldsymbol{p}_j \rVert,
-\quad \text{すべての }j\neq i
+\lVert \boldsymbol{x}-\boldsymbol{p}_j \rVert
+\quad \forall j
 \right\}
 $$
 
@@ -1181,6 +1182,267 @@ voronoi_area_df.sort_values(
 
 ![ホームチームのボロノイ図](./analysis/12/reports/figures/team_voronoi_frame.png)
 
+````{warning} 課題2：ボロノイ図の動画を作る
+演習5で作成した1フレームのボロノイ図を，演習4と同じ方法で時間順に更新する動画へ発展させよ．
+`src/animate_alfheim_voronoi.py`を作成し，次の条件を満たすこと．
+
+1. `data/processed/alfheim_tracking_5fps.csv`を読み込む
+2. 全150フレームについてボロノイ領域を計算する
+3. 動画では処理時間を抑えるため，ピッチを50cm間隔の格子に分ける
+4. 同じ選手の領域は，全フレームで同じ色にする
+5. 選手位置，匿名化された選手ID，経過時間を表示する
+6. 5fpsのGIFとして`reports/figures/alfheim_voronoi.gif`へ保存する
+
+### 作成手順と参考箇所
+
+| 手順 | 行う処理 | 参考にする演習・セル |
+| --- | --- | --- |
+| 1 | CSVを読み込み，フレーム番号と選手IDを準備する | 演習2・セル1，演習4・セル1 |
+| 2 | 50cm間隔の格子と選手ごとの色を準備する | 演習5・セル1，セル3 |
+| 3 | ピッチ，領域画像，選手マーカー，時刻表示を準備する | 演習3・セル1，演習4・セル2，演習5・セル3 |
+| 4 | 指定フレームの選手位置を取り出す | 演習4・セル3 |
+| 5 | 各格子点に最も近い選手を求める | 演習5・セル2 |
+| 6 | 領域画像，選手位置，選手ID，経過時間を更新する | 演習4・セル3，演習5・セル3 |
+| 7 | `FuncAnimation`で全フレームをつなぎ，GIFへ保存する | 演習4・セル4 |
+
+領域画像は，最初に`imshow()`で準備し，`update()`内で`set_data()`を使って更新できる．
+
+```python
+region_image = ax.imshow(
+    initial_region,
+    extent=(0, 105, 0, 68),
+    origin="lower",
+    cmap=voronoi_cmap,
+    alpha=0.42,
+    interpolation="nearest",
+)
+
+
+def update(frame):
+    # 演習4・セル3を参考に，このフレームの選手位置を取り出す．
+    # 演習5・セル2を参考に，nearest_playerを計算する．
+    region_image.set_data(nearest_player)
+```
+
+作成後，`12`フォルダ内で次のコマンドを実行すること．
+
+```bash
+python3 src/animate_alfheim_voronoi.py
+```
+
+実行後，次を確認すること．
+
+1. 演習5で`reports/figures/team_voronoi_frame.png`が作成されているか
+2. 30秒間のボロノイ領域の変化が5fpsで再生されるか
+3. 選手が移動すると領域の境界も変化するか
+4. 同じ選手の領域色が途中で変わっていないか
+5. `reports/figures/alfheim_voronoi.gif`が作成されているか
+
+画像ファイル`reports/figures/team_voronoi_frame.png`を<span style="color:red">WebClass「第12回課題」問3</span>から，GIFファイル`reports/figures/alfheim_voronoi.gif`を<span style="color:red">問4</span>から提出せよ．
+
+最後にこれまで実施したNotebookファイル`notebooks/tracking.ipynb`を<span style="color:red">WebClass「第12回課題」問5</span>から提出すること．
+````
+
+<!--
+````{dropdown} <span style="color:red">課題2 解答例</span>
+次のコード全体を1つのセルに入力する．
+同じ内容を`src/animate_alfheim_voronoi.py`として保存し，`12`フォルダ内で実行する．
+
+```python
+from argparse import ArgumentParser
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from matplotlib.animation import FuncAnimation, PillowWriter
+from matplotlib.colors import ListedColormap
+
+from animate_alfheim_tracking import draw_pitch
+
+
+def create_animation(tracking_df, output_path, fps, grid_size):
+    plt.rcParams["font.family"] = "Hiragino Sans"
+
+    # 演習4・セル1：動画で使用する選手IDとフレームを準備する．
+    player_ids = sorted(tracking_df["tag_id"].unique())
+    player_index = {
+        tag_id: index
+        for index, tag_id in enumerate(player_ids)
+    }
+    frame_ids = sorted(tracking_df["frame"].unique())
+
+    # 演習5・セル1：ボロノイ領域を計算する格子を準備する．
+    x_centers = np.arange(grid_size / 2, 105, grid_size)
+    y_centers = np.arange(grid_size / 2, 68, grid_size)
+    grid_x, grid_y = np.meshgrid(x_centers, y_centers)
+
+    voronoi_colors = plt.colormaps["tab10"](
+        np.arange(len(player_ids))
+    )
+    voronoi_cmap = ListedColormap(voronoi_colors)
+
+    # 演習3・セル1，演習4・セル2：更新する図形を準備する．
+    fig, ax = plt.subplots(figsize=(10, 6.5))
+    draw_pitch(ax)
+
+    region_image = ax.imshow(
+        np.zeros_like(grid_x),
+        extent=(0, 105, 0, 68),
+        origin="lower",
+        cmap=voronoi_cmap,
+        vmin=-0.5,
+        vmax=len(player_ids) - 0.5,
+        alpha=0.42,
+        interpolation="nearest",
+        zorder=1,
+    )
+    players = ax.scatter(
+        [],
+        [],
+        s=100,
+        edgecolors="black",
+        linewidths=0.8,
+        zorder=3,
+    )
+    labels = {
+        tag_id: ax.text(
+            0,
+            0,
+            str(tag_id),
+            ha="center",
+            va="center",
+            fontsize=8,
+            color="white",
+            weight="bold",
+            zorder=4,
+        )
+        for tag_id in player_ids
+    }
+    time_text = ax.text(
+        0.02,
+        1.02,
+        "",
+        transform=ax.transAxes,
+        fontsize=12,
+    )
+    ax.set_title("ホームチームのボロノイ図の時間変化")
+
+    def update(frame):
+        # 演習4・セル3：指定フレームの選手位置を取り出す．
+        frame_df = (
+            tracking_df[tracking_df["frame"] == frame]
+            .set_index("tag_id")
+        )
+
+        positions = []
+        color_indices = []
+
+        for tag_id in player_ids:
+            if tag_id not in frame_df.index:
+                labels[tag_id].set_visible(False)
+                continue
+
+            x_pos = float(frame_df.loc[tag_id, "x_pos"])
+            y_pos = float(frame_df.loc[tag_id, "y_pos"])
+            positions.append([x_pos, y_pos])
+            color_indices.append(player_index[tag_id])
+
+            labels[tag_id].set_position((x_pos, y_pos))
+            labels[tag_id].set_visible(True)
+
+        player_points = np.asarray(positions)
+        color_indices = np.asarray(color_indices)
+
+        # 演習5・セル2：各格子点に最も近い選手を求める．
+        distance_squared = (
+            (grid_x[:, :, None] - player_points[:, 0]) ** 2
+            + (grid_y[:, :, None] - player_points[:, 1]) ** 2
+        )
+        nearest_local_player = distance_squared.argmin(axis=2)
+        nearest_player = color_indices[nearest_local_player]
+
+        # 演習4・セル3，演習5・セル3：領域と選手位置を更新する．
+        region_image.set_data(nearest_player)
+        players.set_offsets(player_points)
+        players.set_facecolors(voronoi_colors[color_indices])
+
+        elapsed_seconds = float(
+            frame_df["elapsed_seconds"].iloc[0]
+        )
+        time_text.set_text(
+            f"経過時間: {elapsed_seconds:4.1f} 秒"
+        )
+
+        return [
+            region_image,
+            players,
+            time_text,
+            *labels.values(),
+        ]
+
+    # 演習4・セル4：全フレームをつないでGIFへ保存する．
+    animation = FuncAnimation(
+        fig,
+        update,
+        frames=frame_ids,
+        interval=1000 / fps,
+        blit=False,
+    )
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    animation.save(
+        output_path,
+        writer=PillowWriter(fps=fps),
+        dpi=90,
+    )
+    plt.close(fig)
+
+
+def main():
+    parser = ArgumentParser()
+    parser.add_argument(
+        "--input-path",
+        type=Path,
+        default=Path(
+            "data/processed/alfheim_tracking_5fps.csv"
+        ),
+    )
+    parser.add_argument(
+        "--output-path",
+        type=Path,
+        default=Path(
+            "reports/figures/alfheim_voronoi.gif"
+        ),
+    )
+    parser.add_argument("--fps", type=int, default=5)
+    parser.add_argument(
+        "--grid-size",
+        type=float,
+        default=0.5,
+    )
+    args = parser.parse_args()
+
+    tracking_df = pd.read_csv(
+        args.input_path,
+        parse_dates=["timestamp"],
+    )
+
+    create_animation(
+        tracking_df=tracking_df,
+        output_path=args.output_path,
+        fps=args.fps,
+        grid_size=args.grid_size,
+    )
+    print("saved:", args.output_path)
+
+
+if __name__ == "__main__":
+    main()
+```
+````
+-->
+
 ---
 
 ## 最終レポートへの接続
@@ -1192,7 +1454,7 @@ voronoi_area_df.sort_values(
 | 問い | 選手の位置は時間とともにどう変化するか | 何を明らかにしたいか |
 | 出典確認 | Alfheim公式サイトと利用条件 | URL，提供者，取得日，利用条件 |
 | 前処理 | 時間帯抽出，座標範囲，5fpsへの間引き | どの行を残し，どのように加工したか |
-| 可視化 | 静止画，位置動画，速さ動画，ボロノイ図 | 軸，単位，色，時間，領域の意味 |
+| 可視化 | 静止画，位置動画，速さ動画，ボロノイ図・動画 | 軸，単位，色，時間，領域の意味 |
 | 解釈 | 配置，移動，重心，ボロノイ領域の変化 | 図から直接確認できる事実 |
 | 限界 | 相手，ボール，イベントがない | データだけでは判断できないこと |
 
@@ -1215,25 +1477,40 @@ voronoi_area_df.sort_values(
 
 ### 課題の提出期限
 
-<span style="color:red">7月26日(日)23:59まで</span>
+<span style="color:red">7月11日(土)23:59まで</span>
 
 ---
 
 ## 自主学習用の発展問題
 
-課題を全てこなし時間が余った場合に取り組んでください．
+課題1・2を全てこなし，時間が余った場合に取り組んでよい．
 以降の発展問題は特に提出期限を設けない．
-各発展問題で作成したPythonファイルと出力ファイルをzip形式にまとめ，WebClass「第12回課題」の問5からまとめて提出すること．
+各発展問題で作成したPythonファイル，出力ファイル，追記した`README.md`をzip形式にまとめ，WebClass「第12回課題」の問6から提出すること．
+提出された発展問題は加点対象とし，未提出による減点は行わない．
+
+発展問題1・2では`data/processed/alfheim_tracking_5fps.csv`を使用する．
+ピッチの描画には演習3・セル1で定義した`draw_pitch()`を使用してよい．
+発展問題3では，指定したfpsに合わせて別のCSVを作成する．
 
 ````{note} 発展問題1：1人の選手の軌跡を描く
-任意の`tag_id`を1つ選び，30秒間の$x$座標と$y$座標を線で結んでピッチ上に描け．
-始点と終点を異なるマーカーで示すこと．
+演習2・セル4で確認した`tag_id`から任意の選手を1人選び，30秒間の移動軌跡をピッチ上に描け．
+
+次の条件を満たすこと．
+
+1. 選んだ選手の行を抽出し，`frame`の昇順に並べる
+2. `x_pos`と`y_pos`を線で結ぶ
+3. 始点を丸印，終点をX印で示す
+4. 図のタイトルに選んだ`tag_id`を表示する
+5. 凡例で始点と終点を区別する
 
 `src/plot_player_trajectory.py`を作成し，図を`reports/figures/player_trajectory.png`として保存すること．
+READMEの「発展問題」へ，選んだ`tag_id`と軌跡から読み取った移動範囲を記録すること．
+
+参考箇所：演習2・セル1，セル4，演習3・セル1，セル2
 ````
 
 ````{note} 発展問題2：チームの広がりを計算する
-各フレームについて，選手とチーム重心との距離を求め，その二乗平均平方根をチームの広がりとして計算せよ．
+「チームの重心」の節を参考に，各フレームについて選手とチーム重心との距離を求め，その二乗平均平方根をチームの広がりとして計算せよ．
 
 $$
 s(t)
@@ -1249,14 +1526,30 @@ s(t)
 }
 $$
 
-横軸を経過時間，縦軸をチームの広がりとして折れ線グラフを作成すること．
+次の条件を満たすこと．
+
+1. フレームごとに$x$座標と$y$座標の重心を求める
+2. 各選手と重心との距離の二乗を求める
+3. フレームごとに二乗平均平方根$s(t)$を求める
+4. 横軸を`elapsed_seconds`，縦軸をチームの広がりとして折れ線グラフを作る
+5. 横軸に時間の単位「秒」，縦軸に距離の単位「m」を表示する
 
 `src/plot_team_spread.py`を作成し，図を`reports/figures/team_spread.png`として保存すること．
+READMEの「発展問題」へ，広がりが最大・最小となる時刻と，図から読み取った配置の変化を記録すること．
+
+参考箇所：「チームの重心」の節，演習2・セル1，演習3・セル2
 ````
 
-````{note} 発展問題3：標本化頻度を変えて動画を比較する
-前処理スクリプトの`--fps`を1，2，10のいずれかに変更してCSVと動画を作成せよ．
-フレーム数，ファイルサイズ，動きの滑らかさが5fpsの場合とどのように変化するか考察すること．
+````{note} 発展問題3：標本化頻度を変えてボロノイ動画を比較する
+本文では20Hzの元データを5fpsへ間引いた．
+前処理スクリプトの`--fps`を1，2，10のいずれかに変更し，課題2と同じボロノイ動画を作成せよ．
+
+次の項目を5fpsの場合と比較すること．
+
+1. CSVのフレーム数
+2. CSVとGIFのファイルサイズ
+3. 選手の動きの滑らかさ
+4. ボロノイ領域の境界変化の滑らかさ
 
 元のファイルを上書きしないよう，`--output-path`と動画の保存先を変更すること．
 
@@ -1267,11 +1560,16 @@ python3 src/prepare_alfheim_tracking.py \
   --fps 2 \
   --output-path data/processed/alfheim_tracking_2fps.csv
 
-python3 src/animate_alfheim_tracking.py \
+python3 src/animate_alfheim_voronoi.py \
   --fps 2 \
   --input-path data/processed/alfheim_tracking_2fps.csv \
-  --output-path reports/figures/alfheim_tracking_2fps.gif
+  --output-path reports/figures/alfheim_voronoi_2fps.gif
 ```
+
+作成したCSV，GIF，使用したPythonファイルを提出用zipに含めること．
+READMEの「発展問題」へ，選択したfpsと上記4項目の比較結果を記録すること．
+
+参考箇所：「データを取得・前処理する」の節，演習4・セル4，課題2
 ````
 
 ### さらに学ぶための手法
