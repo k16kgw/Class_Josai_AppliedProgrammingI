@@ -1436,7 +1436,7 @@ voronoi_area_df.sort_values(
 
 ````{warning} 課題2：ボロノイ図の動画を作る
 演習5で作成した1フレームのボロノイ図を，演習4と同じ方法で時間順に更新する動画へ発展させよ．
-`src/animate_alfheim_voronoi.py`を作成し，次の条件を満たすこと．
+Notebookファイルに追記する形で課題に取り組むこと．
 
 1. `data/processed/alfheim_tracking_5fps.csv`を読み込む
 2. 全150フレームについてボロノイ領域を計算する
@@ -1474,12 +1474,6 @@ def update(frame):
     # 演習4・セル3を参考に，このフレームの選手位置を取り出す．
     # 演習5・セル2を参考に，nearest_playerを計算する．
     region_image.set_data(nearest_player)
-```
-
-作成後，`12`フォルダ内で次のコマンドを実行すること．
-
-```bash
-python3 src/animate_alfheim_voronoi.py
 ```
 
 実行後，次を確認すること．
