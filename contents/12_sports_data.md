@@ -1011,25 +1011,6 @@ print("saved:", output_path)
 4. 選手IDとチーム重心は残す
 5. `../reports/figures/alfheim_tracking_speed.gif`として保存する
 
-次の処理を参考にすること．
-
-```python
-from matplotlib.colors import Normalize
-
-
-speed_norm = Normalize(vmin=0, vmax=7)
-
-players = ax.scatter(
-    [],
-    [],
-    c=[],
-    cmap="viridis",
-    norm=speed_norm,
-)
-
-players.set_array(np.asarray(speeds))
-```
-
 静止画と動画について，次を確認すること．
 
 1. `tracking_df`の最後のフレームを使用しているか
