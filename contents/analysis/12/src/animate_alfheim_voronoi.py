@@ -1,4 +1,3 @@
-from argparse import ArgumentParser
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -8,6 +7,16 @@ from matplotlib.animation import FuncAnimation, PillowWriter
 from matplotlib.colors import ListedColormap
 
 from animate_alfheim_tracking import draw_pitch
+
+
+input_path = Path(
+    "data/processed/alfheim_tracking_5fps.csv"
+)
+output_path = Path(
+    "reports/figures/alfheim_voronoi.gif"
+)
+fps = 5
+grid_size = 0.5
 
 
 def create_animation(tracking_df, output_path, fps, grid_size):
@@ -148,43 +157,16 @@ def create_animation(tracking_df, output_path, fps, grid_size):
     plt.close(fig)
 
 
-def main():
-    parser = ArgumentParser()
-    parser.add_argument(
-        "--input-path",
-        type=Path,
-        default=Path(
-            "data/processed/alfheim_tracking_5fps.csv"
-        ),
-    )
-    parser.add_argument(
-        "--output-path",
-        type=Path,
-        default=Path(
-            "reports/figures/alfheim_voronoi.gif"
-        ),
-    )
-    parser.add_argument("--fps", type=int, default=5)
-    parser.add_argument(
-        "--grid-size",
-        type=float,
-        default=0.5,
-    )
-    args = parser.parse_args()
+# 演習2・セル1：前処理済みCSVを読み込む．
+tracking_df = pd.read_csv(
+    input_path,
+    parse_dates=["timestamp"],
+)
 
-    tracking_df = pd.read_csv(
-        args.input_path,
-        parse_dates=["timestamp"],
-    )
-
-    create_animation(
-        tracking_df=tracking_df,
-        output_path=args.output_path,
-        fps=args.fps,
-        grid_size=args.grid_size,
-    )
-    print("saved:", args.output_path)
-
-
-if __name__ == "__main__":
-    main()
+create_animation(
+    tracking_df=tracking_df,
+    output_path=output_path,
+    fps=fps,
+    grid_size=grid_size,
+)
+print("saved:", output_path)

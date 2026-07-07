@@ -19,17 +19,21 @@ fps = 5
 
 plt.rcParams["font.family"] = "Hiragino Sans"
 
+# 演習2・セル1：前処理済みCSVを読み込む．
 tracking_df = pd.read_csv(
     input_path,
     parse_dates=["timestamp"],
 )
 
+# 演習4・セル1：選手IDとフレーム番号を準備する．
 player_ids = sorted(tracking_df["tag_id"].unique())
 frame_ids = sorted(tracking_df["frame"].unique())
 
+# 演習4・セル2：更新する図形を準備する．
 fig, ax = plt.subplots(figsize=(10, 6.5))
 draw_pitch(ax)
 
+# 課題1：選手の色を速さへ対応させる．
 speed_norm = Normalize(vmin=0, vmax=7)
 players = ax.scatter(
     [],
@@ -79,6 +83,7 @@ colorbar.set_label("速さ（m/s）")
 ax.legend(loc="upper right", framealpha=0.9)
 
 
+# 演習4・セル3：指定フレームの表示を更新する．
 def update(frame):
     frame_df = (
         tracking_df[tracking_df["frame"] == frame]
@@ -96,6 +101,7 @@ def update(frame):
         x_pos = float(frame_df.loc[tag_id, "x_pos"])
         y_pos = float(frame_df.loc[tag_id, "y_pos"])
         positions.append([x_pos, y_pos])
+        # 課題1：各選手の速さを色の更新に使用する．
         speeds.append(float(frame_df.loc[tag_id, "speed"]))
 
         labels[tag_id].set_position((x_pos, y_pos))
@@ -121,6 +127,7 @@ def update(frame):
     ]
 
 
+# 演習4・セル4：全フレームをつないでGIFへ保存する．
 animation = FuncAnimation(
     fig,
     update,
