@@ -39,6 +39,7 @@ project:
     - file: contents/11_economic_data.md
     - file: contents/12_sports_data.md
     - file: contents/13_report_writing.md
+    - file: contents/14_data_sources.md
 
 site:
   options:
